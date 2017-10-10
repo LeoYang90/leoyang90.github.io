@@ -1,0 +1,1010 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言laravel 为我们提供便携的重定向功能，可以由门面 Redirect，或者全局函数 redirect() 来启用，本篇文章将会介绍重定向功能的具体细节及源码分析。 URI 重定向重定向功能是由类 UrlGenerator 所实现，这个类需要 request 来进行初始化： 1234 $url = new UrlGenerator(    $routes = new RouteCollect">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/08/07/Laravel Http——重定向的使用与源码分析/index.html">
+<meta property="og:site_name" content="LEOYANG&#39;S BLOG">
+<meta property="og:description" content="前言laravel 为我们提供便携的重定向功能，可以由门面 Redirect，或者全局函数 redirect() 来启用，本篇文章将会介绍重定向功能的具体细节及源码分析。 URI 重定向重定向功能是由类 UrlGenerator 所实现，这个类需要 request 来进行初始化： 1234 $url = new UrlGenerator(    $routes = new RouteCollect">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-08-08T10:17:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
+<meta name="twitter:description" content="前言laravel 为我们提供便携的重定向功能，可以由门面 Redirect，或者全局函数 redirect() 来启用，本篇文章将会介绍重定向功能的具体细节及源码分析。 URI 重定向重定向功能是由类 UrlGenerator 所实现，这个类需要 request 来进行初始化： 1234 $url = new UrlGenerator(    $routes = new RouteCollect">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/08/07/Laravel Http——重定向的使用与源码分析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/07/Laravel Http——重定向的使用与源码分析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-07T11:12:57+08:00">
+                2017-08-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/08/07/Laravel Http——重定向的使用与源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/07/Laravel Http——重定向的使用与源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/08/07/Laravel Http——重定向的使用与源码分析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><code>laravel</code> 为我们提供便携的重定向功能，可以由门面 <code>Redirect</code>，或者全局函数 <code>redirect()</code> 来启用，本篇文章将会介绍重定向功能的具体细节及源码分析。</p>
+<h1 id="URI-重定向"><a href="#URI-重定向" class="headerlink" title="URI 重定向"></a>URI 重定向</h1><p>重定向功能是由类 <code>UrlGenerator</code> 所实现，这个类需要 <code>request</code> 来进行初始化：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"> $url = <span class="keyword">new</span> UrlGenerator(</div><div class="line">    $routes = <span class="keyword">new</span> RouteCollection,</div><div class="line">    $request = Request::create(<span class="string">'http://www.foo.com/'</span>)</div><div class="line">);</div></pre></td></tr></table></figure>
+<h2 id="重定向到-uri"><a href="#重定向到-uri" class="headerlink" title="重定向到 uri"></a>重定向到 uri</h2><ul>
+<li>当我们想要重定向到某个地址时，可以使用 <code>to</code> 函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bar'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>));</div></pre></td></tr></table></figure>
+<ul>
+<li>当我们想要添加额外的路径，可以将数组赋给第二个参数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'https://www.foo.com/foo/bar/baz/boom'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>, [<span class="string">'baz'</span>, <span class="string">'boom'</span>], <span class="keyword">true</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'https://www.foo.com/foo/bar/baz?foo=bar'</span>, $url-&gt;to(<span class="string">'foo/bar?foo=bar'</span>, [<span class="string">'baz'</span>], <span class="keyword">true</span>));</div></pre></td></tr></table></figure>
+<h2 id="强制-https"><a href="#强制-https" class="headerlink" title="强制 https"></a>强制 https</h2><p>如果我们想要重定向到 <code>https</code> ，我们可以设置第三个参数为 <code>true</code> :</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'https://www.foo.com/foo/bar'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>, [], <span class="keyword">true</span>));</div></pre></td></tr></table></figure>
+<p>或者使用 <code>forceScheme</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$url-&gt;forceScheme(<span class="string">'https'</span>);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'https://www.foo.com/foo/bar'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>);</div></pre></td></tr></table></figure>
+<h2 id="强制域名"><a href="#强制域名" class="headerlink" title="强制域名"></a>强制域名</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$url-&gt;forceRootUrl(<span class="string">'https://www.bar.com'</span>);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'https://www.bar.com/foo/bar'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>);</div></pre></td></tr></table></figure>
+<h2 id="路径自定义"><a href="#路径自定义" class="headerlink" title="路径自定义"></a>路径自定义</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$url-&gt;formatPathUsing(<span class="function"><span class="keyword">function</span> <span class="params">($path)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'/something'</span>.$path;</div><div class="line">&#125;);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/something/foo/bar'</span>, $url-&gt;to(<span class="string">'foo/bar'</span>));</div></pre></td></tr></table></figure>
+<h1 id="路由重定向"><a href="#路由重定向" class="headerlink" title="路由重定向"></a>路由重定向</h1><p>重定向另一个非常重要的功能是重定向到路由所在的地址中去：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'/named-route'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'plain'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http:/www.bar.com/named-route'</span>, $url-&gt;route(<span class="string">'plain'</span>));</div></pre></td></tr></table></figure>
+<h2 id="非域名路径"><a href="#非域名路径" class="headerlink" title="非域名路径"></a>非域名路径</h2><p><code>laravel</code> 路由重定向可以选择重定向后的地址是否仍然带有域名，这个特性由第三个参数决定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'/named-route'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'plain'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'/named-route'</span>, $url-&gt;route(<span class="string">'plain'</span>, [], <span class="keyword">false</span>));</div></pre></td></tr></table></figure>
+<h2 id="重定向端口号"><a href="#重定向端口号" class="headerlink" title="重定向端口号"></a>重定向端口号</h2><p>路由重定向可以允许带有 <code>request</code> 自己的端口：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$url = <span class="keyword">new</span> UrlGenerator(</div><div class="line">    $routes = <span class="keyword">new</span> RouteCollection,</div><div class="line">    $request = Request::create(<span class="string">'http://www.foo.com:8080/'</span>)</div><div class="line">);</div><div class="line"></div><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar/&#123;baz&#125;'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'bar'</span>, <span class="string">'domain'</span> =&gt; <span class="string">'sub.&#123;foo&#125;.com'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://sub.taylor.com:8080/foo/bar/otwell'</span>, $url-&gt;route(<span class="string">'bar'</span>, [<span class="string">'taylor'</span>, <span class="string">'otwell'</span>]));</div></pre></td></tr></table></figure>
+<h2 id="重定向路径参数绑定"><a href="#重定向路径参数绑定" class="headerlink" title="重定向路径参数绑定"></a>重定向路径参数绑定</h2><p>如果路由中含有参数，可以将需要的参数赋给 <code>route</code> 第二个参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar/&#123;baz&#125;'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'foobar'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bar/taylor'</span>, $url-&gt;route(<span class="string">'foobar'</span>, <span class="string">'taylor'</span>));</div></pre></td></tr></table></figure>
+<p>也可以根据参数的命名来指定参数绑定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar/&#123;baz&#125;/breeze/&#123;boom&#125;'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'bar'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bar/otwell/breeze/taylor'</span>, $url-&gt;route(<span class="string">'bar'</span>, [<span class="string">'boom'</span> =&gt; <span class="string">'taylor'</span>, <span class="string">'baz'</span> =&gt; <span class="string">'otwell'</span>]));</div></pre></td></tr></table></figure>
+<p>还可以利用 <code>defaults</code> 函数为重定向提供默认的参数来绑定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$url-&gt;defaults([<span class="string">'locale'</span> =&gt; <span class="string">'en'</span>]);</div><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'defaults'</span>, <span class="string">'domain'</span> =&gt; <span class="string">'&#123;locale&#125;.example.com'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">&#125;]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://en.example.com/foo'</span>, $url-&gt;route(<span class="string">'defaults'</span>));</div></pre></td></tr></table></figure>
+<h2 id="重定向路由-querystring-添加"><a href="#重定向路由-querystring-添加" class="headerlink" title="重定向路由 querystring 添加"></a>重定向路由 querystring 添加</h2><p>当在 <code>route</code> 函数中赋给的参数多于路径参数的时候，多余的参数会被添加到 <code>querystring</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar/&#123;baz&#125;/breeze/&#123;boom&#125;'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'bar'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bar/taylor/breeze/otwell?fly=wall'</span>, $url-&gt;route(<span class="string">'bar'</span>, [<span class="string">'taylor'</span>, <span class="string">'otwell'</span>, <span class="string">'fly'</span> =&gt; <span class="string">'wall'</span>]));</div></pre></td></tr></table></figure>
+<h2 id="fragment-重定向"><a href="#fragment-重定向" class="headerlink" title="fragment 重定向"></a>fragment 重定向</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar#derp'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'fragment'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'/foo/bar?baz=%C3%A5%CE%B1%D1%84#derp'</span>, $url-&gt;route(<span class="string">'fragment'</span>, [<span class="string">'baz'</span> =&gt; <span class="string">'åαф'</span>], <span class="keyword">false</span>));</div></pre></td></tr></table></figure>
+<h2 id="路由-action-重定向"><a href="#路由-action-重定向" class="headerlink" title="路由 action 重定向"></a>路由 action 重定向</h2><p>我们不仅可以通过路由的别名来重定向，还可以利用路由的控制器方法来重定向：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bam'</span>, [<span class="string">'controller'</span> =&gt; <span class="string">'foo@bar'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line">   </div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bam'</span>, $url-&gt;action(<span class="string">'foo@bar'</span>));</div></pre></td></tr></table></figure>
+<p>可以设定重定向控制器的默认命名空间：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$url-&gt;setRootControllerNamespace(<span class="string">'namespace'</span>);</div><div class="line"></div><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/bar'</span>, [<span class="string">'controller'</span> =&gt; <span class="string">'namespace\foo@bar'</span>]);</div><div class="line">        $routes-&gt;add($route);</div><div class="line"></div><div class="line">$route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'something/else'</span>, [<span class="string">'controller'</span> =&gt; <span class="string">'something\foo@bar'</span>]);</div><div class="line">$routes-&gt;add($route);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/foo/bar'</span>, $url-&gt;action(<span class="string">'foo@bar'</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'http://www.foo.com/something/else'</span>, $url-&gt;action(<span class="string">'\something\foo@bar'</span>));</div></pre></td></tr></table></figure>
+<h2 id="UrlRoutable-参数绑定"><a href="#UrlRoutable-参数绑定" class="headerlink" title="UrlRoutable 参数绑定"></a>UrlRoutable 参数绑定</h2><p>可以为重定向传入 <code>UrlRoutable</code> 类型的参数，重定向会通过类方法 <code>getRouteKey</code> 来获取对象的某个属性，进而绑定到路由的参数中去。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRoutableInterfaceRoutingWithSingleParameter</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $url = <span class="keyword">new</span> UrlGenerator(</div><div class="line">        $routes = <span class="keyword">new</span> RouteCollection,</div><div class="line">        $request = Request::create(<span class="string">'http://www.foo.com/'</span>)</div><div class="line">    );</div><div class="line"></div><div class="line">    $route = <span class="keyword">new</span> Route([<span class="string">'GET'</span>], <span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'routable'</span>]);</div><div class="line">    $routes-&gt;add($route);</div><div class="line"></div><div class="line">    $model = <span class="keyword">new</span> RoutableInterfaceStub;</div><div class="line">    $model-&gt;key = <span class="string">'routable'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'/foo/routable'</span>, $url-&gt;route(<span class="string">'routable'</span>, $model, <span class="keyword">false</span>));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoutableInterfaceStub</span> <span class="keyword">implements</span> <span class="title">UrlRoutable</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> $key;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKey</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;&#123;<span class="keyword">$this</span>-&gt;getRouteKeyName()&#125;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'key'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="URI-重定向源码分析"><a href="#URI-重定向源码分析" class="headerlink" title="URI 重定向源码分析"></a>URI 重定向源码分析</h1><p>在说重定向的源码之前，我们先了解一下一般的 <code>uri</code> 基本组成：</p>
+<p><code>scheme://domain:port/path?queryString</code></p>
+<p>也就是说，一般 <code>uri</code> 由五部分构成。重定向实际上就是按照各种传入的参数以及属性的设置来重新生成上面的五部分：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">to</span><span class="params">($path, $extra = [], $secure = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isValidUrl($path)) &#123;</div><div class="line">        <span class="keyword">return</span> $path;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $tail = implode(<span class="string">'/'</span>, array_map(</div><div class="line">        <span class="string">'rawurlencode'</span>, (<span class="keyword">array</span>) <span class="keyword">$this</span>-&gt;formatParameters($extra))</div><div class="line">    );</div><div class="line"></div><div class="line">    $root = <span class="keyword">$this</span>-&gt;formatRoot(<span class="keyword">$this</span>-&gt;formatScheme($secure));</div><div class="line"></div><div class="line">    <span class="keyword">list</span>($path, $query) = <span class="keyword">$this</span>-&gt;extractQueryString($path);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;format(</div><div class="line">        $root, <span class="string">'/'</span>.trim($path.<span class="string">'/'</span>.$tail, <span class="string">'/'</span>)</div><div class="line">    ).$query;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="重定向-scheme"><a href="#重定向-scheme" class="headerlink" title="重定向 scheme"></a>重定向 scheme</h2><p>重定向的 <code>scheme</code> 由函数 <code>formatScheme</code> 生成：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">formatScheme</span><span class="params">($secure)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($secure)) &#123;</div><div class="line">        <span class="keyword">return</span> $secure ? <span class="string">'https://'</span> : <span class="string">'http://'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (is_null(<span class="keyword">$this</span>-&gt;cachedSchema)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;cachedSchema = <span class="keyword">$this</span>-&gt;forceScheme ?: <span class="keyword">$this</span>-&gt;request-&gt;getScheme().<span class="string">'://'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;cachedSchema;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forceScheme</span><span class="params">($schema)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;cachedSchema = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;forceScheme = $schema.<span class="string">'://'</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出来， <code>scheme</code> 的生成存在优先级：</p>
+<ul>
+<li>由 <code>to</code> 传入的 <code>secure</code> 参数</li>
+<li>由 <code>forceScheme</code> 设置的 <code>schema</code> 参数</li>
+<li><code>request</code> 自带的 <code>scheme</code></li>
+</ul>
+<h2 id="重定向-domain"><a href="#重定向-domain" class="headerlink" title="重定向 domain"></a>重定向 domain</h2><p>重定向的 <code>domain</code> 由函数 <code>formatRoot</code> 生成：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">formatRoot</span><span class="params">($scheme, $root = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (is_null($root)) &#123;</div><div class="line">        <span class="keyword">if</span> (is_null(<span class="keyword">$this</span>-&gt;cachedRoot)) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;cachedRoot = <span class="keyword">$this</span>-&gt;forcedRoot ?: <span class="keyword">$this</span>-&gt;request-&gt;root();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $root = <span class="keyword">$this</span>-&gt;cachedRoot;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $start = Str::startsWith($root, <span class="string">'http://'</span>) ? <span class="string">'http://'</span> : <span class="string">'https://'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> preg_replace(<span class="string">'~'</span>.$start.<span class="string">'~'</span>, $scheme, $root, <span class="number">1</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forceRootUrl</span><span class="params">($root)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;forcedRoot = rtrim($root, <span class="string">'/'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;cachedRoot = <span class="keyword">null</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>与 <code>scheme</code> 类似，<code>root</code> 的生成也存在优先级：</p>
+<ul>
+<li>由 <code>to</code> 传入的 <code>root</code> 参数</li>
+<li>由 <code>forceRootUrl</code> 设置的 <code>root</code> 参数</li>
+<li><code>request</code> 自带的 <code>root</code></li>
+</ul>
+<h2 id="重定向-path"><a href="#重定向-path" class="headerlink" title="重定向 path"></a>重定向 path</h2><p>重定向的 <code>path</code> 由三部分构成，一部分是 <code>request</code> 自带的 <code>path</code>，一部分是函数 <code>to</code> 原有的 <code>path</code> ，另一部分是函数 <code>to</code> 传入的参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">formatParameters</span><span class="params">($parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $parameters = array_wrap($parameters);</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($parameters <span class="keyword">as</span> $key =&gt; $parameter) &#123;</div><div class="line">        <span class="keyword">if</span> ($parameter <span class="keyword">instanceof</span> UrlRoutable) &#123;</div><div class="line">            $parameters[$key] = $parameter-&gt;getRouteKey();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $parameters;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">extractQueryString</span><span class="params">($path)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (($queryPosition = strpos($path, <span class="string">'?'</span>)) !== <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">return</span> [</div><div class="line">            substr($path, <span class="number">0</span>, $queryPosition),</div><div class="line">            substr($path, $queryPosition),</div><div class="line">        ];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> [$path, <span class="string">''</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="路由重定向源码分析"><a href="#路由重定向源码分析" class="headerlink" title="路由重定向源码分析"></a>路由重定向源码分析</h1><p>相对于 <code>uri</code> 的重定向来说，路由重定向的 <code>scheme</code>、<code>root</code> 、<code>path</code>、<code>queryString</code> 都要以路由自身的属性为第一优先级，此外还要利用额外参数来绑定路由的 <code>uri</code> 参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">route</span><span class="params">($name, $parameters = [], $absolute = true)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($route = <span class="keyword">$this</span>-&gt;routes-&gt;getByName($name))) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;toRoute($route, $parameters, $absolute);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">"Route [&#123;$name&#125;] not defined."</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">to</span><span class="params">($route, $parameters = [], $absolute = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $domain = <span class="keyword">$this</span>-&gt;getRouteDomain($route, $parameters);</div><div class="line"></div><div class="line">    $uri = <span class="keyword">$this</span>-&gt;addQueryString(<span class="keyword">$this</span>-&gt;url-&gt;format(</div><div class="line">        $root = <span class="keyword">$this</span>-&gt;replaceRootParameters($route, $domain, $parameters),</div><div class="line">        <span class="keyword">$this</span>-&gt;replaceRouteParameters($route-&gt;uri(), $parameters)</div><div class="line">    ), $parameters);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (preg_match(<span class="string">'/\&#123;.*?\&#125;/'</span>, $uri)) &#123;</div><div class="line">        <span class="keyword">throw</span> UrlGenerationException::forMissingParameters($route);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $uri = strtr(rawurlencode($uri), <span class="keyword">$this</span>-&gt;dontEncode);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! $absolute) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'/'</span>.ltrim(str_replace($root, <span class="string">''</span>, $uri), <span class="string">'/'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $uri;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由重定向-scheme"><a href="#路由重定向-scheme" class="headerlink" title="路由重定向 scheme"></a>路由重定向 scheme</h2><p>路由的重定向 <code>scheme</code> 需要先判断路由的 <code>scheme</code> 属性：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteScheme</span><span class="params">($route)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($route-&gt;httpOnly()) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'http://'</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> ($route-&gt;httpsOnly()) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'https://'</span>;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;url-&gt;formatScheme(<span class="keyword">null</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由重定向-domain"><a href="#路由重定向-domain" class="headerlink" title="路由重定向 domain"></a>路由重定向 domain</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">to</span><span class="params">($route, $parameters = [], $absolute = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	$domain = <span class="keyword">$this</span>-&gt;getRouteDomain($route, $parameters);</div><div class="line"></div><div class="line">    $uri = <span class="keyword">$this</span>-&gt;addQueryString(<span class="keyword">$this</span>-&gt;url-&gt;format(</div><div class="line">        $root = <span class="keyword">$this</span>-&gt;replaceRootParameters($route, $domain, $parameters),</div><div class="line">        <span class="keyword">$this</span>-&gt;replaceRouteParameters($route-&gt;uri(), $parameters)</div><div class="line">    ), $parameters);</div><div class="line">	...</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteDomain</span><span class="params">($route, &amp;$parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> $route-&gt;domain() ? <span class="keyword">$this</span>-&gt;formatDomain($route, $parameters) : <span class="keyword">null</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">formatDomain</span><span class="params">($route, &amp;$parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;addPortToDomain(</div><div class="line">        <span class="keyword">$this</span>-&gt;getRouteScheme($route).$route-&gt;domain()</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addPortToDomain</span><span class="params">($domain)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $secure = <span class="keyword">$this</span>-&gt;request-&gt;isSecure();</div><div class="line"></div><div class="line">    $port = (int) <span class="keyword">$this</span>-&gt;request-&gt;getPort();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> ($secure &amp;&amp; $port === <span class="number">443</span>) || (! $secure &amp;&amp; $port === <span class="number">80</span>)</div><div class="line">            ? $domain : $domain.<span class="string">':'</span>.$port;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">replaceRootParameters</span><span class="params">($route, $domain, &amp;$parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $scheme = <span class="keyword">$this</span>-&gt;getRouteScheme($route);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;replaceRouteParameters(</div><div class="line">        <span class="keyword">$this</span>-&gt;url-&gt;formatRoot($scheme, $domain), $parameters</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出路由重定向时，域名的生成主要先经过函数 <code>getRouteDomain</code>, 判断路由是否有 <code>domain</code> 属性,如果有域名属性，则将会作为 <code>formatRoot</code> 函数的参数传入，否则就会默认启动 1<code>uri</code> 重定向的域名生成方法。</p>
+<h2 id="路由重定向参数绑定"><a href="#路由重定向参数绑定" class="headerlink" title="路由重定向参数绑定"></a>路由重定向参数绑定</h2><p>路由重定向可以利用函数 <code>replaceRootParameters</code> 在域名当中参数绑定，，也可以在路径当中利用函数 <code>replaceRouteParameters</code> 进行参数绑定。参数绑定分为命名参数绑定与匿名参数绑定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">replaceRouteParameters</span><span class="params">($path, array &amp;$parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $path = <span class="keyword">$this</span>-&gt;replaceNamedParameters($path, $parameters);</div><div class="line"></div><div class="line">    $path = preg_replace_callback(<span class="string">'/\&#123;.*?\&#125;/'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($match)</span> <span class="title">use</span> <span class="params">(&amp;$parameters)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">empty</span>($parameters) &amp;&amp; ! Str::endsWith($match[<span class="number">0</span>], <span class="string">'?&#125;'</span>))</div><div class="line">                    ? $match[<span class="number">0</span>]</div><div class="line">                    : array_shift($parameters);</div><div class="line">    &#125;, $path);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> trim(preg_replace(<span class="string">'/\&#123;.*?\?\&#125;/'</span>, <span class="string">''</span>, $path), <span class="string">'/'</span>);</div><div class="line">&#125;</div><div class="line">``` </div><div class="line"></div><div class="line">对于命名参数绑定,程序会分别从变量列表、默认变量列表中获取并替换路由参数对应的数值，若不存在该参数，则直接返回：</div><div class="line"></div><div class="line">```php</div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">replaceNamedParameters</span><span class="params">($path, &amp;$parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> preg_replace_callback(<span class="string">'/\&#123;(.*?)\??\&#125;/'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($m)</span> <span class="title">use</span> <span class="params">(&amp;$parameters)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>($parameters[$m[<span class="number">1</span>]])) &#123;</div><div class="line">            <span class="keyword">return</span> Arr::pull($parameters, $m[<span class="number">1</span>]);</div><div class="line">        &#125; <span class="keyword">elseif</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;defaultParameters[$m[<span class="number">1</span>]])) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;defaultParameters[$m[<span class="number">1</span>]];</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> $m[<span class="number">0</span>];</div><div class="line">        &#125;</div><div class="line">    &#125;, $path);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>命名参数绑定结束后，剩下的未被替换的路由参数将会被未命名的变量按顺序来替换。</p>
+<h2 id="路由重定向-queryString"><a href="#路由重定向-queryString" class="headerlink" title="路由重定向 queryString"></a>路由重定向 queryString</h2><p>如果变量列表在绑定路由后仍然有剩余，那么变量将会作为路由的 <code>queryString</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addQueryString</span><span class="params">($uri, array $parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($fragment = parse_url($uri, PHP_URL_FRAGMENT))) &#123;</div><div class="line">        $uri = preg_replace(<span class="string">'/#.*/'</span>, <span class="string">''</span>, $uri);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $uri .= <span class="keyword">$this</span>-&gt;getRouteQueryString($parameters);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> is_null($fragment) ? $uri : $uri.<span class="string">"#&#123;$fragment&#125;"</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteQueryString</span><span class="params">(array $parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (count($parameters) == <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">''</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $query = http_build_query(</div><div class="line">        $keyed = <span class="keyword">$this</span>-&gt;getStringParameters($parameters)</div><div class="line">    );</div><div class="line"></div><div class="line">        </div><div class="line">    <span class="keyword">if</span> (count($keyed) &lt; count($parameters)) &#123;</div><div class="line">        $query .= <span class="string">'&amp;'</span>.implode(</div><div class="line">            <span class="string">'&amp;'</span>, <span class="keyword">$this</span>-&gt;getNumericParameters($parameters)</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="string">'?'</span>.trim($query, <span class="string">'&amp;'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由重定向结束"><a href="#路由重定向结束" class="headerlink" title="路由重定向结束"></a>路由重定向结束</h2><p>路由 <code>uri</code> 构建完成后，将会继续判断是否存在违背绑定的路由参数，是否显示 <code>absolute</code> 的路由地址</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">to</span><span class="params">($route, $parameters = [], $absolute = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	...</div><div class="line">	<span class="keyword">if</span> (preg_match(<span class="string">'/\&#123;.*?\&#125;/'</span>, $uri)) &#123;</div><div class="line">        <span class="keyword">throw</span> UrlGenerationException::forMissingParameters($route);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    $uri = strtr(rawurlencode($uri), <span class="keyword">$this</span>-&gt;dontEncode);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! $absolute) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'/'</span>.ltrim(str_replace($root, <span class="string">''</span>, $uri), <span class="string">'/'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $uri;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/04/RESTFul 路由的使用与源码分析/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/08/07/Laravel Http——重定向的使用与源码分析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/08/07/Laravel Http——重定向的使用与源码分析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/08/07/Laravel Http——重定向的使用与源码分析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/08/07/Laravel Http——重定向的使用与源码分析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#URI-重定向"><span class="nav-number">2.</span> <span class="nav-text">URI 重定向</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向到-uri"><span class="nav-number">2.1.</span> <span class="nav-text">重定向到 uri</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#强制-https"><span class="nav-number">2.2.</span> <span class="nav-text">强制 https</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#强制域名"><span class="nav-number">2.3.</span> <span class="nav-text">强制域名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路径自定义"><span class="nav-number">2.4.</span> <span class="nav-text">路径自定义</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由重定向"><span class="nav-number">3.</span> <span class="nav-text">路由重定向</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#非域名路径"><span class="nav-number">3.1.</span> <span class="nav-text">非域名路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向端口号"><span class="nav-number">3.2.</span> <span class="nav-text">重定向端口号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向路径参数绑定"><span class="nav-number">3.3.</span> <span class="nav-text">重定向路径参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向路由-querystring-添加"><span class="nav-number">3.4.</span> <span class="nav-text">重定向路由 querystring 添加</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fragment-重定向"><span class="nav-number">3.5.</span> <span class="nav-text">fragment 重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-action-重定向"><span class="nav-number">3.6.</span> <span class="nav-text">路由 action 重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UrlRoutable-参数绑定"><span class="nav-number">3.7.</span> <span class="nav-text">UrlRoutable 参数绑定</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#URI-重定向源码分析"><span class="nav-number">4.</span> <span class="nav-text">URI 重定向源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向-scheme"><span class="nav-number">4.1.</span> <span class="nav-text">重定向 scheme</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向-domain"><span class="nav-number">4.2.</span> <span class="nav-text">重定向 domain</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向-path"><span class="nav-number">4.3.</span> <span class="nav-text">重定向 path</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由重定向源码分析"><span class="nav-number">5.</span> <span class="nav-text">路由重定向源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#路由重定向-scheme"><span class="nav-number">5.1.</span> <span class="nav-text">路由重定向 scheme</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由重定向-domain"><span class="nav-number">5.2.</span> <span class="nav-text">路由重定向 domain</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由重定向参数绑定"><span class="nav-number">5.3.</span> <span class="nav-text">路由重定向参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由重定向-queryString"><span class="nav-number">5.4.</span> <span class="nav-text">路由重定向 queryString</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由重定向结束"><span class="nav-number">5.5.</span> <span class="nav-text">路由重定向结束</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

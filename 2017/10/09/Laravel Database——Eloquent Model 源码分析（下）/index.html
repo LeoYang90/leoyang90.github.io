@@ -1,0 +1,1045 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/index.html">
+<meta property="og:site_name" content="LEOYANG&#39;S BLOG">
+<meta property="og:description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-10T14:57:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
+<meta name="twitter:description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T23:50:57+08:00">
+                2017-10-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Laravel-Database——Eloquent-Model-源码分析（下）"><a href="#Laravel-Database——Eloquent-Model-源码分析（下）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（下）"></a>Laravel Database——Eloquent Model 源码分析（下）</h1><h2 id="获取模型"><a href="#获取模型" class="headerlink" title="获取模型"></a>获取模型</h2><h3 id="get-函数"><a href="#get-函数" class="headerlink" title="get 函数"></a>get 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getModels</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;hydrate(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;get($columns)-&gt;all()</div><div class="line">    )-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>get</code> 函数会将 <code>QueryBuilder</code> 所获取的数据进一步包装 <code>hydrate</code>。<code>hydrate</code> 函数会将数据库取回来的数据打包成数据库模型对象 <code>Eloquent Model</code>，如果可以获取到数据，还会利用函数 <code>eagerLoadRelations</code> 来预加载关系模型。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hydrate</span><span class="params">(array $items)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $instance = <span class="keyword">$this</span>-&gt;newModelInstance();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $instance-&gt;newCollection(array_map(<span class="function"><span class="keyword">function</span> <span class="params">($item)</span> <span class="title">use</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $instance-&gt;newFromBuilder($item);</div><div class="line">    &#125;, $items));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>newModelInstance</code> 函数创建了一个新的数据库模型对象，重要的是这个函数为新的数据库模型对象赋予了 <code>connection</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newModelInstance</span><span class="params">($attributes = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;newInstance($attributes)-&gt;setConnection(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;getConnection()-&gt;getName()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>newFromBuilder</code> 函数会将所有数据库数据存入另一个新的 <code>Eloquent Model</code> 的 <code>attributes</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newFromBuilder</span><span class="params">($attributes = [], $connection = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $model = <span class="keyword">$this</span>-&gt;newInstance([], <span class="keyword">true</span>);</div><div class="line"></div><div class="line">    $model-&gt;setRawAttributes((<span class="keyword">array</span>) $attributes, <span class="keyword">true</span>);</div><div class="line"></div><div class="line">    $model-&gt;setConnection($connection ?: <span class="keyword">$this</span>-&gt;getConnectionName());</div><div class="line"></div><div class="line">    $model-&gt;fireModelEvent(<span class="string">'retrieved'</span>, <span class="keyword">false</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $model;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>newInstance 函数专用于创建新的数据库对象模型：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newInstance</span><span class="params">($attributes = [], $exists = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $model = <span class="keyword">new</span> <span class="keyword">static</span>((<span class="keyword">array</span>) $attributes);</div><div class="line"></div><div class="line">    $model-&gt;exists = $exists;</div><div class="line"></div><div class="line">    $model-&gt;setConnection(</div><div class="line">        <span class="keyword">$this</span>-&gt;getConnectionName()</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $model;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是 <code>newInstance</code> 将 <code>exist</code> 设置为 <code>true</code>，意味着当前这个数据库模型对象是从数据库中获取而来，并非是手动新建的，这个 <code>exist</code> 为真，我们才能对这个数据库对象进行 <code>update</code>。</p>
+<p><code>setRawAttributes</code> 函数为新的数据库对象赋予属性值，并且进行 <code>sync</code>，标志着对象的原始状态：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setRawAttributes</span><span class="params">(array $attributes, $sync = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;attributes = $attributes;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($sync) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;syncOriginal();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">syncOriginal</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;original = <span class="keyword">$this</span>-&gt;attributes;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个原始状态的记录十分重要，原因是 <code>save</code> 函数就是利用原始值 <code>original</code> 与属性值 <code>attributes</code> 的差异来决定更新的字段。</p>
+<h3 id="find-函数"><a href="#find-函数" class="headerlink" title="find 函数"></a>find 函数</h3><p><code>find</code> 函数用于利用主键 <code>id</code> 来查询数据，<code>find</code> 函数也可以传入数组，查询多个数据</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">find</span><span class="params">($id, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (is_array($id) || $id <span class="keyword">instanceof</span> Arrayable) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;findMany($id, $columns);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;whereKey($id)-&gt;first($columns);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findMany</span><span class="params">($ids, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>($ids)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;newCollection();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;whereKey($ids)-&gt;get($columns);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="findOrFail"><a href="#findOrFail" class="headerlink" title="findOrFail"></a>findOrFail</h3><p><code>laravel</code> 还提供 <code>findOrFail</code> 函数，一般用于 <code>controller</code>，在未找到记录的时候会抛出异常。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findOrFail</span><span class="params">($id, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $result = <span class="keyword">$this</span>-&gt;find($id, $columns);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (is_array($id)) &#123;</div><div class="line">        <span class="keyword">if</span> (count($result) == count(array_unique($id))) &#123;</div><div class="line">            <span class="keyword">return</span> $result;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">elseif</span> (! is_null($result)) &#123;</div><div class="line">        <span class="keyword">return</span> $result;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> (<span class="keyword">new</span> ModelNotFoundException)-&gt;setModel(</div><div class="line">        get_class(<span class="keyword">$this</span>-&gt;model), $id</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="其他查询与数据获取方法"><a href="#其他查询与数据获取方法" class="headerlink" title="其他查询与数据获取方法"></a>其他查询与数据获取方法</h3><p>所用 <code>Query Builder</code> 支持的查询方法，例如 <code>select</code>、<code>selectSub</code>、<code>whereDate</code>、<code>whereBetween</code> 等等，都可以直接对 <code>Eloquent Model</code> 直接使用，程序会通过魔术方法调用 <code>Query Builder</code> 的相关方法：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $passthru = [</div><div class="line">    <span class="string">'insert'</span>, <span class="string">'insertGetId'</span>, <span class="string">'getBindings'</span>, <span class="string">'toSql'</span>,</div><div class="line">    <span class="string">'exists'</span>, <span class="string">'count'</span>, <span class="string">'min'</span>, <span class="string">'max'</span>, <span class="string">'avg'</span>, <span class="string">'sum'</span>, <span class="string">'getConnection'</span>,</div><div class="line">];</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    ...</div><div class="line"> </div><div class="line">    <span class="keyword">if</span> (in_array($method, <span class="keyword">$this</span>-&gt;passthru)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;toBase()-&gt;&#123;$method&#125;(...$parameters);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;query-&gt;&#123;$method&#125;(...$parameters);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>passthru</code> 中的各个函数在调用前需要加载查询作用域，原因是这些操作基本上是 <code>aggregate</code> 的，需要添加搜索条件才能更加符合预期：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">toBase</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;applyScopes()-&gt;getQuery();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="添加和更新模型"><a href="#添加和更新模型" class="headerlink" title="添加和更新模型"></a>添加和更新模型</h2><h3 id="save-函数"><a href="#save-函数" class="headerlink" title="save 函数"></a>save 函数</h3><p>在 <code>Eloquent Model</code> 中，添加与更新模型可以统一用 <code>save</code> 函数。在添加模型的时候需要事先为 <code>model</code> 属性赋值，可以单个手动赋值，也可以批量赋值。在更新模型的时候，需要事先从数据库中取出模型，然后修改模型属性，最后执行 <code>save</code> 更新操作。官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent#inserting-and-updating-models" target="_blank" rel="external">添加和更新模型</a> </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">save</span><span class="params">(array $options = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $query = <span class="keyword">$this</span>-&gt;newQueryWithoutScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'saving'</span>) === <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;exists) &#123;</div><div class="line">        $saved = <span class="keyword">$this</span>-&gt;isDirty() ?</div><div class="line">                    <span class="keyword">$this</span>-&gt;performUpdate($query) : <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">else</span> &#123;</div><div class="line">        $saved = <span class="keyword">$this</span>-&gt;performInsert($query);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;getConnectionName() &amp;&amp;</div><div class="line">            $connection = $query-&gt;getConnection()) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;setConnection($connection-&gt;getName());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($saved) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;finishSave($options);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $saved;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>save</code> 函数不会加载全局作用域，原因是凡是利用 <code>save</code> 函数进行的插入或者更新的操作都不会存在 <code>where</code> 条件，仅仅利用自身的主键属性来进行更新。如果需要 <code>where</code> 条件可以使用 <code>query\builder</code> 的 <code>update</code> 函数，我们在下面会详细介绍：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newQueryWithoutScopes</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;newEloquentBuilder(<span class="keyword">$this</span>-&gt;newBaseQueryBuilder());</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;setModel(<span class="keyword">$this</span>)</div><div class="line">                -&gt;with(<span class="keyword">$this</span>-&gt;with)</div><div class="line">                -&gt;withCount(<span class="keyword">$this</span>-&gt;withCount);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">newBaseQueryBuilder</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $connection = <span class="keyword">$this</span>-&gt;getConnection();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> QueryBuilder(</div><div class="line">        $connection, $connection-&gt;getQueryGrammar(), $connection-&gt;getPostProcessor()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>newQueryWithoutScopes 函数创建新的没有任何其他条件的 <code>Eloquent\builder</code> 类，而 <code>Eloquent\builder</code> 类需要 <code>Query\builder</code> 类作为底层查询构造器。</p>
+<h3 id="performUpdate-函数"><a href="#performUpdate-函数" class="headerlink" title="performUpdate 函数"></a>performUpdate 函数</h3><p>如果当前的数据库模型对象是从数据库中取出的，也就是直接或间接的调用 <code>get()</code> 函数从数据库中获取到的数据库对象，那么其 <code>exists</code> 必然是 <code>true</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">isDirty</span><span class="params">($attributes = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;hasChanges(</div><div class="line">        <span class="keyword">$this</span>-&gt;getDirty(), is_array($attributes) ? $attributes : func_get_args()</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getDirty</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $dirty = [];</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getAttributes() <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;originalIsEquivalent($key, $value)) &#123;</div><div class="line">            $dirty[$key] = $value;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $dirty;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>getDirty</code> 函数可以获取所有与原始值不同的属性值，也就是需要更新的数据库字段。关键函数在于 <code>originalIsEquivalent</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">originalIsEquivalent</span><span class="params">($key, $current)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! array_key_exists($key, <span class="keyword">$this</span>-&gt;original)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $original = <span class="keyword">$this</span>-&gt;getOriginal($key);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($current === $original) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> (is_null($current)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">$this</span>-&gt;isDateAttribute($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fromDateTime($current) ===</div><div class="line">               <span class="keyword">$this</span>-&gt;fromDateTime($original);</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">$this</span>-&gt;hasCast($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;castAttribute($key, $current) ===</div><div class="line">               <span class="keyword">$this</span>-&gt;castAttribute($key, $original);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> is_numeric($current) &amp;&amp; is_numeric($original)</div><div class="line">            &amp;&amp; strcmp((string) $current, (string) $original) === <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，对于数据库可以转化的属性都要先进行转化，然后再开始对比。比较出的结果，就是我们需要 <code>update</code> 的字段。</p>
+<p>执行更新的时候，除了 <code>getDirty</code> 函数获得的待更新字段，还会有 <code>UPDATED_AT</code> 这个字段：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">performUpdate</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'updating'</span>) === <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;usesTimestamps()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;updateTimestamps();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $dirty = <span class="keyword">$this</span>-&gt;getDirty();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($dirty) &gt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setKeysForSaveQuery($query)-&gt;update($dirty);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'updated'</span>, <span class="keyword">false</span>);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;syncChanges();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">updateTimestamps</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $time = <span class="keyword">$this</span>-&gt;freshTimestamp();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! is_null(<span class="keyword">static</span>::UPDATED_AT) &amp;&amp; ! <span class="keyword">$this</span>-&gt;isDirty(<span class="keyword">static</span>::UPDATED_AT)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setUpdatedAt($time);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;exists &amp;&amp; ! <span class="keyword">$this</span>-&gt;isDirty(<span class="keyword">static</span>::CREATED_AT)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setCreatedAt($time);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>执行更新的时候，<code>where</code> 条件只有一个，那就是主键 <code>id</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setKeysForSaveQuery</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $query-&gt;where(<span class="keyword">$this</span>-&gt;getKeyName(), <span class="string">'='</span>, <span class="keyword">$this</span>-&gt;getKeyForSaveQuery());</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $query;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getKeyForSaveQuery</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;original[<span class="keyword">$this</span>-&gt;getKeyName()]</div><div class="line">                    ?? <span class="keyword">$this</span>-&gt;getKey();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getKey</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getAttribute(<span class="keyword">$this</span>-&gt;getKeyName());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后会调用 <code>EloquentBuilder</code> 的 <code>update</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(array $values)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;toBase()-&gt;update(<span class="keyword">$this</span>-&gt;addUpdatedAtColumn($values));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addUpdatedAtColumn</span><span class="params">(array $values)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;model-&gt;usesTimestamps()) &#123;</div><div class="line">        <span class="keyword">return</span> $values;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> Arr::add(</div><div class="line">        $values, <span class="keyword">$this</span>-&gt;model-&gt;getUpdatedAtColumn(),</div><div class="line">        <span class="keyword">$this</span>-&gt;model-&gt;freshTimestampString()</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">freshTimestampString</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fromDateTime(<span class="keyword">$this</span>-&gt;freshTimestamp());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">fromDateTime</span><span class="params">($value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> is_null($value) ? $value : <span class="keyword">$this</span>-&gt;asDateTime($value)-&gt;format(</div><div class="line">        <span class="keyword">$this</span>-&gt;getDateFormat()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="performInsert"><a href="#performInsert" class="headerlink" title="performInsert"></a>performInsert</h3><p>关于数据库对象的插入，如果数据库的主键被设置为 <code>increment</code>，也就是自增的话，程序会调用 <code>insertAndSetId</code>，这个时候不需要给数据库模型对象手动赋值主键 <code>id</code>。若果数据库的主键并不支持自增，那么就需要在插入前，为数据库对象的主键 <code>id</code> 赋值，否则数据库会报错。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">performInsert</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'creating'</span>) === <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;usesTimestamps()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;updateTimestamps();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $attributes = <span class="keyword">$this</span>-&gt;attributes;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;getIncrementing()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;insertAndSetId($query, $attributes);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">empty</span>($attributes)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $query-&gt;insert($attributes);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;exists = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;wasRecentlyCreated = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'created'</span>, <span class="keyword">false</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>laravel</code> 默认数据库的主键支持自增属性，程序调用的也是函数 <code>insertAndSetId</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">insertAndSetId</span><span class="params">(Builder $query, $attributes)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $id = $query-&gt;insertGetId($attributes, $keyName = <span class="keyword">$this</span>-&gt;getKeyName());</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;setAttribute($keyName, $id);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>插入后，会将插入后得到的主键 <code>id</code> 返回，并赋值到模型的属性当中。</p>
+<p>如果数据库主键不支持自增，那么我们在数据库类中要设置：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> $incrementing = <span class="keyword">false</span>;</div></pre></td></tr></table></figure>
+<p>每次进行插入数据的时候，需要手动给主键赋值。</p>
+<h3 id="update-函数"><a href="#update-函数" class="headerlink" title="update 函数"></a>update 函数</h3><p><code>save</code> 函数仅仅支持手动的属性赋值，无法批量赋值。<code>laravel</code> 的 <code>Eloquent Model</code> 还有一个函数: <code>update</code> 支持批量属性赋值。有意思的是，<code>Eloquent Builder</code> 也有函数 <code>update</code>，那个是上一小节提到的 <code>performUpdate</code> 所调用的函数。</p>
+<p>两个 <code>update</code> 功能一致，只是 <code>Model</code> 的 <code>update</code> 函数比较适用于更新从数据库取回的数据库对象：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$flight = App\Flight::find(<span class="number">1</span>);</div><div class="line"></div><div class="line">$flight-&gt;update([<span class="string">'name'</span> =&gt; <span class="string">'New Flight Name'</span>,<span class="string">'desc'</span> =&gt; <span class="string">'test'</span>]);</div></pre></td></tr></table></figure>
+<p>而 <code>Builder</code> 的 <code>update</code> 适用于多查询条件下的更新：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">App\Flight::where(<span class="string">'active'</span>, <span class="number">1</span>)</div><div class="line">          -&gt;where(<span class="string">'destination'</span>, <span class="string">'San Diego'</span>)</div><div class="line">          -&gt;update([<span class="string">'delayed'</span> =&gt; <span class="number">1</span>]);</div></pre></td></tr></table></figure>
+<p>无论哪一种，都会自动更新 <code>updated_at</code> 字段。</p>
+<p><code>Model</code> 的 <code>update</code> 函数借助 <code>fill</code> 函数与 <code>save</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(array $attributes = [], array $options = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;exists) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fill($attributes)-&gt;save($options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="make-函数"><a href="#make-函数" class="headerlink" title="make 函数"></a>make 函数</h3><p>同样的，<code>save</code> 的插入也仅仅支持手动属性赋值，如果想实现批量属性赋值的插入可以使用 <code>make</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$model = App\Flight::make([<span class="string">'name'</span> =&gt; <span class="string">'New Flight Name'</span>,<span class="string">'desc'</span> =&gt; <span class="string">'test'</span>]);</div><div class="line"></div><div class="line">$model-&gt;save();</div></pre></td></tr></table></figure>
+<p><code>make</code> 函数实际上仅仅是新建了一个 <code>Eloquent Model</code>，并批量赋予属性值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">make</span><span class="params">(array $attributes = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newModelInstance($attributes);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newModelInstance</span><span class="params">($attributes = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;newInstance($attributes)-&gt;setConnection(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;getConnection()-&gt;getName()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="create-函数"><a href="#create-函数" class="headerlink" title="create 函数"></a>create 函数</h3><p>如果想要一步到位，批量赋值属性与插入一起操作，可以使用 <code>create</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">App\Flight::create([<span class="string">'name'</span> =&gt; <span class="string">'New Flight Name'</span>,<span class="string">'desc'</span> =&gt; <span class="string">'test'</span>]);</div></pre></td></tr></table></figure>
+<p>相比较 <code>make</code> 函数，<code>create</code> 函数更进一步调用了 <code>save</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">create</span><span class="params">(array $attributes = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> tap(<span class="keyword">$this</span>-&gt;newModelInstance($attributes), <span class="function"><span class="keyword">function</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">        $instance-&gt;save();</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>实际上，属性值是否可以批量赋值需要受 <code>fillable</code> 或 <code>guarded</code> 来控制，如果我们想要强制批量赋值可以使用 <code>forceCreate</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forceCreate</span><span class="params">(array $attributes)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;unguarded(<span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($attributes)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newModelInstance()-&gt;create($attributes);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="findOrNew-函数"><a href="#findOrNew-函数" class="headerlink" title="findOrNew 函数"></a>findOrNew 函数</h3><p><code>laravel</code> 提供一种主键查询或者新建数据库对象的函数：<code>findOrNew</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findOrNew</span><span class="params">($id, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($model = <span class="keyword">$this</span>-&gt;find($id, $columns))) &#123;</div><div class="line">        <span class="keyword">return</span> $model;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newModelInstance();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，当查询失败的时候，会返回一个全新的数据库对象，不含有任何 <code>attributes</code>。</p>
+<h3 id="firstOrNew-函数"><a href="#firstOrNew-函数" class="headerlink" title="firstOrNew 函数"></a>firstOrNew 函数</h3><p><code>laravel</code> 提供一种自定义查询或者新建数据库对象的函数：<code>firstOrNew</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOrNew</span><span class="params">(array $attributes, array $values = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($instance = <span class="keyword">$this</span>-&gt;where($attributes)-&gt;first())) &#123;</div><div class="line">        <span class="keyword">return</span> $instance;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newModelInstance($attributes + $values);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，如果查询失败，会返回一个含有 <code>attributes</code> 和 <code>values</code> 两者合并的属性的数据库对象。</p>
+<h3 id="firstOrCreate-函数"><a href="#firstOrCreate-函数" class="headerlink" title="firstOrCreate 函数"></a>firstOrCreate 函数</h3><p>类似于 <code>firstOrNew</code> 函数，<code>firstOrCreate</code> 函数也用于自定义查询或者新建数据库对象，不同的是，<code>firstOrCreate</code> 函数还进一步对数据进行了插入操作：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOrCreate</span><span class="params">(array $attributes, array $values = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($instance = <span class="keyword">$this</span>-&gt;where($attributes)-&gt;first())) &#123;</div><div class="line">        <span class="keyword">return</span> $instance;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> tap(<span class="keyword">$this</span>-&gt;newModelInstance($attributes + $values), <span class="function"><span class="keyword">function</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">        $instance-&gt;save();</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="updateOrCreate-函数"><a href="#updateOrCreate-函数" class="headerlink" title="updateOrCreate 函数"></a>updateOrCreate 函数</h3><p>在 <code>firstOrCreate</code> 函数基础上，除了对数据进行查询，还会对查询成功的数据利用 <code>value</code> 进行更新：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">updateOrCreate</span><span class="params">(array $attributes, array $values = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> tap(<span class="keyword">$this</span>-&gt;firstOrNew($attributes), <span class="function"><span class="keyword">function</span> <span class="params">($instance)</span> <span class="title">use</span> <span class="params">($values)</span> </span>&#123;</div><div class="line">        $instance-&gt;fill($values)-&gt;save();</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="firstOr-函数"><a href="#firstOr-函数" class="headerlink" title="firstOr 函数"></a>firstOr 函数</h3><p>如果想要自定义查找失败后的操作，可以使用 <code>firstOr</code> 函数，该函数可以传入闭包函数，处理找不到数据的情况：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOr</span><span class="params">($columns = [<span class="string">'*'</span>], Closure $callback = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($columns <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        $callback = $columns;</div><div class="line"></div><div class="line">        $columns = [<span class="string">'*'</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! is_null($model = <span class="keyword">$this</span>-&gt;first($columns))) &#123;</div><div class="line">        <span class="keyword">return</span> $model;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> call_user_func($callback);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="删除模型"><a href="#删除模型" class="headerlink" title="删除模型"></a>删除模型</h2><p>删除模型也会分为两种，一种是针对 <code>Eloquent Model</code> 的删除，这种删除必须是从数据库中取出的对象。还有一种是 <code>Eloquent Builder</code> 的删除，这种删除一般会带有多个查询条件。我们这一小节主要讲 <code>model</code> 的删除：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">delete</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (is_null(<span class="keyword">$this</span>-&gt;getKeyName())) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="keyword">Exception</span>(<span class="string">'No primary key defined on model.'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;exists) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'deleting'</span>) === <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;touchOwners();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;performDeleteOnModel();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;fireModelEvent(<span class="string">'deleted'</span>, <span class="keyword">false</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>删除模型时，模型对象必然要有主键。<code>performDeleteOnModel</code> 函数执行具体的删除操作：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">performDeleteOnModel</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;setKeysForSaveQuery(<span class="keyword">$this</span>-&gt;newQueryWithoutScopes())-&gt;delete();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;exists = <span class="keyword">false</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setKeysForSaveQuery</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $query-&gt;where(<span class="keyword">$this</span>-&gt;getKeyName(), <span class="string">'='</span>, <span class="keyword">$this</span>-&gt;getKeyForSaveQuery());</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $query;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>所以实际上，<code>Model</code> 调用的也是 <code>builder</code> 的 <code>delete</code> 函数。</p>
+<h3 id="软删除"><a href="#软删除" class="headerlink" title="软删除"></a>软删除</h3><p>如果想要使用软删除，需要使用 <code>Illuminate\Database\Eloquent\SoftDeletes</code> 这个 trait。并且需要定义软删除字段，默认为 <code>deleted_at</code>，将软删除字段放入 <code>dates</code> 中，具体用法可参考官方文档:<a href="https://d.laravel-china.org/docs/5.5/eloquent#soft-deleting" target="_blank" rel="external">软删除</a></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Flight</span> <span class="keyword">extends</span> <span class="title">Model</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">use</span> <span class="title">SoftDeletes</span>;</div><div class="line"></div><div class="line">    <span class="comment">/**</span></div><div class="line"><span class="comment">     * 需要被转换成日期的属性。</span></div><div class="line"><span class="comment">     *</span></div><div class="line"><span class="comment">     * <span class="doctag">@var</span> array</span></div><div class="line"><span class="comment">     */</span></div><div class="line">    <span class="keyword">protected</span> $dates = [<span class="string">'deleted_at'</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们先看看这个 <code>trait</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">trait</span> SoftDeletes </div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">bootSoftDeletes</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">static</span>::addGlobalScope(<span class="keyword">new</span> SoftDeletingScope);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果使用了软删除，在 <code>model</code> 的启动过程中，就会启动软删除的这个函数。可以看出来，软删除是需要查询作用域来合作发挥作用的。我们看看这个 <code>SoftDeletingScope</code> :</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">SoftDeletingScope</span> <span class="keyword">implements</span> <span class="title">Scope</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">protected</span> $extensions = [<span class="string">'Restore'</span>, <span class="string">'WithTrashed'</span>, <span class="string">'WithoutTrashed'</span>, <span class="string">'OnlyTrashed'</span>];</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">apply</span><span class="params">(Builder $builder, Model $model)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        $builder-&gt;whereNull($model-&gt;getQualifiedDeletedAtColumn());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">extend</span><span class="params">(Builder $builder)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;extensions <span class="keyword">as</span> $extension) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;&#123;<span class="string">"add&#123;$extension&#125;"</span>&#125;($builder);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $builder-&gt;onDelete(<span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> </span>&#123;</div><div class="line">            $column = <span class="keyword">$this</span>-&gt;getDeletedAtColumn($builder);</div><div class="line"></div><div class="line">            <span class="keyword">return</span> $builder-&gt;update([</div><div class="line">                $column =&gt; $builder-&gt;getModel()-&gt;freshTimestampString(),</div><div class="line">            ]);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>apply</code> 函数是加载全局域调用的函数，每次进行查询的时候，调用 <code>get</code> 函数就会自动加载这个函数，<code>whereNull</code> 这个查询条件会被加载到具体的 <code>where</code> 条件中。<code>deleted_at</code> 字段一般被设置为 <code>null</code>，在执行软删除的时候，该字段会被赋予时间格式的值，标志着被删除的时间。</p>
+<p>在加载全局作用域的时候，还会调用 <code>extend</code> 函数，<code>extend</code> 函数为 <code>model</code> 添加了四个函数：</p>
+<ul>
+<li>WithTrashed</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addWithTrashed</span><span class="params">(Builder $builder)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder-&gt;macro(<span class="string">'withTrashed'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $builder-&gt;withoutGlobalScope(<span class="keyword">$this</span>);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>withTrashed</code> 函数取消了软删除的全局作用域，这样我们查询数据的时候就会查询到正常数据和被软删除的数据。</p>
+<ul>
+<li>withoutTrashed</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addWithoutTrashed</span><span class="params">(Builder $builder)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder-&gt;macro(<span class="string">'withoutTrashed'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> </span>&#123;</div><div class="line">        $model = $builder-&gt;getModel();</div><div class="line"></div><div class="line">        $builder-&gt;withoutGlobalScope(<span class="keyword">$this</span>)-&gt;whereNull(</div><div class="line">            $model-&gt;getQualifiedDeletedAtColumn()</div><div class="line">        );</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $builder;</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>withTrashed</code> 函数着重强调了不要获取软删除的数据。</p>
+<ul>
+<li>onlyTrashed</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addOnlyTrashed</span><span class="params">(Builder $builder)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder-&gt;macro(<span class="string">'onlyTrashed'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> </span>&#123;</div><div class="line">        $model = $builder-&gt;getModel();</div><div class="line"></div><div class="line">        $builder-&gt;withoutGlobalScope(<span class="keyword">$this</span>)-&gt;whereNotNull(</div><div class="line">            $model-&gt;getQualifiedDeletedAtColumn()</div><div class="line">        );</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $builder;</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果只想获取被软删除的数据，可以使用这个函数 <code>onlyTrashed</code>，可以看到，它使用了 <code>whereNotNull</code>。</p>
+<ul>
+<li>restore</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addRestore</span><span class="params">(Builder $builder)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder-&gt;macro(<span class="string">'restore'</span>, <span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> </span>&#123;</div><div class="line">        $builder-&gt;withTrashed();</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $builder-&gt;update([$builder-&gt;getModel()-&gt;getDeletedAtColumn() =&gt; <span class="keyword">null</span>]);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果想要恢复被删除的数据，还可以使用 <code>restore</code>，重新将 <code>deleted_at</code> 数据恢复为 null。</p>
+<h3 id="performDeleteOnModel"><a href="#performDeleteOnModel" class="headerlink" title="performDeleteOnModel"></a>performDeleteOnModel</h3><p>SoftDeletes 这个 trait 会重载 <code>performDeleteOnModel</code> 函数，它将不会调用 <code>Eloquent Builder</code> 的 <code>delete</code> 方法，而是采用更新操作：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">performDeleteOnModel</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;forceDeleting) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newQueryWithoutScopes()-&gt;where(<span class="keyword">$this</span>-&gt;getKeyName(), <span class="keyword">$this</span>-&gt;getKey())-&gt;forceDelete();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;runSoftDelete();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">runSoftDelete</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $query = <span class="keyword">$this</span>-&gt;newQueryWithoutScopes()-&gt;where(<span class="keyword">$this</span>-&gt;getKeyName(), <span class="keyword">$this</span>-&gt;getKey());</div><div class="line"></div><div class="line">    $time = <span class="keyword">$this</span>-&gt;freshTimestamp();</div><div class="line"></div><div class="line">    $columns = [<span class="keyword">$this</span>-&gt;getDeletedAtColumn() =&gt; <span class="keyword">$this</span>-&gt;fromDateTime($time)];</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;&#123;<span class="keyword">$this</span>-&gt;getDeletedAtColumn()&#125; = $time;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;timestamps) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;&#123;<span class="keyword">$this</span>-&gt;getUpdatedAtColumn()&#125; = $time;</div><div class="line"></div><div class="line">        $columns[<span class="keyword">$this</span>-&gt;getUpdatedAtColumn()] = <span class="keyword">$this</span>-&gt;fromDateTime($time);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $query-&gt;update($columns);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>删除操作不仅更新了 <code>deleted_at</code>，还更新了 <code>updated_at</code> 字段。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/"
+           data-title="" data-url="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——Eloquent-Model-源码分析（下）"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——Eloquent Model 源码分析（下）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取模型"><span class="nav-number">1.1.</span> <span class="nav-text">获取模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-函数"><span class="nav-number">1.1.1.</span> <span class="nav-text">get 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-函数"><span class="nav-number">1.1.2.</span> <span class="nav-text">find 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrFail"><span class="nav-number">1.1.3.</span> <span class="nav-text">findOrFail</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他查询与数据获取方法"><span class="nav-number">1.1.4.</span> <span class="nav-text">其他查询与数据获取方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加和更新模型"><span class="nav-number">1.2.</span> <span class="nav-text">添加和更新模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#save-函数"><span class="nav-number">1.2.1.</span> <span class="nav-text">save 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performUpdate-函数"><span class="nav-number">1.2.2.</span> <span class="nav-text">performUpdate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performInsert"><span class="nav-number">1.2.3.</span> <span class="nav-text">performInsert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#update-函数"><span class="nav-number">1.2.4.</span> <span class="nav-text">update 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#make-函数"><span class="nav-number">1.2.5.</span> <span class="nav-text">make 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#create-函数"><span class="nav-number">1.2.6.</span> <span class="nav-text">create 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrNew-函数"><span class="nav-number">1.2.7.</span> <span class="nav-text">findOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrNew-函数"><span class="nav-number">1.2.8.</span> <span class="nav-text">firstOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrCreate-函数"><span class="nav-number">1.2.9.</span> <span class="nav-text">firstOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#updateOrCreate-函数"><span class="nav-number">1.2.10.</span> <span class="nav-text">updateOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOr-函数"><span class="nav-number">1.2.11.</span> <span class="nav-text">firstOr 函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除模型"><span class="nav-number">1.3.</span> <span class="nav-text">删除模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#软删除"><span class="nav-number">1.3.1.</span> <span class="nav-text">软删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performDeleteOnModel"><span class="nav-number">1.3.2.</span> <span class="nav-text">performDeleteOnModel</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

@@ -1,0 +1,1041 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Laravel Database——查询构造器与语法编译器源码分析(中)join 语句join 语句对数据库进行连接操作，join 函数的连接条件可以非常简单： 1DB::table(&apos;services&apos;)-&amp;gt;select(&apos;*&apos;)-&amp;gt;join(&apos;translations AS t&apos;, &apos;t.item_id&apos;, &apos;=&apos;, &apos;services.id&apos;); 也可以比较复杂： 1234567">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/index.html">
+<meta property="og:site_name" content="LEOYANG&#39;S BLOG">
+<meta property="og:description" content="Laravel Database——查询构造器与语法编译器源码分析(中)join 语句join 语句对数据库进行连接操作，join 函数的连接条件可以非常简单： 1DB::table(&apos;services&apos;)-&amp;gt;select(&apos;*&apos;)-&amp;gt;join(&apos;translations AS t&apos;, &apos;t.item_id&apos;, &apos;=&apos;, &apos;services.id&apos;); 也可以比较复杂： 1234567">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-02T03:14:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
+<meta name="twitter:description" content="Laravel Database——查询构造器与语法编译器源码分析(中)join 语句join 语句对数据库进行连接操作，join 函数的连接条件可以非常简单： 1DB::table(&apos;services&apos;)-&amp;gt;select(&apos;*&apos;)-&amp;gt;join(&apos;translations AS t&apos;, &apos;t.item_id&apos;, &apos;=&apos;, &apos;services.id&apos;); 也可以比较复杂： 1234567">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-26T00:33:15+08:00">
+                2017-09-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Laravel-Database——查询构造器与语法编译器源码分析-中"><a href="#Laravel-Database——查询构造器与语法编译器源码分析-中" class="headerlink" title="Laravel Database——查询构造器与语法编译器源码分析(中)"></a>Laravel Database——查询构造器与语法编译器源码分析(中)</h1><h2 id="join-语句"><a href="#join-语句" class="headerlink" title="join 语句"></a>join 语句</h2><p><code>join</code> 语句对数据库进行连接操作，<code>join</code> 函数的连接条件可以非常简单：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'services'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;join(<span class="string">'translations AS t'</span>, <span class="string">'t.item_id'</span>, <span class="string">'='</span>, <span class="string">'services.id'</span>);</div></pre></td></tr></table></figure>
+<p>也可以比较复杂：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;join(<span class="string">'contacts'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;on(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'contacts.id'</span>)-&gt;orOn(<span class="string">'users.name'</span>, <span class="string">'='</span>, <span class="string">'contacts.name'</span>);</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" inner join "contacts" on "users"."id" = "contacts"."id" or "users"."name" = "contacts"."name"</span></div><div class="line"></div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;getBuilder();</div><div class="line">    DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;joinWhere(<span class="string">'contacts'</span>, <span class="string">'col1'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;select(<span class="string">'users.col2'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;where(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'foo'</span>)</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" inner join "contacts" on "col1" = (select "users"."col2" from "users" where "users"."id" = foo)</span></div></pre></td></tr></table></figure>
+<p>还可以更加复杂：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;leftJoin(<span class="string">'contacts'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;on(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'contacts.id'</span>)-&gt;where(<span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">            $j-&gt;where(<span class="string">'contacts.country'</span>, <span class="string">'='</span>, <span class="string">'US'</span>)-&gt;orWhere(<span class="string">'contacts.is_partner'</span>, <span class="string">'='</span>, <span class="number">1</span>);</div><div class="line">        &#125;);</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" left join "contacts" on "users"."id" = "contacts"."id" and ("contacts"."country" = 'US' or "contacts"."is_partner" = 1)</span></div><div class="line"></div><div class="line">    DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;leftJoin(<span class="string">'contacts'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;on(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'contacts.id'</span>)-&gt;where(<span class="string">'contacts.is_active'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;orOn(<span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">            $j-&gt;orWhere(<span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">                $j-&gt;where(<span class="string">'contacts.country'</span>, <span class="string">'='</span>, <span class="string">'UK'</span>)-&gt;orOn(<span class="string">'contacts.type'</span>, <span class="string">'='</span>, <span class="string">'users.type'</span>);</div><div class="line">            &#125;)-&gt;where(<span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">                $j-&gt;where(<span class="string">'contacts.country'</span>, <span class="string">'='</span>, <span class="string">'US'</span>)-&gt;orWhereNull(<span class="string">'contacts.is_partner'</span>);</div><div class="line">            &#125;);</div><div class="line">        &#125;);</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" left join "contacts" on "users"."id" = "contacts"."id" and "contacts"."is_active" = 1 or (("contacts"."country" = 'UK' or "contacts"."type" = "users"."type") and ("contacts"."country" = 'US' or "contacts"."is_partner" is null))</span></div></pre></td></tr></table></figure>
+<p>其实 <code>join</code> 语句与 <code>where</code> 语句非常相似，将 <code>join</code> 语句的连接条件看作 <code>where</code> 的查询条件完全可以，接下来我们看看源码。</p>
+<h3 id="join-语句-1"><a href="#join-语句-1" class="headerlink" title="join 语句"></a>join 语句</h3><p>从上面的示例代码可以看出，<code>join</code> 函数的参数多变，第二个参数可以是列名，也有可能是闭包函数。当第二个参数是列名的时候，第三个参数可以是闭包，还可以是符号 <code>=</code>、<code>&gt;=</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">join</span><span class="params">($table, $first, $operator = null, $second = null, $type = <span class="string">'inner'</span>, $where = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $join = <span class="keyword">new</span> JoinClause(<span class="keyword">$this</span>, $type, $table);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($first <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        call_user_func($first, $join);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;joins[] = $join;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;addBinding($join-&gt;getBindings(), <span class="string">'join'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">else</span> &#123;</div><div class="line">        $method = $where ? <span class="string">'where'</span> : <span class="string">'on'</span>;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;joins[] = $join-&gt;$method($first, $operator, $second);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;addBinding($join-&gt;getBindings(), <span class="string">'join'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，程序首先新建了一个 <code>JoinClause</code> 类对象，这个类实际上继承 <code>queryBuilder</code>，也就是说 <code>queryBuilder</code> 上的很多方法它都可以直接用，例如 <code>where</code>、<code>whereNull</code>、<code>whereDate</code> 等等。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">JoinClause</span> <span class="keyword">extends</span> <span class="title">Builder</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果第二个参数是闭包函数的话，就会像查询组一样根据查询条件更新 <code>$join</code>。</p>
+<p>如果第二个参数是列名，那么就会调用 <code>on</code> 方法或 <code>where</code> 方法。这两个方法的区别是，<code>on</code> 方法只支持 <code>whereColumn</code>方法和 <code>whereNested</code>，也就是说只能写出 <code>join on col1 = col2</code> 这样的语句，而 <code>where</code> 方法可以传递数组、子查询等等.</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">on</span><span class="params">($first, $operator = null, $second = null, $boolean = <span class="string">'and'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($first <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;whereNested($first, $boolean);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;whereColumn($first, $operator, $second, $boolean);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">orOn</span><span class="params">($first, $operator = null, $second = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;on($first, $operator, $second, <span class="string">'or'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileJoins"><a href="#grammer——compileJoins" class="headerlink" title="grammer——compileJoins"></a>grammer——compileJoins</h3><p>接下来我们来看看如何编译 <code>join</code> 语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileJoins</span><span class="params">(Builder $query, $joins)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> collect($joins)-&gt;map(<span class="function"><span class="keyword">function</span> <span class="params">($join)</span> <span class="title">use</span> <span class="params">($query)</span> </span>&#123;</div><div class="line">        $table = <span class="keyword">$this</span>-&gt;wrapTable($join-&gt;table);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> trim(<span class="string">"&#123;$join-&gt;type&#125; join &#123;$table&#125; &#123;$this-&gt;compileWheres($join)&#125;"</span>);</div><div class="line">    &#125;)-&gt;implode(<span class="string">' '</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，<code>JoinClause</code> 在编译中是作为 <code>queryBuild</code> 对象来看待的。</p>
+<h2 id="union-语句"><a href="#union-语句" class="headerlink" title="union 语句"></a>union 语句</h2><p><code>union</code> 用于合并两个或多个 <code>SELECT</code> 语句的结果集。<code>Union</code> 因为要进行重复值扫描，所以效率低。如果合并没有刻意要删除重复行，那么就使用 <code>Union All</code>。</p>
+<p>我们在 <code>laravel</code> 中可以这样使用：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$query = DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>);</div><div class="line">$query-&gt;union(DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">2</span>));</div><div class="line"><span class="comment">//(select * from `users` where `id` = 1) union (select * from `users` where `id` = 2)</span></div><div class="line">```  </div><div class="line">还可以添加多个 `union` 语句：</div><div class="line"></div><div class="line">```php</div><div class="line">$query = DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>);</div><div class="line">$query-&gt;union(DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">2</span>));</div><div class="line">$query-&gt;union(DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">3</span>));      </div><div class="line"><span class="comment">//(select * from "users" where "id" = 1) union (select * from "users" where "id" = 2) union (select * from "users" where "id" = 3)</span></div></pre></td></tr></table></figure>
+<p><code>union</code> 语句可以与 <code>orderBy</code> 相结合：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$query = DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>);</div><div class="line">$query-&gt;union(DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">2</span>));</div><div class="line">$query-&gt;orderBy(<span class="string">'id'</span>, <span class="string">'desc'</span>);</div><div class="line"><span class="comment">//(select * from `users` where `id` = ?) union (select * from `users` where `id` = ?) order by `id` desc</span></div></pre></td></tr></table></figure>
+<p><code>union</code> 语句可以与 <code>limit</code>、<code>offset</code> 相结合：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$query = DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>);</div><div class="line">$query-&gt;union(DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>));</div><div class="line">$builder-&gt;skip(<span class="number">5</span>)-&gt;take(<span class="number">10</span>);</div><div class="line"><span class="comment">//(select * from `users`) union (select * from `dogs`) limit 10 offset 5</span></div></pre></td></tr></table></figure>
+<h3 id="union-函数"><a href="#union-函数" class="headerlink" title="union 函数"></a>union 函数</h3><p><code>union</code> 函数比较简单：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">union</span><span class="params">($query, $all = false)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($query <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        call_user_func($query, $query = <span class="keyword">$this</span>-&gt;newQuery());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;unions[] = compact(<span class="string">'query'</span>, <span class="string">'all'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;addBinding($query-&gt;getBindings(), <span class="string">'union'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileUnions"><a href="#grammer——compileUnions" class="headerlink" title="grammer——compileUnions"></a>grammer——compileUnions</h3><p>语法编译器对 <code>union</code> 的处理：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">compileSelect</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $sql = <span class="keyword">parent</span>::compileSelect($query);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($query-&gt;unions) &#123;</div><div class="line">        $sql = <span class="string">'('</span>.$sql.<span class="string">') '</span>.<span class="keyword">$this</span>-&gt;compileUnions($query);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $sql;</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileUnions</span><span class="params">(Builder $query)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $sql = <span class="string">''</span>;</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($query-&gt;unions <span class="keyword">as</span> $union) &#123;</div><div class="line">        $sql .= <span class="keyword">$this</span>-&gt;compileUnion($union);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">empty</span>($query-&gt;unionOrders)) &#123;</div><div class="line">        $sql .= <span class="string">' '</span>.<span class="keyword">$this</span>-&gt;compileOrders($query, $query-&gt;unionOrders);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($query-&gt;unionLimit)) &#123;</div><div class="line">        $sql .= <span class="string">' '</span>.<span class="keyword">$this</span>-&gt;compileLimit($query, $query-&gt;unionLimit);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($query-&gt;unionOffset)) &#123;</div><div class="line">        $sql .= <span class="string">' '</span>.<span class="keyword">$this</span>-&gt;compileOffset($query, $query-&gt;unionOffset);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> ltrim($sql);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileUnion</span><span class="params">(array $union)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $conjuction = $union[<span class="string">'all'</span>] ? <span class="string">' union all '</span> : <span class="string">' union '</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $conjuction.<span class="string">'('</span>.$union[<span class="string">'query'</span>]-&gt;toSql().<span class="string">')'</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，<code>union</code> 的处理比较简单，都是调用 <code>query-&gt;toSql</code> 语句而已。值得注意的是，在处理 <code>union</code> 的时候，要特别处理 <code>order</code>、<code>limit</code>、<code>offset</code>。</p>
+<h2 id="orderBy-语句"><a href="#orderBy-语句" class="headerlink" title="orderBy 语句"></a>orderBy 语句</h2><p>orderBy 语句用法很简单，可以设置多个排序字段，也可以用原生排序语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;orderBy(<span class="string">'email'</span>)-&gt;orderBy(<span class="string">'age'</span>, <span class="string">'desc'</span>);</div><div class="line"></div><div class="line">DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;orderBy(<span class="string">'email'</span>)-&gt;orderByRaw(<span class="string">'age desc'</span>);</div></pre></td></tr></table></figure>
+<h3 id="orderBy-函数"><a href="#orderBy-函数" class="headerlink" title="orderBy 函数"></a>orderBy 函数</h3><p>如果当前查询中有 <code>union</code> 的话，排序的变量会被放入 <code>unionOrders</code> 数组中，这个数组只有在 <code>compileUnions</code> 函数中才会被编译成 <code>sql</code> 语句。否则会被放入 <code>orders</code> 数组中，这时会被 <code>compileOrders</code> 处理：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">orderBy</span><span class="params">($column, $direction = <span class="string">'asc'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;&#123;<span class="keyword">$this</span>-&gt;unions ? <span class="string">'unionOrders'</span> : <span class="string">'orders'</span>&#125;[] = [</div><div class="line">        <span class="string">'column'</span> =&gt; $column,</div><div class="line">        <span class="string">'direction'</span> =&gt; strtolower($direction) == <span class="string">'asc'</span> ? <span class="string">'asc'</span> : <span class="string">'desc'</span>,</div><div class="line">    ];</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileOrders"><a href="#grammer——compileOrders" class="headerlink" title="grammer——compileOrders"></a>grammer——compileOrders</h3><p>orderBy 的编译也很简单：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileOrders</span><span class="params">(Builder $query, $orders)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">empty</span>($orders)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'order by '</span>.implode(<span class="string">', '</span>, <span class="keyword">$this</span>-&gt;compileOrdersToArray($query, $orders));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="string">''</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileOrdersToArray</span><span class="params">(Builder $query, $orders)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> array_map(<span class="function"><span class="keyword">function</span> <span class="params">($order)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> ! <span class="keyword">isset</span>($order[<span class="string">'sql'</span>])</div><div class="line">                    ? <span class="keyword">$this</span>-&gt;wrap($order[<span class="string">'column'</span>]).<span class="string">' '</span>.$order[<span class="string">'direction'</span>]</div><div class="line">                    : $order[<span class="string">'sql'</span>];</div><div class="line">    &#125;, $orders);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="limit-offset-forPage-语句"><a href="#limit-offset-forPage-语句" class="headerlink" title="limit offset forPage 语句"></a>limit offset forPage 语句</h2><p>limit offset 或者 skip take 用法很简单，有趣的是，<code>laravel</code> 考虑了负数的情况：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;offset(<span class="number">5</span>)-&gt;limit(<span class="number">10</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;skip(<span class="number">5</span>)-&gt;take(<span class="number">10</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;skip(<span class="number">-5</span>)-&gt;take(<span class="number">-10</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;forPage(<span class="number">5</span>, <span class="number">10</span>);</div></pre></td></tr></table></figure>
+<h3 id="limit-offset-函数"><a href="#limit-offset-函数" class="headerlink" title="limit offset 函数"></a>limit offset 函数</h3><p>和 orderBy 一样，如果当前查询中有 <code>union</code> 的话，limit / offset 会被放入 unionLimit / unionOffset 中，在编译 union 的时候解析：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">take</span><span class="params">($value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;limit($value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">limit</span><span class="params">($value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $property = <span class="keyword">$this</span>-&gt;unions ? <span class="string">'unionLimit'</span> : <span class="string">'limit'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($value &gt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;$property = $value;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">skip</span><span class="params">($value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;offset($value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">offset</span><span class="params">($value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $property = <span class="keyword">$this</span>-&gt;unions ? <span class="string">'unionOffset'</span> : <span class="string">'offset'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;$property = max(<span class="number">0</span>, $value);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forPage</span><span class="params">($page, $perPage = <span class="number">15</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;skip(($page - <span class="number">1</span>) * $perPage)-&gt;take($perPage);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileLimit-compileOffset"><a href="#grammer——compileLimit-compileOffset" class="headerlink" title="grammer——compileLimit compileOffset"></a>grammer——compileLimit compileOffset</h3><p>这个不能再简单了：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileLimit</span><span class="params">(Builder $query, $limit)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'limit '</span>.(int) $limit;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileOffset</span><span class="params">(Builder $query, $offset)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'offset '</span>.(int) $offset;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="group-语句"><a href="#group-语句" class="headerlink" title="group 语句"></a>group 语句</h2><p><code>groupBy</code> 语句的参数形式有多种： </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;groupBy(<span class="string">'email'</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;groupBy(<span class="string">'id'</span>, <span class="string">'email'</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;groupBy([<span class="string">'id'</span>, <span class="string">'email'</span>]);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;groupBy(<span class="keyword">new</span> Raw(<span class="string">'DATE(created_at)'</span>));</div></pre></td></tr></table></figure>
+<p><code>groupBy</code> 函数很简单，仅仅是为 <code>$this-&gt;groups</code> 成员变量合并数组：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">groupBy</span><span class="params">(...$groups)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">foreach</span> ($groups <span class="keyword">as</span> $group) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;groups = array_merge(</div><div class="line">            (<span class="keyword">array</span>) <span class="keyword">$this</span>-&gt;groups,</div><div class="line">            Arr::wrap($group)</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>语法编译器的处理：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileGroups</span><span class="params">(Builder $query, $groups)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'group by '</span>.<span class="keyword">$this</span>-&gt;columnize($groups);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="having-语句"><a href="#having-语句" class="headerlink" title="having 语句"></a>having 语句</h2><p><code>having</code> 语句的用法也很简单。大致有 <code>having</code>、<code>orHaving</code>、<code>havingRaw</code>、<code>orHavingRaw</code> 这几个函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;having(<span class="string">'email'</span>, <span class="string">'&gt;'</span>, <span class="number">1</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;groupBy(<span class="string">'email'</span>)-&gt;having(<span class="string">'email'</span>, <span class="string">'&gt;'</span>, <span class="number">1</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;having(<span class="string">'email'</span>, <span class="number">1</span>)-&gt;orHaving(<span class="string">'email'</span>, <span class="number">2</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;havingRaw(<span class="string">'user_foo &lt; user_bar'</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;having(<span class="string">'baz'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;orHavingRaw(<span class="string">'user_foo &lt; user_bar'</span>);</div></pre></td></tr></table></figure>
+<h3 id="having-函数"><a href="#having-函数" class="headerlink" title="having 函数"></a>having 函数</h3><p><code>having</code> 函数大致与 <code>whereColumn</code> 相同：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">having</span><span class="params">($column, $operator = null, $value = null, $boolean = <span class="string">'and'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $type = <span class="string">'Basic'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">list</span>($value, $operator) = <span class="keyword">$this</span>-&gt;prepareValueAndOperator(</div><div class="line">        $value, $operator, func_num_args() == <span class="number">2</span></div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;invalidOperator($operator)) &#123;</div><div class="line">        <span class="keyword">list</span>($value, $operator) = [$operator, <span class="string">'='</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;havings[] = compact(<span class="string">'type'</span>, <span class="string">'column'</span>, <span class="string">'operator'</span>, <span class="string">'value'</span>, <span class="string">'boolean'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! $value <span class="keyword">instanceof</span> Expression) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;addBinding($value, <span class="string">'having'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>havingRaw</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">havingRaw</span><span class="params">($sql, array $bindings = [], $boolean = <span class="string">'and'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $type = <span class="string">'Raw'</span>;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;havings[] = compact(<span class="string">'type'</span>, <span class="string">'sql'</span>, <span class="string">'boolean'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;addBinding($bindings, <span class="string">'having'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileHavings"><a href="#grammer——compileHavings" class="headerlink" title="grammer——compileHavings"></a>grammer——compileHavings</h3><p>语法编译器：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileHavings</span><span class="params">(Builder $query, $havings)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $sql = implode(<span class="string">' '</span>, array_map([<span class="keyword">$this</span>, <span class="string">'compileHaving'</span>], $havings));</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="string">'having '</span>.<span class="keyword">$this</span>-&gt;removeLeadingBoolean($sql);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileHaving</span><span class="params">(array $having)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($having[<span class="string">'type'</span>] === <span class="string">'Raw'</span>) &#123;</div><div class="line">        <span class="keyword">return</span> $having[<span class="string">'boolean'</span>].<span class="string">' '</span>.$having[<span class="string">'sql'</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;compileBasicHaving($having);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileBasicHaving</span><span class="params">($having)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $column = <span class="keyword">$this</span>-&gt;wrap($having[<span class="string">'column'</span>]);</div><div class="line"></div><div class="line">    $parameter = <span class="keyword">$this</span>-&gt;parameter($having[<span class="string">'value'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $having[<span class="string">'boolean'</span>].<span class="string">' '</span>.$column.<span class="string">' '</span>.$having[<span class="string">'operator'</span>].<span class="string">' '</span>.$parameter;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="when-tap-unless-语句"><a href="#when-tap-unless-语句" class="headerlink" title="when / tap / unless 语句"></a>when / tap / unless 语句</h2><p><code>when</code> 语句可以根据条件来判断是否执行查询条件，<code>unless</code> 与 <code>when</code> 相反，第一个参数是 <code>false</code> 才会调用闭包函数执行查询，<code>tap</code> 指定 <code>when</code> 的第一参数永远为真：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">$callback = <span class="function"><span class="keyword">function</span> <span class="params">($query, $condition)</span> </span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals($condition, <span class="string">'truthy'</span>);</div><div class="line"></div><div class="line">    $query-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>);</div><div class="line">&#125;;</div><div class="line"></div><div class="line">$default = <span class="function"><span class="keyword">function</span> <span class="params">($query, $condition)</span> </span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals($condition, <span class="number">0</span>);</div><div class="line"></div><div class="line">    $query-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">2</span>);</div><div class="line">&#125;;</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;when(<span class="string">'truthy'</span>, $callback, $default)-&gt;where(<span class="string">'email'</span>, <span class="string">'foo'</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;tap($callback)-&gt;where(<span class="string">'email'</span>, <span class="string">'foo'</span>);</div><div class="line"></div><div class="line">DB::select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;unless(<span class="string">'truthy'</span>, $callback, $default)-&gt;where(<span class="string">'email'</span>, <span class="string">'foo'</span>);</div></pre></td></tr></table></figure>
+<p><code>when</code>、<code>unless</code>、<code>tap</code> 函数的实现：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">when</span><span class="params">($value, $callback, $default = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($value) &#123;</div><div class="line">        <span class="keyword">return</span> $callback(<span class="keyword">$this</span>, $value) ?: <span class="keyword">$this</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> ($default) &#123;</div><div class="line">        <span class="keyword">return</span> $default(<span class="keyword">$this</span>, $value) ?: <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">unless</span><span class="params">($value, $callback, $default = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! $value) &#123;</div><div class="line">        <span class="keyword">return</span> $callback(<span class="keyword">$this</span>, $value) ?: <span class="keyword">$this</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> ($default) &#123;</div><div class="line">        <span class="keyword">return</span> $default(<span class="keyword">$this</span>, $value) ?: <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">tap</span><span class="params">($callback)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;when(<span class="keyword">true</span>, $callback);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Aggregate-查询"><a href="#Aggregate-查询" class="headerlink" title="Aggregate 查询"></a>Aggregate 查询</h2><p>聚合方法也是 sql 的重要组成部分，<code>laravel</code> 提供 <code>count</code>、<code>max</code>、<code>min</code>、<code>avg</code>、<code>sum</code>、<code>exist</code> 等聚合方法：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;count();<span class="comment">//select count(*) as aggregate from "users"</span></div><div class="line"></div><div class="line">DB::table(<span class="string">'users'</span>)-&gt;max(<span class="string">'id'</span>);<span class="comment">//select max("id") as aggregate from "users"</span></div><div class="line"></div><div class="line">DB::table(<span class="string">'users'</span>)-&gt;min(<span class="string">'id'</span>);<span class="comment">//select min("id") as aggregate from "users"</span></div><div class="line"></div><div class="line">DB::table(<span class="string">'users'</span>)-&gt;sum(<span class="string">'id'</span>);<span class="comment">//select sum("id") as aggregate from "users"</span></div><div class="line"></div><div class="line">DB::table(<span class="string">'users'</span>)-&gt;exists();<span class="comment">//select exists(select * from "users") as "exists"</span></div></pre></td></tr></table></figure>
+<p>这些聚合函数实际上都是调用 <code>aggregate</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">count</span><span class="params">($columns = <span class="string">'*'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> (int) <span class="keyword">$this</span>-&gt;aggregate(<span class="keyword">__FUNCTION__</span>, Arr::wrap($columns));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">aggregate</span><span class="params">($function, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $results = <span class="keyword">$this</span>-&gt;cloneWithout([<span class="string">'columns'</span>])</div><div class="line">                    -&gt;cloneWithoutBindings([<span class="string">'select'</span>])</div><div class="line">                    -&gt;setAggregate($function, $columns)</div><div class="line">                    -&gt;get($columns);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! $results-&gt;isEmpty()) &#123;</div><div class="line">        <span class="keyword">return</span> array_change_key_case((<span class="keyword">array</span>) $results[<span class="number">0</span>])[<span class="string">'aggregate'</span>];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出来，<code>aggregate</code> 函数复制了一份 <code>queryBuilder</code>，只是缺少了 <code>select</code>、<code>bingding</code> 成员变量:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">cloneWithout</span><span class="params">(array $properties)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> tap(<span class="keyword">clone</span> <span class="keyword">$this</span>, <span class="function"><span class="keyword">function</span> <span class="params">($clone)</span> <span class="title">use</span> <span class="params">($properties)</span> </span>&#123;</div><div class="line">        <span class="keyword">foreach</span> ($properties <span class="keyword">as</span> $property) &#123;</div><div class="line">            $clone-&gt;&#123;$property&#125; = <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">cloneWithoutBindings</span><span class="params">(array $except)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> tap(<span class="keyword">clone</span> <span class="keyword">$this</span>, <span class="function"><span class="keyword">function</span> <span class="params">($clone)</span> <span class="title">use</span> <span class="params">($except)</span> </span>&#123;</div><div class="line">        <span class="keyword">foreach</span> ($except <span class="keyword">as</span> $type) &#123;</div><div class="line">            $clone-&gt;bindings[$type] = [];</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setAggregate</span><span class="params">($function, $columns)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;aggregate = compact(<span class="string">'function'</span>, <span class="string">'columns'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;groups)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;orders = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;bindings[<span class="string">'order'</span>] = [];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>exist</code> 聚合函数和其他不一样，它的流程与 <code>whereExist</code> 大致相同：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">exists</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $results = <span class="keyword">$this</span>-&gt;connection-&gt;select(</div><div class="line">        <span class="keyword">$this</span>-&gt;grammar-&gt;compileExists(<span class="keyword">$this</span>), <span class="keyword">$this</span>-&gt;getBindings(), ! <span class="keyword">$this</span>-&gt;useWritePdo</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($results[<span class="number">0</span>])) &#123;</div><div class="line">        $results = (<span class="keyword">array</span>) $results[<span class="number">0</span>];</div><div class="line"></div><div class="line">        <span class="keyword">return</span> (bool) $results[<span class="string">'exists'</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="grammer——compileAggregate"><a href="#grammer——compileAggregate" class="headerlink" title="grammer——compileAggregate"></a>grammer——compileAggregate</h3><p><code>laravel</code> 的聚合函数具有独占性，也就是说调用聚合函数后，不能再 <code>select</code> 其他的列:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileAggregate</span><span class="params">(Builder $query, $aggregate)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $column = <span class="keyword">$this</span>-&gt;columnize($aggregate[<span class="string">'columns'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($query-&gt;distinct &amp;&amp; $column !== <span class="string">'*'</span>) &#123;</div><div class="line">        $column = <span class="string">'distinct '</span>.$column;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="string">'select '</span>.$aggregate[<span class="string">'function'</span>].<span class="string">'('</span>.$column.<span class="string">') as aggregate'</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileColumns</span><span class="params">(Builder $query, $columns)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! is_null($query-&gt;aggregate)) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $select = $query-&gt;distinct ? <span class="string">'select distinct '</span> : <span class="string">'select '</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $select.<span class="keyword">$this</span>-&gt;columnize($columns);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，如果存在聚合函数，那么编译 <code>select</code> 的 <code>compileColumns</code> 函数将不会运行。</p>
+<h2 id="first-find-value-pluck-implode"><a href="#first-find-value-pluck-implode" class="headerlink" title="first / find / value / pluck / implode"></a>first / find / value / pluck / implode</h2><p>从数据库中取出后数据，我们可以使用 <code>laravel</code> 提供给我们的一些函数进行包装处理。</p>
+<p><code>first</code> 函数可以让我们只查询第一条：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;first();</div></pre></td></tr></table></figure>
+<p><code>find</code> 函数，可以利用数据库表的主键来查询第一条：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(&apos;users&apos;)-&gt;find(1);</div></pre></td></tr></table></figure>
+<p><code>pluck</code> 函数可以取查询记录的某一列：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;pluck(<span class="string">'foo'</span>);/[<span class="string">'bar'</span>, <span class="string">'baz'</span>]</div></pre></td></tr></table></figure>
+<p><code>pluck</code> 函数取查询记录的某一列的同时，还可以设置列名的 <code>key</code>： </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;pluck(<span class="string">'foo'</span>, <span class="string">'id'</span>);<span class="comment">//[1 =&gt; 'bar', 10 =&gt; 'baz']</span></div></pre></td></tr></table></figure>
+<p><code>value</code> 函数可以取第一条数据的某一列：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;value(<span class="string">'foo'</span>);<span class="comment">//bar</span></div></pre></td></tr></table></figure>
+<p><code>implode</code> 函数可以将多条数据的某一列拼成字符串：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, <span class="number">1</span>)-&gt;implode(<span class="string">'foo'</span>, <span class="string">','</span>);<span class="comment">//'bar,baz'</span></div></pre></td></tr></table></figure>
+<h3 id="first-函数"><a href="#first-函数" class="headerlink" title="first 函数"></a>first 函数</h3><p><code>find</code> 函数，使用了 <code>limit 1</code> 的 <code>sql</code> 语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;take(<span class="number">1</span>)-&gt;get($columns)-&gt;first();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="find-函数"><a href="#find-函数" class="headerlink" title="find 函数"></a>find 函数</h3><p><code>find</code> 函数实际利用主键调用 <code>first</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">find</span><span class="params">($id, $columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;where(<span class="string">'id'</span>, <span class="string">'='</span>, $id)-&gt;first($columns);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="pluck-函数"><a href="#pluck-函数" class="headerlink" title="pluck 函数"></a>pluck 函数</h3><p><code>pluck</code> 函数主要对得到的数据调用 <code>pluck</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">pluck</span><span class="params">($column, $key = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $results = <span class="keyword">$this</span>-&gt;get(is_null($key) ? [$column] : [$column, $key]);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $results-&gt;pluck(</div><div class="line">        <span class="keyword">$this</span>-&gt;stripTableForPluck($column),</div><div class="line">        <span class="keyword">$this</span>-&gt;stripTableForPluck($key)</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="implod-函数"><a href="#implod-函数" class="headerlink" title="implod 函数"></a>implod 函数</h3><p><code>implod</code> 函数对一维数组调用 <code>implod</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">implode</span><span class="params">($column, $glue = <span class="string">''</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;pluck($column)-&gt;implode($glue);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="chunk-语句"><a href="#chunk-语句" class="headerlink" title="chunk 语句"></a>chunk 语句</h2><p>如果你需要操作数千条数据库记录，可以考虑使用 chunk 方法。这个方法每次只取出一小块结果，并会将每个块传递给一个闭包处理。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;orderBy(<span class="string">'id'</span>)-&gt;chunk(<span class="number">100</span>, <span class="function"><span class="keyword">function</span> <span class="params">($users)</span> </span>&#123;</div><div class="line">    <span class="keyword">foreach</span> ($users <span class="keyword">as</span> $user) &#123;</div><div class="line">        <span class="comment">//</span></div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>你可以从 闭包 中返回 false，以停止对后续分块的处理：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;orderBy(<span class="string">'id'</span>)-&gt;chunk(<span class="number">100</span>, <span class="function"><span class="keyword">function</span> <span class="params">($users)</span> </span>&#123;</div><div class="line">    <span class="comment">// Process the records...</span></div><div class="line">    <span class="keyword">if</span> (...) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125; </div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>如果不想按照主键 id 来进行分块，我们还可以自定义分块主键：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;orderBy(<span class="string">'id'</span>)-&gt;chunkById(<span class="number">100</span>, <span class="function"><span class="keyword">function</span> <span class="params">($users)</span> </span>&#123;</div><div class="line">    <span class="keyword">foreach</span> ($users <span class="keyword">as</span> $user) &#123;</div><div class="line">        <span class="comment">//</span></div><div class="line">    &#125;</div><div class="line">&#125;, <span class="string">'someIdField'</span>);</div></pre></td></tr></table></figure>
+<h3 id="chunk-函数"><a href="#chunk-函数" class="headerlink" title="chunk 函数"></a>chunk 函数</h3><p><code>chunk</code> 函数的实现实际上是 <code>forPage</code> 函数，当从数据库获得数据后，先判断是否拿到了数据，如果拿到了就会继续执行闭包函数，否则就会中断程序。执行闭包函数后，需要判断返回状态。若取出的数据小于分块的条数，说明数据已经全部获取完毕，结束程序。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">chunk</span><span class="params">($count, callable $callback)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;enforceOrderBy();</div><div class="line"></div><div class="line">    $page = <span class="number">1</span>;</div><div class="line"></div><div class="line">    <span class="keyword">do</span> &#123;</div><div class="line">        $results = <span class="keyword">$this</span>-&gt;forPage($page, $count)-&gt;get();</div><div class="line"></div><div class="line">        $countResults = $results-&gt;count();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($countResults == <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($callback($results, $page) === <span class="keyword">false</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">unset</span>($results);</div><div class="line"></div><div class="line">        $page++;</div><div class="line">    &#125; <span class="keyword">while</span> ($countResults == $count);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">enforceOrderBy</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;query-&gt;orders) &amp;&amp; <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;query-&gt;unionOrders)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;orderBy(<span class="keyword">$this</span>-&gt;model-&gt;getQualifiedKeyName(), <span class="string">'asc'</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>enforceOrderBy</code> 函数是用于数据按照主键的大小进行排序。</p>
+<h3 id="chunkById-函数"><a href="#chunkById-函数" class="headerlink" title="chunkById 函数"></a>chunkById 函数</h3><p>chunkById 函数与 chunk 函数唯一不同的是 <code>forPage</code> 函数被换成了 <code>forPageAfterId</code> 函数，目的是替换主键：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">chunkById</span><span class="params">($count, callable $callback, $column = <span class="string">'id'</span>, $alias = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $alias = $alias ?: $column;</div><div class="line"></div><div class="line">    $lastId = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="keyword">do</span> &#123;</div><div class="line">        $clone = <span class="keyword">clone</span> <span class="keyword">$this</span>;</div><div class="line"></div><div class="line">        $results = $clone-&gt;forPageAfterId($count, $lastId, $column)-&gt;get();</div><div class="line"></div><div class="line">        $countResults = $results-&gt;count();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($countResults == <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($callback($results) === <span class="keyword">false</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $lastId = $results-&gt;last()-&gt;&#123;$alias&#125;;</div><div class="line"></div><div class="line">        <span class="keyword">unset</span>($results);</div><div class="line">    &#125; <span class="keyword">while</span> ($countResults == $count);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>forPageAfterId</code> 函数实际上是把 <code>offset</code> 函数删除，并按照自定义的列来排序，每次获取最后一条数据的自定义列的数值，利用 <code>where</code> 条件不断获取下一部分分块数据：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forPageAfterId</span><span class="params">($perPage = <span class="number">15</span>, $lastId = <span class="number">0</span>, $column = <span class="string">'id'</span>)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;orders = <span class="keyword">$this</span>-&gt;removeExistingOrdersFor($column);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;where($column, <span class="string">'&gt;'</span>, $lastId)</div><div class="line">                -&gt;orderBy($column, <span class="string">'asc'</span>)</div><div class="line">                -&gt;take($perPage);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">removeExistingOrdersFor</span><span class="params">($column)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> Collection::make(<span class="keyword">$this</span>-&gt;orders)</div><div class="line">                -&gt;reject(<span class="function"><span class="keyword">function</span> <span class="params">($order)</span> <span class="title">use</span> <span class="params">($column)</span> </span>&#123;</div><div class="line">                    <span class="keyword">return</span> <span class="keyword">isset</span>($order[<span class="string">'column'</span>])</div><div class="line">                           ? $order[<span class="string">'column'</span>] === $column : <span class="keyword">false</span>;</div><div class="line">                &#125;)-&gt;values()-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/30/Laravel Database——分页原理与源码分析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/"
+           data-title="" data-url="https://leoyang90.github.io/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——查询构造器与语法编译器源码分析-中"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——查询构造器与语法编译器源码分析(中)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#join-语句"><span class="nav-number">1.1.</span> <span class="nav-text">join 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#join-语句-1"><span class="nav-number">1.1.1.</span> <span class="nav-text">join 语句</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileJoins"><span class="nav-number">1.1.2.</span> <span class="nav-text">grammer——compileJoins</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#union-语句"><span class="nav-number">1.2.</span> <span class="nav-text">union 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#union-函数"><span class="nav-number">1.2.1.</span> <span class="nav-text">union 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileUnions"><span class="nav-number">1.2.2.</span> <span class="nav-text">grammer——compileUnions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#orderBy-语句"><span class="nav-number">1.3.</span> <span class="nav-text">orderBy 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#orderBy-函数"><span class="nav-number">1.3.1.</span> <span class="nav-text">orderBy 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileOrders"><span class="nav-number">1.3.2.</span> <span class="nav-text">grammer——compileOrders</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#limit-offset-forPage-语句"><span class="nav-number">1.4.</span> <span class="nav-text">limit offset forPage 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#limit-offset-函数"><span class="nav-number">1.4.1.</span> <span class="nav-text">limit offset 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileLimit-compileOffset"><span class="nav-number">1.4.2.</span> <span class="nav-text">grammer——compileLimit compileOffset</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#group-语句"><span class="nav-number">1.5.</span> <span class="nav-text">group 语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#having-语句"><span class="nav-number">1.6.</span> <span class="nav-text">having 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#having-函数"><span class="nav-number">1.6.1.</span> <span class="nav-text">having 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileHavings"><span class="nav-number">1.6.2.</span> <span class="nav-text">grammer——compileHavings</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#when-tap-unless-语句"><span class="nav-number">1.7.</span> <span class="nav-text">when / tap / unless 语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Aggregate-查询"><span class="nav-number">1.8.</span> <span class="nav-text">Aggregate 查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#grammer——compileAggregate"><span class="nav-number">1.8.1.</span> <span class="nav-text">grammer——compileAggregate</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#first-find-value-pluck-implode"><span class="nav-number">1.9.</span> <span class="nav-text">first / find / value / pluck / implode</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#first-函数"><span class="nav-number">1.9.1.</span> <span class="nav-text">first 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-函数"><span class="nav-number">1.9.2.</span> <span class="nav-text">find 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pluck-函数"><span class="nav-number">1.9.3.</span> <span class="nav-text">pluck 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#implod-函数"><span class="nav-number">1.9.4.</span> <span class="nav-text">implod 函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chunk-语句"><span class="nav-number">1.10.</span> <span class="nav-text">chunk 语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#chunk-函数"><span class="nav-number">1.10.1.</span> <span class="nav-text">chunk 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#chunkById-函数"><span class="nav-number">1.10.2.</span> <span class="nav-text">chunkById 函数</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

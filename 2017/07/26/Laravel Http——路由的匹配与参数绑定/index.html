@@ -1,0 +1,980 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言上一篇文章我们说到路由的正则编译，正则编译的目的就是和请求的 url 来匹配，只有匹配上的路由才是我们真正想要的，此外也会通过正则匹配来获取路由的参数。 路由的匹配路由进行正则编译后，就要与请求 request 来进行正则匹配，并且进行一些验证，例如 UriValidator、MethodValidator、SchemeValidator、HostValidator。 123456789101">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/07/26/Laravel Http——路由的匹配与参数绑定/index.html">
+<meta property="og:site_name" content="LEOYANG&#39;S BLOG">
+<meta property="og:description" content="前言上一篇文章我们说到路由的正则编译，正则编译的目的就是和请求的 url 来匹配，只有匹配上的路由才是我们真正想要的，此外也会通过正则匹配来获取路由的参数。 路由的匹配路由进行正则编译后，就要与请求 request 来进行正则匹配，并且进行一些验证，例如 UriValidator、MethodValidator、SchemeValidator、HostValidator。 123456789101">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-07-27T09:29:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
+<meta name="twitter:description" content="前言上一篇文章我们说到路由的正则编译，正则编译的目的就是和请求的 url 来匹配，只有匹配上的路由才是我们真正想要的，此外也会通过正则匹配来获取路由的参数。 路由的匹配路由进行正则编译后，就要与请求 request 来进行正则匹配，并且进行一些验证，例如 UriValidator、MethodValidator、SchemeValidator、HostValidator。 123456789101">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/07/26/Laravel Http——路由的匹配与参数绑定/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/07/26/Laravel Http——路由的匹配与参数绑定/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-26T22:18:02+08:00">
+                2017-07-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/26/Laravel Http——路由的匹配与参数绑定/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/07/26/Laravel Http——路由的匹配与参数绑定/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/07/26/Laravel Http——路由的匹配与参数绑定/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>上一篇文章我们说到路由的正则编译，正则编译的目的就是和请求的 <code>url</code> 来匹配，只有匹配上的路由才是我们真正想要的，此外也会通过正则匹配来获取路由的参数。</p>
+<h1 id="路由的匹配"><a href="#路由的匹配" class="headerlink" title="路由的匹配"></a>路由的匹配</h1><p>路由进行正则编译后，就要与请求 <code>request</code> 来进行正则匹配，并且进行一些验证，例如 <code>UriValidator</code>、<code>MethodValidator</code>、<code>SchemeValidator</code>、<code>HostValidator</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteCollection</span> <span class="keyword">implements</span> <span class="title">Countable</span>, <span class="title">IteratorAggregate</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">match</span><span class="params">(Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        $routes = <span class="keyword">$this</span>-&gt;get($request-&gt;getMethod());</div><div class="line"></div><div class="line">        $route = <span class="keyword">$this</span>-&gt;matchAgainstRoutes($routes, $request);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (! is_null($route)) &#123;</div><div class="line">            <span class="keyword">return</span> $route-&gt;bind($request);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $others = <span class="keyword">$this</span>-&gt;checkForAlternateVerbs($request);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (count($others) &gt; <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getRouteForMethods($request, $others);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NotFoundHttpException;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">matchAgainstRoutes</span><span class="params">(array $routes, $request, $includingMethod = true)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">   		 <span class="keyword">return</span> Arr::first($routes, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> <span class="title">use</span> <span class="params">($request, $includingMethod)</span> </span>&#123;</div><div class="line">	    	 <span class="keyword">return</span> $value-&gt;matches($request, $includingMethod);</div><div class="line">   		 &#125;);</div><div class="line">	&#125;</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Route</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">matches</span><span class="params">(Request $request, $includingMethod = true)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">   		 <span class="keyword">$this</span>-&gt;compileRoute();</div><div class="line"></div><div class="line">    	<span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getValidators() <span class="keyword">as</span> $validator) &#123;</div><div class="line">        	<span class="keyword">if</span> (! $includingMethod &amp;&amp; $validator <span class="keyword">instanceof</span> MethodValidator) &#123;</div><div class="line">           	 <span class="keyword">continue</span>;</div><div class="line">       	 &#125;</div><div class="line"></div><div class="line">       	 <span class="keyword">if</span> (! $validator-&gt;matches(<span class="keyword">$this</span>, $request)) &#123;</div><div class="line">           	 <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       	 &#125;</div><div class="line">   		 &#125;</div><div class="line"></div><div class="line">   		 <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getValidators</span><span class="params">()</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">    	<span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">static</span>::$validators)) &#123;</div><div class="line">        	<span class="keyword">return</span> <span class="keyword">static</span>::$validators;</div><div class="line">    	&#125;</div><div class="line"></div><div class="line">    	<span class="keyword">return</span> <span class="keyword">static</span>::$validators = [</div><div class="line">        	<span class="keyword">new</span> UriValidator, <span class="keyword">new</span> MethodValidator,</div><div class="line">        	<span class="keyword">new</span> SchemeValidator, <span class="keyword">new</span> HostValidator,</div><div class="line">    	];</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="UriValidator-uri-验证"><a href="#UriValidator-uri-验证" class="headerlink" title="UriValidator uri 验证"></a>UriValidator uri 验证</h2><p><code>UriValidator</code> 验证主要是目的是查看路由正则与请求是否匹配：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UriValidator</span> <span class="keyword">implements</span> <span class="title">ValidatorInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">matches</span><span class="params">(Route $route, Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        $path = $request-&gt;path() == <span class="string">'/'</span> ? <span class="string">'/'</span> : <span class="string">'/'</span>.$request-&gt;path();</div><div class="line"></div><div class="line">        <span class="keyword">return</span> preg_match($route-&gt;getCompiled()-&gt;getRegex(), rawurldecode($path));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，在匹配路径之前，程序使用了 <code>rawurldecode</code> 来对请求进行解码。</p>
+<h2 id="MethodValidator-验证"><a href="#MethodValidator-验证" class="headerlink" title="MethodValidator 验证"></a>MethodValidator 验证</h2><p>请求方法验证：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MethodValidator</span> <span class="keyword">implements</span> <span class="title">ValidatorInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">matches</span><span class="params">(Route $route, Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">return</span> in_array($request-&gt;getMethod(), $route-&gt;methods());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="SchemeValidator-验证"><a href="#SchemeValidator-验证" class="headerlink" title="SchemeValidator 验证"></a>SchemeValidator 验证</h2><p>路由 <code>scheme</code> 协议验证：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">SchemeValidator</span> <span class="keyword">implements</span> <span class="title">ValidatorInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">matches</span><span class="params">(Route $route, Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span> ($route-&gt;httpOnly()) &#123;</div><div class="line">            <span class="keyword">return</span> ! $request-&gt;secure();</div><div class="line">        &#125; <span class="keyword">elseif</span> ($route-&gt;secure()) &#123;</div><div class="line">            <span class="keyword">return</span> $request-&gt;secure();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">httpOnly</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> in_array(<span class="string">'http'</span>, <span class="keyword">$this</span>-&gt;action, <span class="keyword">true</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">secure</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> in_array(<span class="string">'https'</span>, <span class="keyword">$this</span>-&gt;action, <span class="keyword">true</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="HostValidator-验证"><a href="#HostValidator-验证" class="headerlink" title="HostValidator 验证"></a>HostValidator 验证</h2><p>主域验证：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HostValidator</span> <span class="keyword">implements</span> <span class="title">ValidatorInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">matches</span><span class="params">(Route $route, Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span> (is_null($route-&gt;getCompiled()-&gt;getHostRegex())) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> preg_match($route-&gt;getCompiled()-&gt;getHostRegex(), $request-&gt;getHost());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>也就是说，如果路由中并不设置 <code>host</code> 属性，那么这个验证并不进行。</p>
+<h1 id="路由的参数绑定"><a href="#路由的参数绑定" class="headerlink" title="路由的参数绑定"></a>路由的参数绑定</h1><p>一旦某个路由符合请求的 <code>uri</code> 四项认证，就将会被返回，接下来就要对路由的参数进行绑定与赋值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteCollection</span> <span class="keyword">implements</span> <span class="title">Countable</span>, <span class="title">IteratorAggregate</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bind</span><span class="params">(Request $request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;compileRoute();</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;parameters = (<span class="keyword">new</span> RouteParameterBinder(<span class="keyword">$this</span>))</div><div class="line">                        -&gt;parameters($request);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>bind</code> 函数负责路由参数与请求 <code>url</code> 的绑定工作:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteParameterBinder</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">parameters</span><span class="params">($request)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        $parameters = <span class="keyword">$this</span>-&gt;bindPathParameters($request);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (! is_null(<span class="keyword">$this</span>-&gt;route-&gt;compiled-&gt;getHostRegex())) &#123;</div><div class="line">            $parameters = <span class="keyword">$this</span>-&gt;bindHostParameters(</div><div class="line">                $request, $parameters</div><div class="line">            );</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;replaceDefaults($parameters);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，路由参数绑定分为主域参数绑定与路径参数绑定，我们先看路径参数绑定：</p>
+<h2 id="路径参数绑定"><a href="#路径参数绑定" class="headerlink" title="路径参数绑定"></a>路径参数绑定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteParameterBinder</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">bindPathParameters</span><span class="params">($request)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">  		  preg_match(<span class="keyword">$this</span>-&gt;route-&gt;compiled-&gt;getRegex(), <span class="string">'/'</span>.$request-&gt;decodedPath(), $matches);</div><div class="line"></div><div class="line">  	 	 <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;matchToKeys(array_slice($matches, <span class="number">1</span>));</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>例如，<code>{foo}/{baz?}.{ext?}</code> 进行正则编译后结果：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#^/(?P&lt;foo&gt;[^/]++)(?:/(?P&lt;baz&gt;[^/\.]++)(?:\.(?P&lt;ext&gt;[^/]++))?)?$#s</span></div></pre></td></tr></table></figure>
+<p>其与 <code>request</code> 匹配后的结果为： </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$matches = <span class="keyword">array</span> (</div><div class="line">    <span class="number">0</span>   = <span class="string">"/foo/baz.ext"</span>,</div><div class="line">    <span class="number">1</span>   = <span class="string">"foo"</span>,</div><div class="line">    foo = <span class="string">"foo"</span>,</div><div class="line">    <span class="number">2</span>   = <span class="string">"baz"</span>,</div><div class="line">    baz = <span class="string">"baz"</span>,</div><div class="line">    <span class="number">3</span>   = <span class="string">"ext"</span>,</div><div class="line">    ext = <span class="string">"ext"</span>,</div><div class="line">)</div></pre></td></tr></table></figure>
+<p><code>array_slice($matches, 1)</code> 取出了 <code>$matches</code> 数组 1 之后的结果，然后调用了 <code>matchToKeys</code> 函数，</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">matchToKeys</span><span class="params">(array $matches)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">	 <span class="keyword">if</span> (<span class="keyword">empty</span>($parameterNames = <span class="keyword">$this</span>-&gt;route-&gt;parameterNames())) &#123;</div><div class="line">  		  <span class="keyword">return</span> [];</div><div class="line">	 &#125;</div><div class="line"></div><div class="line">	$parameters = array_intersect_key($matches, array_flip($parameterNames));</div><div class="line"></div><div class="line">	<span class="keyword">return</span> array_filter($parameters, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> </span>&#123;</div><div class="line">   		 <span class="keyword">return</span> is_string($value) &amp;&amp; strlen($value) &gt; <span class="number">0</span>;</div><div class="line">	 &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>该函数中利用正则获取了路由的所有参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Route</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">parameterNames</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;parameterNames)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;parameterNames;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;parameterNames = <span class="keyword">$this</span>-&gt;compileParameterNames();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileParameterNames</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        preg_match_all(<span class="string">'/\&#123;(.*?)\&#125;/'</span>, <span class="keyword">$this</span>-&gt;domain().<span class="keyword">$this</span>-&gt;uri, $matches);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> array_map(<span class="function"><span class="keyword">function</span> <span class="params">($m)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> trim($m, <span class="string">'?'</span>);</div><div class="line">        &#125;, $matches[<span class="number">1</span>]);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，获取路由参数的正则表达式采用了勉强模式，意图提取出所有的路由参数。否则，对于路由 <code>{foo}/{baz?}.{ext?}</code>,贪婪型正则表达式 <code>/\{(.*)\}/</code> 将会匹配整个字符串，而不是各个参数分组。</p>
+<p>提取出的参数结果为： </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">$matches = <span class="keyword">array</span> (</div><div class="line">	<span class="number">0</span> = <span class="keyword">array</span> (</div><div class="line">		<span class="number">0</span> = <span class="string">"&#123;foo&#125;"</span>.</div><div class="line">		<span class="number">1</span> = <span class="string">"&#123;baz?&#125;"</span>,</div><div class="line">		<span class="number">2</span> = <span class="string">"&#123;ext?&#125;"</span>,</div><div class="line">	)</div><div class="line">	<span class="number">1</span> = <span class="keyword">array</span> (</div><div class="line">		<span class="number">0</span> = <span class="string">"foo"</span>.</div><div class="line">		<span class="number">1</span> = <span class="string">"baz?"</span>,</div><div class="line">		<span class="number">2</span> = <span class="string">"ext?"</span>,</div><div class="line">	)</div><div class="line">)</div></pre></td></tr></table></figure>
+<p>得出的结果将会去除 <code>$matches[1]</code>，并且将会删除结果中最后的 <code>?</code>。</p>
+<p>之后，在 <code>matchToKeys</code> 函数中，</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$parameters = array_intersect_key($matches, array_flip($parameterNames));</div></pre></td></tr></table></figure>
+<p>获取了匹配结果与路由所有参数的交集：</p>
+ <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$parameters = <span class="keyword">array</span> (</div><div class="line">   foo = <span class="string">"foo"</span>,</div><div class="line">   baz = <span class="string">"baz"</span>,</div><div class="line">   ext = <span class="string">"ext"</span>,</div><div class="line">)</div></pre></td></tr></table></figure>
+<h2 id="主域参数绑定"><a href="#主域参数绑定" class="headerlink" title="主域参数绑定"></a>主域参数绑定</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">bindHostParameters</span><span class="params">($request, $parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    preg_match(<span class="keyword">$this</span>-&gt;route-&gt;compiled-&gt;getHostRegex(), $request-&gt;getHost(), $matches);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> array_merge(<span class="keyword">$this</span>-&gt;matchToKeys(array_slice($matches, <span class="number">1</span>)), $parameters);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>步骤与路由参数绑定一致。</p>
+<h2 id="替换默认值"><a href="#替换默认值" class="headerlink" title="替换默认值"></a>替换默认值</h2><p>进行参数绑定后，有一些可选参数并没有在 <code>request</code> 中匹配到，这时候就要用可选参数的默认值添加到变量 <code>parameters</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">replaceDefaults</span><span class="params">(array $parameters)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">foreach</span> ($parameters <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        $parameters[$key] = <span class="keyword">isset</span>($value) ? $value : Arr::get(<span class="keyword">$this</span>-&gt;route-&gt;defaults, $key);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;route-&gt;defaults <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">if</span> (! <span class="keyword">isset</span>($parameters[$key])) &#123;</div><div class="line">            $parameters[$key] = $value;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $parameters;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="匹配异常处理"><a href="#匹配异常处理" class="headerlink" title="匹配异常处理"></a>匹配异常处理</h1><p>如果 <code>url</code> 匹配失败，没有找到任何路由与请求相互匹配，就会切换 <code>method</code> 方法，以求任意路由来匹配：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">checkForAlternateVerbs</span><span class="params">($request)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $methods = array_diff(Router::$verbs, [$request-&gt;getMethod()]);</div><div class="line"></div><div class="line">    $others = [];</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($methods <span class="keyword">as</span> $method) &#123;</div><div class="line">        <span class="keyword">if</span> (! is_null(<span class="keyword">$this</span>-&gt;matchAgainstRoutes(<span class="keyword">$this</span>-&gt;get($method), $request, <span class="keyword">false</span>))) &#123;</div><div class="line">            $others[] = $method;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $others;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果使用其他方法匹配成功，就要判断当前方法是否是 <code>options</code>，如果是则直接返回，否则报出异常：    </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteForMethods</span><span class="params">($request, array $methods)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($request-&gt;method() == <span class="string">'OPTIONS'</span>) &#123;</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> Route(<span class="string">'OPTIONS'</span>, $request-&gt;path(), <span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($methods)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Response(<span class="string">''</span>, <span class="number">200</span>, [<span class="string">'Allow'</span> =&gt; implode(<span class="string">','</span>, $methods)]);</div><div class="line">        &#125;))-&gt;bind($request);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;methodNotAllowed($methods);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">methodNotAllowed</span><span class="params">(array $others)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> MethodNotAllowedHttpException($others);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/24/Laravel Http——路由的正则编译/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/27/Laravel Http——路由中间件源码分析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/07/26/Laravel Http——路由的匹配与参数绑定/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/07/26/Laravel Http——路由的匹配与参数绑定/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/07/26/Laravel Http——路由的匹配与参数绑定/"
+           data-title="" data-url="https://leoyang90.github.io/2017/07/26/Laravel Http——路由的匹配与参数绑定/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由的匹配"><span class="nav-number">2.</span> <span class="nav-text">路由的匹配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UriValidator-uri-验证"><span class="nav-number">2.1.</span> <span class="nav-text">UriValidator uri 验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MethodValidator-验证"><span class="nav-number">2.2.</span> <span class="nav-text">MethodValidator 验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SchemeValidator-验证"><span class="nav-number">2.3.</span> <span class="nav-text">SchemeValidator 验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HostValidator-验证"><span class="nav-number">2.4.</span> <span class="nav-text">HostValidator 验证</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由的参数绑定"><span class="nav-number">3.</span> <span class="nav-text">路由的参数绑定</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#路径参数绑定"><span class="nav-number">3.1.</span> <span class="nav-text">路径参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主域参数绑定"><span class="nav-number">3.2.</span> <span class="nav-text">主域参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替换默认值"><span class="nav-number">3.3.</span> <span class="nav-text">替换默认值</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#匹配异常处理"><span class="nav-number">4.</span> <span class="nav-text">匹配异常处理</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
