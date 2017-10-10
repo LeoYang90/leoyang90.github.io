@@ -1,0 +1,1066 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言作为 laravel 极其重要的一部分，route 功能贯穿着整个网络请求，是 request 生命周期的主干。本文主要讲述 route 服务的注册与启动、路由的属性注册。本篇内容相对简单，更多的是框架添加路由的整体设计流程。
+route 服务的注册laravel 在接受到请求后，先进行了服务容器与 http 核心的初始化，再进行了请求 request 的构造与分发。
+route 服务的注册—">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/07/24/路由加载源码分析/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言作为 laravel 极其重要的一部分，route 功能贯穿着整个网络请求，是 request 生命周期的主干。本文主要讲述 route 服务的注册与启动、路由的属性注册。本篇内容相对简单，更多的是框架添加路由的整体设计流程。
+route 服务的注册laravel 在接受到请求后，先进行了服务容器与 http 核心的初始化，再进行了请求 request 的构造与分发。
+route 服务的注册—">
+<meta property="og:updated_time" content="2017-07-22T13:18:57.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言作为 laravel 极其重要的一部分，route 功能贯穿着整个网络请求，是 request 生命周期的主干。本文主要讲述 route 服务的注册与启动、路由的属性注册。本篇内容相对简单，更多的是框架添加路由的整体设计流程。
+route 服务的注册laravel 在接受到请求后，先进行了服务容器与 http 核心的初始化，再进行了请求 request 的构造与分发。
+route 服务的注册—">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/07/24/路由加载源码分析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/07/24/路由加载源码分析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-24T08:48:44+00:00">
+                2017-07-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/24/路由加载源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/07/24/路由加载源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/07/24/路由加载源码分析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>作为 <code>laravel</code> 极其重要的一部分，<code>route</code> 功能贯穿着整个网络请求，是 <code>request</code> 生命周期的主干。本文主要讲述 <code>route</code> 服务的注册与启动、路由的属性注册。本篇内容相对简单，更多的是框架添加路由的整体设计流程。</p>
+<h1 id="route-服务的注册"><a href="#route-服务的注册" class="headerlink" title="route 服务的注册"></a>route 服务的注册</h1><p><code>laravel</code> 在接受到请求后，先进行了服务容器与 <code>http</code> 核心的初始化，再进行了请求 <code>request</code> 的构造与分发。</p>
+<p><code>route</code> 服务的注册—— <code>RoutingServiceProvider</code> 发生在服务容器 <code>container</code> 的初始化上;</p>
+<p><code>route</code> 服务的启动与加载—— <code>RouteServiceProvider</code> 发生在 <code>request</code> 的分发上。</p>
+<h2 id="route-服务的注册——RoutingServiceProvider"><a href="#route-服务的注册——RoutingServiceProvider" class="headerlink" title="route 服务的注册——RoutingServiceProvider"></a>route 服务的注册——RoutingServiceProvider</h2><p>所有需要 <code>laravel</code> 服务的请求都会加载入口文件 <code>index.php</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">require</span> <span class="keyword">__DIR__</span>.<span class="string">'/../bootstrap/autoload.php'</span>;</div><div class="line"></div><div class="line">$app = <span class="keyword">require_once</span> <span class="keyword">__DIR__</span>.<span class="string">'/../bootstrap/app.php'</span>;</div></pre></td></tr></table></figure>
+<p>第一句我们在之前的博客提过，是实现 <code>PSR0</code>    、<code>PSR4</code>标准自动加载的功能模块，第二句就是今天说的 <code>container</code> 的初始化：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$app = <span class="keyword">new</span> Illuminate\Foundation\Application(</div><div class="line">    realpath(<span class="keyword">__DIR__</span>.<span class="string">'/../'</span>)</div><div class="line">);</div></pre></td></tr></table></figure>
+<p><code>Application</code> :</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> <span class="title">Illuminate</span>\<span class="title">Foundation</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">($basePath = null)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> ($basePath) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;setBasePath($basePath);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;registerBaseBindings();</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;registerBaseServiceProviders();</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;registerCoreContainerAliases();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>路由服务的注册就在 <code>registerBaseServiceProviders()</code> 这个函数中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerBaseServiceProviders</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;register(<span class="keyword">new</span> EventServiceProvider(<span class="keyword">$this</span>));</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;register(<span class="keyword">new</span> LogServiceProvider(<span class="keyword">$this</span>));</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;register(<span class="keyword">new</span> RoutingServiceProvider(<span class="keyword">$this</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>RoutingServiceProvider</code> :</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> <span class="title">Illuminate</span>\<span class="title">Routing</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoutingServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;registerRouter();</div><div class="line"></div><div class="line">        ...</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerRouter</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'router'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> Router($app[<span class="string">'events'</span>], $app);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    ...</div><div class="line">    </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，<code>RoutingServiceProvider</code> 做的事情比较简单，就是向服务容易中注册 <code>router</code>。</p>
+<h2 id="route-服务的启动与加载——RouteServiceProvider"><a href="#route-服务的启动与加载——RouteServiceProvider" class="headerlink" title="route 服务的启动与加载——RouteServiceProvider"></a><code>route</code> 服务的启动与加载——RouteServiceProvider</h2><p><code>laravel</code> 在初始化 <code>Application</code> 后，就要进行 <code>http/Kernel</code> 的构造： </p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">$kernel = $app-&gt;make(Illuminate\Contracts\Http\Kernel::class);</div><div class="line"></div><div class="line">$response = $kernel-&gt;handle(</div><div class="line">    $request = Illuminate\Http\Request::capture()</div><div class="line">);</div><div class="line">``` </div><div class="line"></div><div class="line">初始化结束后，就会调用 `handle` 函数，这个函数用于 `laravel` 各个功能服务的注册启动，还有 `request` 的分发：</div><div class="line"></div><div class="line">```php</div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        $request-&gt;enableHttpMethodParameterOverride();</div><div class="line"></div><div class="line">        $response = <span class="keyword">$this</span>-&gt;sendRequestThroughRouter($request);</div><div class="line">    &#125; </div><div class="line">    </div><div class="line">    <span class="keyword">return</span> $response;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">sendRequestThroughRouter</span><span class="params">($request)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;instance(<span class="string">'request'</span>, $request);</div><div class="line"></div><div class="line">    Facade::clearResolvedInstance(<span class="string">'request'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;bootstrap();<span class="comment">//各种服务的注册与启动</span></div><div class="line"></div><div class="line">    <span class="keyword">return</span> (<span class="keyword">new</span> Pipeline(<span class="keyword">$this</span>-&gt;app))<span class="comment">//请求的分发</span></div><div class="line">                -&gt;send($request)</div><div class="line">                -&gt;through(<span class="keyword">$this</span>-&gt;app-&gt;shouldSkipMiddleware() ? [] : <span class="keyword">$this</span>-&gt;middleware)</div><div class="line">                -&gt;then(<span class="keyword">$this</span>-&gt;dispatchToRouter());</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>路由服务的启动与加载就在其中一个函数中 <code>bootstrap</code>，这个函数用于各种服务的注册与启动，比较复杂，我们有机会在以后单独来说。</p>
+<p>总之，这个函数会调用 <code>RouteServiceProvider</code> 这个类的两个函数： 注册——<code>register</code>、启动——<code>boot</code>。</p>
+<p>由于 <code>route</code> 的注册工作由之前 <code>RoutingServiceProvider</code> 完成，所以 <code>RouteServiceProvider</code> 的 <code>register</code> 是空的，这里它只负责路由的启动与加载工作，我们主要看 <code>boot</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> <span class="title">Illuminate</span>\<span class="title">Foundation</span>\<span class="title">Support</span>\<span class="title">Providers</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="comment">//</span></div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setRootControllerNamespace();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;app-&gt;routesAreCached()) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;loadCachedRoutes();</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;loadRoutes();</div><div class="line"></div><div class="line">            <span class="keyword">$this</span>-&gt;app-&gt;booted(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">                <span class="keyword">$this</span>-&gt;app[<span class="string">'router'</span>]-&gt;getRoutes()-&gt;refreshNameLookups();</div><div class="line">                <span class="keyword">$this</span>-&gt;app[<span class="string">'router'</span>]-&gt;getRoutes()-&gt;refreshActionLookups();</div><div class="line">            &#125;);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">loadCachedRoutes</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;booted(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">require</span> <span class="keyword">$this</span>-&gt;app-&gt;getCachedRoutesPath();</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">loadRoutes</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (method_exists(<span class="keyword">$this</span>, <span class="string">'map'</span>)) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;app-&gt;call([<span class="keyword">$this</span>, <span class="string">'map'</span>]);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">routesAreCached</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>[<span class="string">'files'</span>]-&gt;exists(<span class="keyword">$this</span>-&gt;getCachedRoutesPath());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getCachedRoutesPath</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;bootstrapPath().<span class="string">'/cache/routes.php'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从 <code>boot</code> 中可以看出，<code>laravel</code> 首先去寻找路由的缓存文件，没有缓存文件再去进行加载路由。缓存文件一般在 <code>bootstrap/cache/routes.php</code> 文件中。</p>
+<p>加载路由主要调用 <code>map</code> 函数，这个函数一般在 <code>App\Providers\RouteServiceProvider</code> 这个类中，这个类继承上面的 <code>Illuminate\Foundation\Support\Providers\RouteServiceProvider</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">use</span> <span class="title">Illuminate</span>\<span class="title">Foundation</span>\<span class="title">Support</span>\<span class="title">Providers</span>\<span class="title">RouteServiceProvider</span> <span class="title">as</span> <span class="title">ServiceProvider</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">map</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;mapApiRoutes();</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;mapWebRoutes();</div><div class="line"></div><div class="line">        <span class="comment">//</span></div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mapWebRoutes</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        Route::middleware(<span class="string">'web'</span>)</div><div class="line">             -&gt;namespace(<span class="keyword">$this</span>-&gt;namespace)</div><div class="line">             -&gt;group(base_path(<span class="string">'routes/web.php'</span>));</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mapApiRoutes</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        Route::prefix(<span class="string">'api'</span>)</div><div class="line">             -&gt;middleware(<span class="string">'api'</span>)</div><div class="line">             -&gt;namespace(<span class="keyword">$this</span>-&gt;namespace)</div><div class="line">             -&gt;group(base_path(<span class="string">'routes/api.php'</span>));</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>laravle</code> 将路由分为两个大组：<code>api</code>、<code>web</code>。这两个部分的路由分别写在两个文件中：<code>routes/web.php</code>、<code>routes/api.php</code>。</p>
+<h2 id="路由的加载"><a href="#路由的加载" class="headerlink" title="路由的加载"></a>路由的加载</h2><p>所谓的路由加载，就是将定义路由时添加的属性，例如 ‘name’、’domain’、’scheme’ 等等保存起来，以待后用。</p>
+<ul>
+<li><code>laravel</code> 定义路由的属性的方法很灵活，可以定义在路由群组前，例如：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Route::domain(<span class="string">'route.domain.name'</span>)</div><div class="line">     -&gt;group(<span class="function"><span class="keyword">function</span><span class="params">()</span> </span>&#123;</div><div class="line">			Route::get(<span class="string">'foo'</span>,<span class="string">'controller@method'</span>);</div><div class="line">     &#125;)</div></pre></td></tr></table></figure>
+<ul>
+<li>可以定义在路由群组中，例如：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Route::group(<span class="string">'domain'</span> =&gt; <span class="string">'group.domain.name'</span>,<span class="function"><span class="keyword">function</span><span class="params">()</span> </span>&#123;</div><div class="line">    		Route::get(<span class="string">'foo'</span>,<span class="string">'controller@method'</span>);</div><div class="line">    &#125;)</div></pre></td></tr></table></figure>
+<ul>
+<li>可以定义在 <code>method</code> 的前面，例如：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Route::domain(<span class="string">'route.domain.name'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo'</span>,<span class="string">'controller@method'</span>);</div></pre></td></tr></table></figure>
+<ul>
+<li>可以定义在 <code>method</code> 中，例如：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'foo'</span>,[<span class="string">'domain'</span> =&gt; <span class="string">'route.domain.name'</span>,<span class="string">'use'</span> =&gt; <span class="string">'controller@method'</span>]);</div></pre></td></tr></table></figure>
+<ul>
+<li>还可以定义在 <code>method</code> 后，例如：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'&#123;one&#125;'</span>, <span class="string">'use'</span> =&gt; <span class="string">'controller@method'</span>)</div><div class="line">     -&gt;where(<span class="string">'one'</span>, <span class="string">'(.+)'</span>);</div></pre></td></tr></table></figure>
+<p>事实上，路由的加载功能主要有三个类负责： <code>Illuminate\Routing\Router</code>、<code>Illuminate\Routing\Route</code>、<code>Illuminate\Routing\RouteRegistrar</code>。</p>
+<p><code>Router</code> 在整个路由功能中都是起着中枢的作用， <code>RouteRegistrar</code> 主要负责位于 <code>group</code>、<code>method</code> 这些函数之前的属性注册，例如上面的第一种和第三种，<code>route</code> 主要负责位于 <code>group</code>、<code>method</code> 这些函数之后的属性注册，例如第五种。</p>
+<h1 id="RouteRegistrar-路由加载"><a href="#RouteRegistrar-路由加载" class="headerlink" title="RouteRegistrar 路由加载"></a>RouteRegistrar 路由加载</h1><h2 id="属性注册"><a href="#属性注册" class="headerlink" title="属性注册"></a>属性注册</h2><p>当我们想要在 <code>Route</code> 后面直接利用 <code>domain()</code>、<code>name()</code> 等函数来为路由注册属性的时候，我们实际调用的是 <code>router</code> 的魔术方法 <code>__call()</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> <span class="title">Illuminate</span>\<span class="title">Routing</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Router</span> <span class="keyword">implements</span> <span class="title">RegistrarContract</span>, <span class="title">BindingRegistrar</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">static</span>::hasMacro($method)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;macroCall($method, $parameters);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> RouteRegistrar(<span class="keyword">$this</span>))-&gt;attribute($method, $parameters[<span class="number">0</span>]);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在类 <code>RouteRegistrar</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteRegistrar</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">protected</span> $allowedAttributes = [</div><div class="line">    	<span class="string">'as'</span>, <span class="string">'domain'</span>, <span class="string">'middleware'</span>, <span class="string">'name'</span>, <span class="string">'namespace'</span>, <span class="string">'prefix'</span>,</div><div class="line">    ];</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">attribute</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (! in_array($key, <span class="keyword">$this</span>-&gt;allowedAttributes)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">"Attribute [&#123;$key&#125;] does not exist."</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;attributes[array_get(<span class="keyword">$this</span>-&gt;aliases, $key, $key)] = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="添加路由"><a href="#添加路由" class="headerlink" title="添加路由"></a>添加路由</h2><p>注册属性之后，创建路由的时候，可以仅仅提供 <code>uri</code>，可以提供 <code>uri</code> 与 闭包，可以提供 <code>uri</code> 与 控制器，可以提供 <code>uri</code> 与数组：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">Route::as(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;namespace(<span class="string">'Namespace\\Example\\'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>);<span class="comment">//仅仅 uri</span></div><div class="line">     </div><div class="line">Route::as(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;namespace(<span class="string">'Namespace\\Example\\'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">       &#125;); <span class="comment">//uri 与闭包</span></div><div class="line">    </div><div class="line">Route::as(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;namespace(<span class="string">'Namespace\\Example\\'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="string">'controller@method'</span>);<span class="comment">//uri 与控制器     </span></div><div class="line">     </div><div class="line">Route::as(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;namespace(<span class="string">'Namespace\\Example\\'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, [<span class="string">'as'</span>=&gt; <span class="string">'foo'</span>,<span class="string">'use'</span> =&gt;<span class="string">'controller@method'</span>]);<span class="comment">//uri 与数组</span></div></pre></td></tr></table></figure>
+<p>利用 <code>get</code>、<code>post</code> 等方法创建新的路由时，会调用类 <code>RouteRegistrar</code> 中的魔术方法 <code>__call()</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteRegistrar</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">protected</span> $passthru = [</div><div class="line">        <span class="string">'get'</span>, <span class="string">'post'</span>, <span class="string">'put'</span>, <span class="string">'patch'</span>, <span class="string">'delete'</span>, <span class="string">'options'</span>, <span class="string">'any'</span>,</div><div class="line">    ];</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (in_array($method, <span class="keyword">$this</span>-&gt;passthru)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;registerRoute($method, ...$parameters);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (in_array($method, <span class="keyword">$this</span>-&gt;allowedAttributes)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;attribute($method, $parameters[<span class="number">0</span>]);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BadMethodCallException(<span class="string">"Method [&#123;$method&#125;] does not exist."</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerRoute</span><span class="params">($method, $uri, $action = null)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (! is_array($action)) &#123;</div><div class="line">            $action = array_merge(<span class="keyword">$this</span>-&gt;attributes, $action ? [<span class="string">'uses'</span> =&gt; $action] : []);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;router-&gt;&#123;$method&#125;($uri, <span class="keyword">$this</span>-&gt;compileAction($action));</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileAction</span><span class="params">($action)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (is_null($action)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;attributes;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (is_string($action) || $action <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">            $action = [<span class="string">'uses'</span> =&gt; $action];</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> array_merge(<span class="keyword">$this</span>-&gt;attributes, $action);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>也就是说，<code>RouteRegistrar</code> 在这里会为闭包或控制器等所有非数组的 <code>action</code> 添加 <code>use</code> 键，然后才会去 <code>router</code> 中创建路由。</p>
+<h2 id="添加路由群组"><a href="#添加路由群组" class="headerlink" title="添加路由群组"></a>添加路由群组</h2><p>注册属性之后，还可以创建路由群组，但是这时路由群组不允许添加属性 <code>action</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteRegistrar</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">group</span><span class="params">($callback)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;router-&gt;group(<span class="keyword">$this</span>-&gt;attributes, $callback);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Router-路由群组加载"><a href="#Router-路由群组加载" class="headerlink" title="Router 路由群组加载"></a>Router 路由群组加载</h1><p>路由群组的功能可以不断叠加递归，因此每次调用 <code>group</code> ，都要用新路由群组的属性与旧路由群组属性合并，以待新的路由去继承。 <code>group</code> 参数可以是闭包函数，也可以是包含定义路由的文件路径。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">group</span><span class="params">(array $attributes, $routes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;updateGroupStack($attributes);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;loadRoutes($routes);</div><div class="line"></div><div class="line">    array_pop(<span class="keyword">$this</span>-&gt;groupStack);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">updateGroupStack</span><span class="params">(array $attributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;groupStack)) &#123;</div><div class="line">        $attributes = RouteGroup::merge($attributes, end(<span class="keyword">$this</span>-&gt;groupStack));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;groupStack[] = $attributes;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">loadRoutes</span><span class="params">($routes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ($routes <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        $routes(<span class="keyword">$this</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        $router = <span class="keyword">$this</span>;</div><div class="line"></div><div class="line">        <span class="keyword">require</span> $routes;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>关于路由群组属性的合并, </p>
+<ul>
+<li><code>prefix</code>、<code>as</code>、<code>namespace</code> 这几个属性会连接在一起，例如 <code>prefix1/prefix2/prefix3</code>，</li>
+<li><code>where</code> 属性数组相同的会被替换，不同的会被合并。</li>
+<li><code>domain</code> 属性会被替换。</li>
+<li>其他属性，例如 <code>middleware</code> 数组会直接被合并，即使存在相同的元素。</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteGroup</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">merge</span><span class="params">($new, $old)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>($new[<span class="string">'domain'</span>])) &#123;</div><div class="line">            <span class="keyword">unset</span>($old[<span class="string">'domain'</span>]);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $new = array_merge(<span class="keyword">static</span>::formatAs($new, $old), [</div><div class="line">            <span class="string">'namespace'</span> =&gt; <span class="keyword">static</span>::formatNamespace($new, $old),</div><div class="line">            <span class="string">'prefix'</span> =&gt; <span class="keyword">static</span>::formatPrefix($new, $old),</div><div class="line">            <span class="string">'where'</span> =&gt; <span class="keyword">static</span>::formatWhere($new, $old),</div><div class="line">        ]);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> array_merge_recursive(Arr::except(</div><div class="line">            $old, [<span class="string">'namespace'</span>, <span class="string">'prefix'</span>, <span class="string">'where'</span>, <span class="string">'as'</span>]</div><div class="line">        ), $new);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Router-路由加载"><a href="#Router-路由加载" class="headerlink" title="Router 路由加载"></a>Router 路由加载</h1><p>添加路由需要很多步骤，需要将路由本身的属性和路由群组的属性相结合。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($uri, $action = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;addRoute([<span class="string">'GET'</span>, <span class="string">'HEAD'</span>], $uri, $action);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addRoute</span><span class="params">($methods, $uri, $action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;routes-&gt;add(<span class="keyword">$this</span>-&gt;createRoute($methods, $uri, $action));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createRoute</span><span class="params">($methods, $uri, $action)</span></span></div><div class="line">&#123;</div><div class="line">      </div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;actionReferencesController($action)) &#123;</div><div class="line">        $action = <span class="keyword">$this</span>-&gt;convertToControllerAction($action);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $route = <span class="keyword">$this</span>-&gt;newRoute(</div><div class="line">        $methods, <span class="keyword">$this</span>-&gt;prefix($uri), $action</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasGroupStack()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;mergeGroupAttributesIntoRoute($route);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;addWhereClausesToRoute($route);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $route;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从上面来看，添加一个新的路由需要：</p>
+<ul>
+<li>给路由的控制器添加 <code>group</code> 的 <code>namespace</code></li>
+<li>给路由的 <code>uri</code> 添加 <code>group</code> 的 <code>prefix</code> 前缀</li>
+<li>创建新的路由</li>
+<li>更新路由的属性信息</li>
+<li>为路由添加 <code>router</code>-<code>pattern</code> 正则约束</li>
+<li>路由添加到 <code>RouteCollection</code> 中</li>
+</ul>
+<h2 id="控制器-namespace"><a href="#控制器-namespace" class="headerlink" title="控制器 namespace"></a>控制器 namespace</h2><p>路由控制器的命名空间一般不用特别指定，默认值是 <code>\App\Http\Controllers</code>，每次创建新的路由，都要将默认的命名空间添加到控制器中去：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">actionReferencesController</span><span class="params">($action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! $action <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        <span class="keyword">return</span> is_string($action) || (<span class="keyword">isset</span>($action[<span class="string">'uses'</span>]) &amp;&amp; is_string($action[<span class="string">'uses'</span>]));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">convertToControllerAction</span><span class="params">($action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_string($action)) &#123;</div><div class="line">        $action = [<span class="string">'uses'</span> =&gt; $action];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;groupStack)) &#123;</div><div class="line">        $action[<span class="string">'uses'</span>] = <span class="keyword">$this</span>-&gt;prependGroupNamespace($action[<span class="string">'uses'</span>]);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $action[<span class="string">'controller'</span>] = $action[<span class="string">'uses'</span>];</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $action;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">prependGroupNamespace</span><span class="params">($class)</span></span></div><div class="line">&#123;</div><div class="line">    $group = end(<span class="keyword">$this</span>-&gt;groupStack);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($group[<span class="string">'namespace'</span>]) &amp;&amp; strpos($class, <span class="string">'\\'</span>) !== <span class="number">0</span></div><div class="line">            ? $group[<span class="string">'namespace'</span>].<span class="string">'\\'</span>.$class : $class;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="uri-前缀"><a href="#uri-前缀" class="headerlink" title="uri 前缀"></a>uri 前缀</h2><p>在创建新的路由前，需要将路由群组的 <code>prefix</code> 添加到路由的 <code>uri</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">prefix</span><span class="params">($uri)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> trim(trim(<span class="keyword">$this</span>-&gt;getLastGroupPrefix(), <span class="string">'/'</span>).<span class="string">'/'</span>.trim($uri, <span class="string">'/'</span>), <span class="string">'/'</span>) ?: <span class="string">'/'</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getLastGroupPrefix</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;groupStack)) &#123;</div><div class="line">        $last = end(<span class="keyword">$this</span>-&gt;groupStack);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">isset</span>($last[<span class="string">'prefix'</span>]) ? $last[<span class="string">'prefix'</span>] : <span class="string">''</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="string">''</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="创建新的路由"><a href="#创建新的路由" class="headerlink" title="创建新的路由"></a>创建新的路由</h2><p>路由的创建需要 <code>Route</code> 类：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">newRoute</span><span class="params">($methods, $uri, $action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="keyword">new</span> Route($methods, $uri, $action))</div><div class="line">                -&gt;setRouter(<span class="keyword">$this</span>)</div><div class="line">                -&gt;setContainer(<span class="keyword">$this</span>-&gt;container);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>关于 <code>Router</code> 类添加新的路由我们在下一部分详细说。</p>
+<h2 id="更新路由属性信息"><a href="#更新路由属性信息" class="headerlink" title="更新路由属性信息"></a>更新路由属性信息</h2><p>创建新的路由之后，需要将路由本身的属性 <code>action</code> 与路由群组的属性结合在一起：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hasGroupStack</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> ! <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;groupStack);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mergeGroupAttributesIntoRoute</span><span class="params">($route)</span></span></div><div class="line">&#123;</div><div class="line">    $route-&gt;setAction(<span class="keyword">$this</span>-&gt;mergeWithLastGroup($route-&gt;getAction()));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="添加全局正则约束到路由"><a href="#添加全局正则约束到路由" class="headerlink" title="添加全局正则约束到路由"></a>添加全局正则约束到路由</h2><p>上一篇文章我们说过，我们可以为路由通过 <code>pattern</code> 方法添加全局的参数正则约束，所有每次添加新的路由都要将这个全局正则约束添加到路由中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">pattern</span><span class="params">($key, $pattern)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;patterns[$key] = $pattern;</div><div class="line">&#125;</div><div class="line">    </div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addWhereClausesToRoute</span><span class="params">($route)</span></span></div><div class="line">&#123;</div><div class="line">    $route-&gt;where(array_merge(</div><div class="line">        <span class="keyword">$this</span>-&gt;patterns, <span class="keyword">isset</span>($route-&gt;getAction()[<span class="string">'where'</span>]) ? $route-&gt;getAction()[<span class="string">'where'</span>] : []</div><div class="line">    ));</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $route;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Route-路由加载"><a href="#Route-路由加载" class="headerlink" title="Route 路由加载"></a>Route 路由加载</h1><p>前面说过，路由的创建是由 <code>Route</code> 这个类完成的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">($methods, $uri, $action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;uri = $uri;</div><div class="line">    <span class="keyword">$this</span>-&gt;methods = (<span class="keyword">array</span>) $methods;</div><div class="line">    <span class="keyword">$this</span>-&gt;action = <span class="keyword">$this</span>-&gt;parseAction($action);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (in_array(<span class="string">'GET'</span>, <span class="keyword">$this</span>-&gt;methods) &amp;&amp; ! in_array(<span class="string">'HEAD'</span>, <span class="keyword">$this</span>-&gt;methods)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;methods[] = <span class="string">'HEAD'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;action[<span class="string">'prefix'</span>])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;prefix(<span class="keyword">$this</span>-&gt;action[<span class="string">'prefix'</span>]);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由此可以看出，路由的创建主要是路由的各个属性的初始化，其中值得注意的有两个： <code>action</code> 与 <code>prefix</code></p>
+<h2 id="action-解析"><a href="#action-解析" class="headerlink" title="action 解析"></a>action 解析</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">parseAction</span><span class="params">($action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> RouteAction::parse(<span class="keyword">$this</span>-&gt;uri, $action);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们可以看出，添加新的路由时， <code>action</code> 属性需要利用 <code>RouteAction</code> 类：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteAction</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">parse</span><span class="params">($uri, $action)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (is_null($action)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">static</span>::missingAction($uri);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (is_callable($action)) &#123;</div><div class="line">            <span class="keyword">return</span> [<span class="string">'uses'</span> =&gt; $action];</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">elseif</span> (! <span class="keyword">isset</span>($action[<span class="string">'uses'</span>])) &#123;</div><div class="line">            $action[<span class="string">'uses'</span>] = <span class="keyword">static</span>::findCallable($action);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (is_string($action[<span class="string">'uses'</span>]) &amp;&amp; ! Str::contains($action[<span class="string">'uses'</span>], <span class="string">'@'</span>)) &#123;</div><div class="line">            $action[<span class="string">'uses'</span>] = <span class="keyword">static</span>::makeInvokable($action[<span class="string">'uses'</span>]);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $action;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">findCallable</span><span class="params">(array $action)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> Arr::first($action, <span class="function"><span class="keyword">function</span> <span class="params">($value, $key)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> is_callable($value) &amp;&amp; is_numeric($key);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">makeInvokable</span><span class="params">($action)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (! method_exists($action, <span class="string">'__invoke'</span>)) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UnexpectedValueException(<span class="string">"Invalid route action: [&#123;$action&#125;]."</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $action.<span class="string">'@__invoke'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>前面的博客我们说过，创建路由的时候，除了为路由分配控制器之外，还可以为路由分配闭包函数，还有类函数，例如之前说的单动作控制器：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">$router-&gt;get(<span class="string">'foo/bar2'</span>, [‘domain’ =&gt; <span class="string">'www.example.com'</span>, <span class="string">'Illuminate\Tests\Routing\ActionStub'</span>]);</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ActionStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__invoke</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'hello'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>因此，解析 <code>action</code> 主要做两件事：</p>
+<ul>
+<li><p>为闭包函数添加 <code>use</code> 键。对于此时没有 <code>use</code> 键的路由，由于之前在 <code>Router</code> 中已经为控制器添加 <code>use</code> 键，因此这时没有 <code>use</code> 键的，必然是闭包函数，在这里直接或者在 <code>action</code> 中寻找闭包函数后，为闭包函数添加 <code>use</code> 键。</p>
+</li>
+<li><p>单动作控制器添加 <code>__invoke</code>。对于单动作控制器来说，此时已经和控制器一样拥有 ‘use’ 键，但是并没有 <code>@</code> 符号，此时就会调用 <code>makeInvokable</code> 函数来将 <code>__invoke</code> 添加到后面。</p>
+</li>
+</ul>
+<h2 id="prefix-前缀"><a href="#prefix-前缀" class="headerlink" title="prefix 前缀"></a>prefix 前缀</h2><p>路由自身也有 <code>prefix</code> 属性，而且这个属性要加在其他 <code>prefix</code> 的最前面,作为路由的 <code>uri</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">prefix</span><span class="params">($prefix)</span></span></div><div class="line">&#123;</div><div class="line">    $uri = rtrim($prefix, <span class="string">'/'</span>).<span class="string">'/'</span>.ltrim(<span class="keyword">$this</span>-&gt;uri, <span class="string">'/'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;uri = trim($uri, <span class="string">'/'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="Route-路由属性加载"><a href="#Route-路由属性加载" class="headerlink" title="Route 路由属性加载"></a>Route 路由属性加载</h1><p>除了 <code>RouteRegistrar</code> 之外，<code>Route</code> 也可以为路由添加属性：</p>
+<h2 id="prefix-前缀-1"><a href="#prefix-前缀-1" class="headerlink" title="prefix 前缀"></a>prefix 前缀</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">prefix</span><span class="params">($prefix)</span></span></div><div class="line">&#123;</div><div class="line">    $uri = rtrim($prefix, <span class="string">'/'</span>).<span class="string">'/'</span>.ltrim(<span class="keyword">$this</span>-&gt;uri, <span class="string">'/'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;uri = trim($uri, <span class="string">'/'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="where-正则约束"><a href="#where-正则约束" class="headerlink" title="where 正则约束"></a>where 正则约束</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($name, $expression = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;parseWhere($name, $expression) <span class="keyword">as</span> $name =&gt; $expression) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;wheres[$name] = $expression;</div><div class="line">    &#125;</div><div class="line"> 	</div><div class="line"> 	<span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;     </div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">parseWhere</span><span class="params">($name, $expression)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> is_array($name) ? $name : [$name =&gt; $expression];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="middleware-中间件"><a href="#middleware-中间件" class="headerlink" title="middleware 中间件"></a>middleware 中间件</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">middleware</span><span class="params">($middleware = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_null($middleware)) &#123;</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">array</span>) Arr::get(<span class="keyword">$this</span>-&gt;action, <span class="string">'middleware'</span>, []);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (is_string($middleware)) &#123;</div><div class="line">        $middleware = func_get_args();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;action[<span class="string">'middleware'</span>] = array_merge(</div><div class="line">        (<span class="keyword">array</span>) Arr::get(<span class="keyword">$this</span>-&gt;action, <span class="string">'middleware'</span>, []), $middleware</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="uses-控制器"><a href="#uses-控制器" class="headerlink" title="uses 控制器"></a>uses 控制器</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">uses</span><span class="params">($action)</span></span></div><div class="line">&#123;</div><div class="line">    $action = is_string($action) ? <span class="keyword">$this</span>-&gt;addGroupNamespaceToStringUses($action) : $action;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;setAction(array_merge(<span class="keyword">$this</span>-&gt;action, <span class="keyword">$this</span>-&gt;parseAction([</div><div class="line">        <span class="string">'uses'</span> =&gt; $action,</div><div class="line">        <span class="string">'controller'</span> =&gt; $action,</div><div class="line">    ])));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="name-命名"><a href="#name-命名" class="headerlink" title="name 命名"></a>name 命名</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">name</span><span class="params">($name)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;action[<span class="string">'as'</span>] = <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;action[<span class="string">'as'</span>]) ? <span class="keyword">$this</span>-&gt;action[<span class="string">'as'</span>].$name : $name;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="RouteCollection-添加路由"><a href="#RouteCollection-添加路由" class="headerlink" title="RouteCollection 添加路由"></a>RouteCollection 添加路由</h1><p>在上面的部分，我们看到添加路由的代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addRoute</span><span class="params">($methods, $uri, $action)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;routes-&gt;add(<span class="keyword">$this</span>-&gt;createRoute($methods, $uri, $action));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>新创建的路由会加入到 <code>RouteCollection</code> 中，会更新类中的 <code>routes</code>、<code>allRoutes</code>、<code>nameList</code>、<code>actionList</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">add</span><span class="params">(Route $route)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;addToCollections($route);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;addLookups($route);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $route;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addToCollections</span><span class="params">($route)</span></span></div><div class="line">&#123;</div><div class="line">    $domainAndUri = $route-&gt;domain().$route-&gt;uri();</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($route-&gt;methods() <span class="keyword">as</span> $method) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;routes[$method][$domainAndUri] = $route;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;allRoutes[$method.$domainAndUri] = $route;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addLookups</span><span class="params">($route)</span></span></div><div class="line">&#123;   </div><div class="line">    $action = $route-&gt;getAction();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($action[<span class="string">'as'</span>])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;nameList[$action[<span class="string">'as'</span>]] = $route;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">   <span class="keyword">if</span> (<span class="keyword">isset</span>($action[<span class="string">'controller'</span>])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;addToActionList($action, $route);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addToActionList</span><span class="params">($action, $route)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;actionList[trim($action[<span class="string">'controller'</span>], <span class="string">'\\'</span>)] = $route;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们在上面路由的注册启动章节说道，路由的启动是 <code>namespace Illuminate\Foundation\Support\Providers\RouteServiceProvider</code> 完成的，调用的是 <code>boot</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;setRootControllerNamespace();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;app-&gt;routesAreCached()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;loadCachedRoutes();</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;loadRoutes();</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;booted(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;app[<span class="string">'router'</span>]-&gt;getRoutes()-&gt;refreshNameLookups();</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在最后一句，程序将会在所有服务都启动后运行 <code>refreshNameLookups</code> 函数，把所有的 <code>name</code> 属性加载到 <code>RouteCollection</code> 中:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">refreshNameLookups</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;nameList = [];</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;allRoutes <span class="keyword">as</span> $route) &#123;</div><div class="line">        <span class="keyword">if</span> ($route-&gt;getName()) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;nameList[$route-&gt;getName()] = $route;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试样例如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteCollectionCanRefreshNameLookups</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $routeIndex = <span class="keyword">new</span> Route(<span class="string">'GET'</span>, <span class="string">'foo/index'</span>, [</div><div class="line">        <span class="string">'uses'</span> =&gt; <span class="string">'FooController@index'</span>,</div><div class="line">    ]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertNull($routeIndex-&gt;getName());</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;routeCollection-&gt;add($routeIndex)-&gt;name(<span class="string">'route_name'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertNull(<span class="keyword">$this</span>-&gt;routeCollection-&gt;getByName(<span class="string">'route_name'</span>));</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;routeCollection-&gt;refreshNameLookups();</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals($routeIndex, <span class="keyword">$this</span>-&gt;routeCollection-&gt;getByName(<span class="string">'route_name'</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/29/Laravel——container-detail-feature/" rel="next" title="Laravel核心——服务容器的细节特性">
+                <i class="fa fa-chevron-left"></i> Laravel核心——服务容器的细节特性
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/24/路由/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/07/24/路由加载源码分析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/07/24/路由加载源码分析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/07/24/路由加载源码分析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/07/24/路由加载源码分析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#route-服务的注册"><span class="nav-number">2.</span> <span class="nav-text">route 服务的注册</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#route-服务的注册——RoutingServiceProvider"><span class="nav-number">2.1.</span> <span class="nav-text">route 服务的注册——RoutingServiceProvider</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#route-服务的启动与加载——RouteServiceProvider"><span class="nav-number">2.2.</span> <span class="nav-text">route 服务的启动与加载——RouteServiceProvider</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由的加载"><span class="nav-number">2.3.</span> <span class="nav-text">路由的加载</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RouteRegistrar-路由加载"><span class="nav-number">3.</span> <span class="nav-text">RouteRegistrar 路由加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#属性注册"><span class="nav-number">3.1.</span> <span class="nav-text">属性注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加路由"><span class="nav-number">3.2.</span> <span class="nav-text">添加路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加路由群组"><span class="nav-number">3.3.</span> <span class="nav-text">添加路由群组</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Router-路由群组加载"><span class="nav-number">4.</span> <span class="nav-text">Router 路由群组加载</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Router-路由加载"><span class="nav-number">5.</span> <span class="nav-text">Router 路由加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#控制器-namespace"><span class="nav-number">5.1.</span> <span class="nav-text">控制器 namespace</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#uri-前缀"><span class="nav-number">5.2.</span> <span class="nav-text">uri 前缀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建新的路由"><span class="nav-number">5.3.</span> <span class="nav-text">创建新的路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新路由属性信息"><span class="nav-number">5.4.</span> <span class="nav-text">更新路由属性信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加全局正则约束到路由"><span class="nav-number">5.5.</span> <span class="nav-text">添加全局正则约束到路由</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Route-路由加载"><span class="nav-number">6.</span> <span class="nav-text">Route 路由加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#action-解析"><span class="nav-number">6.1.</span> <span class="nav-text">action 解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prefix-前缀"><span class="nav-number">6.2.</span> <span class="nav-text">prefix 前缀</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Route-路由属性加载"><span class="nav-number">7.</span> <span class="nav-text">Route 路由属性加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#prefix-前缀-1"><span class="nav-number">7.1.</span> <span class="nav-text">prefix 前缀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#where-正则约束"><span class="nav-number">7.2.</span> <span class="nav-text">where 正则约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#middleware-中间件"><span class="nav-number">7.3.</span> <span class="nav-text">middleware 中间件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#uses-控制器"><span class="nav-number">7.4.</span> <span class="nav-text">uses 控制器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#name-命名"><span class="nav-number">7.5.</span> <span class="nav-text">name 命名</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RouteCollection-添加路由"><span class="nav-number">8.</span> <span class="nav-text">RouteCollection 添加路由</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

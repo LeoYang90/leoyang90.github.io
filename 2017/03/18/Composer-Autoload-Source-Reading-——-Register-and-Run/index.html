@@ -1,0 +1,1067 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="php,composer,autoload,源码," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言
+ &amp;emsp;&amp;emsp;上一篇文章我们讲到了Composer自动加载功能的启动与初始化，经过启动与初始化，自动加载核心类对象已经获得了顶级命名空间与相应目录的映射，换句话说，如果有命名空间’App\Console\Kernel，我们已经知道了App\对应的目录，接下来我们就要解决下面的就是\Console\Kernel这一段。
+Composer自动加载源码分析——注册
+  &amp;emsp;&amp;e">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Composer的Autoload源码实现——注册与运行">
+<meta property="og:url" content="https://leoyang90.github.io/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言
+ &amp;emsp;&amp;emsp;上一篇文章我们讲到了Composer自动加载功能的启动与初始化，经过启动与初始化，自动加载核心类对象已经获得了顶级命名空间与相应目录的映射，换句话说，如果有命名空间’App\Console\Kernel，我们已经知道了App\对应的目录，接下来我们就要解决下面的就是\Console\Kernel这一段。
+Composer自动加载源码分析——注册
+  &amp;emsp;&amp;e">
+<meta property="og:updated_time" content="2017-07-07T15:19:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Composer的Autoload源码实现——注册与运行">
+<meta name="twitter:description" content="前言
+ &amp;emsp;&amp;emsp;上一篇文章我们讲到了Composer自动加载功能的启动与初始化，经过启动与初始化，自动加载核心类对象已经获得了顶级命名空间与相应目录的映射，换句话说，如果有命名空间’App\Console\Kernel，我们已经知道了App\对应的目录，接下来我们就要解决下面的就是\Console\Kernel这一段。
+Composer自动加载源码分析——注册
+  &amp;emsp;&amp;e">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/"/>
+
+
+
+
+
+  <title> Composer的Autoload源码实现——注册与运行 | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Composer的Autoload源码实现——注册与运行
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-18T12:20:00+00:00">
+                2017-03-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/composer/" itemprop="url" rel="index">
+                    <span itemprop="name">composer</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/composer/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/composer/php/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/" class="leancloud_visitors" data-flag-title="Composer的Autoload源码实现——注册与运行">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><hr>
+<p> &emsp;&emsp;<a href="http://leoyang90.cn/2017/03/13/Composer%20Autoload%20Source%20Reading%20%E2%80%94%E2%80%94%20Start%20and%20Initialize/" target="_blank" rel="external">上一篇</a>文章我们讲到了Composer自动加载功能的启动与初始化，经过启动与初始化，自动加载核心类对象已经获得了顶级命名空间与相应目录的映射，换句话说，如果有命名空间’App\Console\Kernel，我们已经知道了App\对应的目录，接下来我们就要解决下面的就是\Console\Kernel这一段。</p>
+<h1 id="Composer自动加载源码分析——注册"><a href="#Composer自动加载源码分析——注册" class="headerlink" title="Composer自动加载源码分析——注册"></a>Composer自动加载源码分析——注册</h1><hr>
+<p>  &emsp;&emsp;我们先回顾一下自动加载引导类：</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getLoader</span><span class="params">()</span></span></div><div class="line"> &#123;</div><div class="line">    <span class="comment">/***************************经典单例模式********************/</span></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> !== <span class="keyword">self</span>::$loader) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">self</span>::$loader;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">/***********************获得自动加载核心类对象********************/</span></div><div class="line">    spl_autoload_register(<span class="keyword">array</span>(<span class="string">'ComposerAutoloaderInit</span></div><div class="line">    832ea71bfb9a4128da8660baedaac82e', <span class="string">'loadClassLoader'</span>), <span class="keyword">true</span>, <span class="keyword">true</span>);</div><div class="line">    </div><div class="line">    <span class="keyword">self</span>::$loader = $loader = <span class="keyword">new</span> \Composer\Autoload\ClassLoader();</div><div class="line">    </div><div class="line">    spl_autoload_unregister(<span class="keyword">array</span>(<span class="string">'ComposerAutoloaderInit</span></div><div class="line">    832ea71bfb9a4128da8660baedaac82e', <span class="string">'loadClassLoader'</span>));</div><div class="line"></div><div class="line">    <span class="comment">/***********************初始化自动加载核心类对象********************/</span></div><div class="line">    $useStaticLoader = PHP_VERSION_ID &gt;= <span class="number">50600</span> &amp;&amp; </div><div class="line">    !defined(<span class="string">'HHVM_VERSION'</span>);</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> ($useStaticLoader) &#123;</div><div class="line">        <span class="keyword">require_once</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_static.php'</span>;</div><div class="line"></div><div class="line">        call_user_func(\Composer\Autoload\ComposerStaticInit</div><div class="line">        <span class="number">832</span>ea71bfb9a4128da8660baedaac82e::getInitializer($loader));</div><div class="line">  </div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        $map = <span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_namespaces.php'</span>;</div><div class="line">        <span class="keyword">foreach</span> ($map <span class="keyword">as</span> $namespace =&gt; $path) &#123;</div><div class="line">            $loader-&gt;set($namespace, $path);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $map = <span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_psr4.php'</span>;</div><div class="line">        <span class="keyword">foreach</span> ($map <span class="keyword">as</span> $namespace =&gt; $path) &#123;</div><div class="line">            $loader-&gt;setPsr4($namespace, $path);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $classMap = <span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_classmap.php'</span>;</div><div class="line">        <span class="keyword">if</span> ($classMap) &#123;</div><div class="line">            $loader-&gt;addClassMap($classMap);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/***********************注册自动加载核心类对象********************/</span></div><div class="line">    $loader-&gt;register(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">    <span class="comment">/***********************自动加载全局函数********************/</span></div><div class="line">    <span class="keyword">if</span> ($useStaticLoader) &#123;</div><div class="line">        $includeFiles = Composer\Autoload\ComposerStaticInit</div><div class="line">        <span class="number">832</span>ea71bfb9a4128da8660baedaac82e::$files;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        $includeFiles = <span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_files.php'</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">foreach</span> ($includeFiles <span class="keyword">as</span> $fileIdentifier =&gt; $file) &#123;</div><div class="line">        composerRequire</div><div class="line">        <span class="number">832</span>ea71bfb9a4128da8660baedaac82e($fileIdentifier, $file);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $loader;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</code></pre><p>现在我们开始引导类的第四部分：注册自动加载核心类对象。我们来看看核心类的register()函数：</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">($prepend = false)</span></span></div><div class="line">   &#123;</div><div class="line">       spl_autoload_register(<span class="keyword">array</span>(<span class="keyword">$this</span>, <span class="string">'loadClass'</span>), <span class="keyword">true</span>, $prepend);</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+</code></pre><p>简单到爆炸啊！一行代码实现自动加载有木有！其实奥秘都在自动加载核心类ClassLoader的loadClass()函数上，这个函数负责按照PSR标准将顶层命名空间以下的内容转为对应的目录，也就是上面所说的将’App\Console\Kernel中’Console\Kernel这一段转为目录，至于怎么转的我们在下面“Composer自动加载源码分析——运行”讲。核心类ClassLoader将loadClass()函数注册到PHP SPL中的spl_autoload_register()里面去，这个函数的来龙去脉我们之前<a href="http://leoyang90.cn/2017/03/11/PHP-Composer-autoload/" target="_blank" rel="external">文章</a>讲过。这样，每当PHP遇到一个不认识的命名空间的时候，PHP会自动调用注册到spl_autoload_register里面的函数堆栈，运行其中的每个函数，直到找到命名空间对应的文件。</p>
+<h1 id="Composer自动加载源码分析——全局函数的自动加载"><a href="#Composer自动加载源码分析——全局函数的自动加载" class="headerlink" title="Composer自动加载源码分析——全局函数的自动加载"></a>Composer自动加载源码分析——全局函数的自动加载</h1><p> &emsp;&emsp;Composer不止可以自动加载命名空间，还可以加载全局函数。怎么实现的呢？很简单，把全局函数写到特定的文件里面去，在程序运行前挨个require就行了。这个就是composer自动加载的第五步，加载全局函数。</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> ($useStaticLoader) &#123;</div><div class="line">         $includeFiles = Composer\Autoload\ComposerStaticInit832ea71bfb9a4128da8660baedaac82e::$files;</div><div class="line">     &#125; <span class="keyword">else</span> &#123;</div><div class="line">         $includeFiles = <span class="keyword">require</span> <span class="keyword">__DIR__</span> . <span class="string">'/autoload_files.php'</span>;</div><div class="line">     &#125;</div><div class="line">     <span class="keyword">foreach</span> ($includeFiles <span class="keyword">as</span> $fileIdentifier =&gt; $file) &#123;</div><div class="line">         composerRequire832ea71bfb9a4128da8660baedaac82e($fileIdentifier, $file);</div><div class="line">     &#125;</div></pre></td></tr></table></figure>
+</code></pre><p>  跟核心类的初始化一样，全局函数自动加载也分为两种：静态初始化和普通初始化，静态加载只支持PHP5.6以上并且不支持HHVM。</p>
+<h2 id="静态初始化："><a href="#静态初始化：" class="headerlink" title="静态初始化："></a>静态初始化：</h2><p>  ComposerStaticInit832ea71bfb9a4128da8660baedaac82e::$files：</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> $files = <span class="keyword">array</span> (</div><div class="line">    <span class="string">'0e6d7bf4a5811bfa5cf40c5ccd6fae6a'</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/symfony/polyfill-mbstring/bootstrap.php'</span>,</div><div class="line">    <span class="string">'667aeda72477189d0494fecd327c3641'</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/symfony/var-dumper/Resources/functions/dump.php'</span>,</div><div class="line">    ...</div><div class="line">);</div></pre></td></tr></table></figure>
+</code></pre><p>  看到这里我们可能又要有疑问了，为什么不直接放文件路径名，还要一个hash干什么呢？这个我们一会儿讲，我们这里先了解一下这个数组的结构。</p>
+<h2 id="普通初始化"><a href="#普通初始化" class="headerlink" title="普通初始化"></a>普通初始化</h2><p>  autoload_files:</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$vendorDir = dirname(dirname(<span class="keyword">__FILE__</span>));</div><div class="line">$baseDir = dirname($vendorDir);</div><div class="line"></div><div class="line"><span class="keyword">return</span> <span class="keyword">array</span>(</div><div class="line">   <span class="string">'0e6d7bf4a5811bfa5cf40c5ccd6fae6a'</span> =&gt; $vendorDir . <span class="string">'/symfony/polyfill-mbstring/bootstrap.php'</span>,</div><div class="line">   <span class="string">'667aeda72477189d0494fecd327c3641'</span> =&gt; $vendorDir . <span class="string">'/symfony/var-dumper/Resources/functions/dump.php'</span>,</div><div class="line">   ....</div><div class="line">);</div></pre></td></tr></table></figure>
+</code></pre><p>其实跟静态初始化区别不大。</p>
+<h2 id="加载全局函数"><a href="#加载全局函数" class="headerlink" title="加载全局函数"></a>加载全局函数</h2><pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">   <span class="class"><span class="keyword">class</span> <span class="title">ComposerAutoloaderInit832ea71bfb9a4128da8660baedaac82e</span></span>&#123;</div><div class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getLoader</span><span class="params">()</span></span>&#123;</div><div class="line">	  ...</div><div class="line">	  <span class="keyword">foreach</span> ($includeFiles <span class="keyword">as</span> $fileIdentifier =&gt; $file) &#123;</div><div class="line">           composerRequire832ea71bfb9a4128da8660baedaac82e($fileIdentifier, $file);</div><div class="line">      &#125;</div><div class="line">      ...</div><div class="line">  &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">composerRequire832ea71bfb9a4128da8660baedaac82e</span><span class="params">($fileIdentifier, $file)</span></span></div><div class="line"> &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(\$GLOBALS[<span class="string">'__composer_autoload_files'</span>][\$fileIdentifier])) &#123;</div><div class="line">        <span class="keyword">require</span> $file;</div><div class="line"></div><div class="line">        $GLOBALS[<span class="string">'__composer_autoload_files'</span>][$fileIdentifier] = <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</code></pre><p> &emsp;&emsp;这一段很有讲究，<strong>第一个问题</strong>：为什么自动加载引导类的getLoader()函数不直接require \$includeFiles里面的每个文件名，而要用类外面的函数composerRequire832ea71bfb9a4128da8660baedaac82e0？(顺便说下这个函数名hash仍然为了避免和用户定义函数冲突)因为怕有人在全局函数所在的文件<strong>写\$this或者self</strong>。<br> &emsp;&emsp;假如\$includeFiles有个app/helper.php文件，这个helper.php文件的函数外有一行代码：\$this-&gt;foo()，如果引导类在getLoader()函数直接require(\$file)，那么引导类就会运行这句代码，调用自己的foo()函数，这显然是错的。事实上helper.php就不应该出现\$this或self这样的代码，这样写一般都是用户写错了的，一旦这样的事情发生，第一种情况：引导类恰好有foo()函数，那么就会莫名其妙执行了引导类的foo();第二种情况：引导类没有foo()函数，但是却甩出来引导类没有foo()方法这样的错误提示，用户不知道自己哪里错了。把require语句放到引导类的外面，遇到$this或者self，程序就会告诉用户根本没有类，$this或self无效，错误信息更加明朗。<br>&emsp;&emsp;<strong>第二个问题</strong>，为什么要用hash作为\$fileIdentifier，上面的代码明显可以看出来这个变量是用来控制全局函数只被require一次的，那为什么不用require_once呢？事实上require_once比require效率低很多，使用全局变量\$GLOBALS这样控制加载会更快。还有一个原因我猜测应该是require_once对相对路径的支持并不理想，所以composer尽量少用require_once。</p>
+<h1 id="Composer自动加载源码分析——运行"><a href="#Composer自动加载源码分析——运行" class="headerlink" title="Composer自动加载源码分析——运行"></a>Composer自动加载源码分析——运行</h1><p>  &emsp;&emsp;我们终于来到了核心的核心——composer自动加载的真相，命名空间如何通过composer转为对应目录文件的奥秘就在这一章。<br> &emsp;&emsp;前面说过，ClassLoader的register()函数将loadClass()函数注册到PHP的SPL函数堆栈中，每当PHP遇到不认识的命名空间时就会调用函数堆栈的每个函数，直到加载命名空间成功。所以loadClass()函数就是自动加载的关键<br> 了。<br> loadClass():</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">loadClass</span><span class="params">($class)</span></span></div><div class="line">   &#123;</div><div class="line">       <span class="keyword">if</span> ($file = <span class="keyword">$this</span>-&gt;findFile($class)) &#123;</div><div class="line">           includeFile($file);</div><div class="line"></div><div class="line">           <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">       &#125;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findFile</span><span class="params">($class)</span></span></div><div class="line">   &#123;</div><div class="line">       <span class="comment">// work around for PHP 5.3.0 - 5.3.2 https://bugs.php.net/50731</span></div><div class="line">       <span class="keyword">if</span> (<span class="string">'\\'</span> == $class[<span class="number">0</span>]) &#123;</div><div class="line">           $class = substr($class, <span class="number">1</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="comment">// class map lookup</span></div><div class="line">       <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;classMap[$class])) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;classMap[$class];</div><div class="line">       &#125;</div><div class="line">       <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;classMapAuthoritative) &#123;</div><div class="line">           <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       $file = <span class="keyword">$this</span>-&gt;findFileWithExtension($class, <span class="string">'.php'</span>);</div><div class="line"></div><div class="line">       <span class="comment">// Search for Hack files if we are running on HHVM</span></div><div class="line">       <span class="keyword">if</span> ($file === <span class="keyword">null</span> &amp;&amp; defined(<span class="string">'HHVM_VERSION'</span>)) &#123;</div><div class="line">           $file = <span class="keyword">$this</span>-&gt;findFileWithExtension($class, <span class="string">'.hh'</span>);</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">if</span> ($file === <span class="keyword">null</span>) &#123;</div><div class="line">           <span class="comment">// Remember that this class does not exist.</span></div><div class="line">           <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;classMap[$class] = <span class="keyword">false</span>;</div><div class="line">       &#125;</div><div class="line"></div><div class="line">       <span class="keyword">return</span> $file;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+</code></pre><p> &emsp;&emsp;我们看到loadClass()，主要调用findFile()函数。findFile()在解析命名空间的时候主要分为两部分：classMap和findFileWithExtension()函数。classMap很简单，直接看命名空间是否在映射数组中即可。麻烦的是findFileWithExtension()函数，这个函数包含了PSR0和PSR4标准的实现。还有个值得我们注意的是查找路径成功后includeFile()仍然类外面的函数，并不是ClassLoader的成员函数，原理跟上面一样，防止有用户写$this或self。还有就是如果命名空间是以\开头的，要去掉\然后再匹配。<br> findFileWithExtension：</p>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line">  <span class="keyword">private</span> <span class="function"><span class="keyword">function</span> <span class="title">findFileWithExtension</span><span class="params">($class, $ext)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="comment">// PSR-4 lookup</span></div><div class="line">    $logicalPathPsr4 = strtr($class, <span class="string">'\\'</span>, DIRECTORY_SEPARATOR) . $ext;</div><div class="line"></div><div class="line">    $first = $class[<span class="number">0</span>];</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;prefixLengthsPsr4[$first])) &#123;</div><div class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;prefixLengthsPsr4[$first] <span class="keyword">as</span> $prefix =&gt; $length) &#123;</div><div class="line">            <span class="keyword">if</span> (<span class="number">0</span> === strpos($class, $prefix)) &#123;</div><div class="line">                <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;prefixDirsPsr4[$prefix] <span class="keyword">as</span> $dir) &#123;</div><div class="line">                    <span class="keyword">if</span> (file_exists($file = $dir . DIRECTORY_SEPARATOR . substr($logicalPathPsr4, $length))) &#123;</div><div class="line">                        <span class="keyword">return</span> $file;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// PSR-4 fallback dirs</span></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;fallbackDirsPsr4 <span class="keyword">as</span> $dir) &#123;</div><div class="line">        <span class="keyword">if</span> (file_exists($file = $dir . DIRECTORY_SEPARATOR . $logicalPathPsr4)) &#123;</div><div class="line">            <span class="keyword">return</span> $file;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// PSR-0 lookup</span></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">false</span> !== $pos = strrpos($class, <span class="string">'\\'</span>)) &#123;</div><div class="line">        <span class="comment">// namespaced class name</span></div><div class="line">        $logicalPathPsr0 = substr($logicalPathPsr4, <span class="number">0</span>, $pos + <span class="number">1</span>)</div><div class="line">            . strtr(substr($logicalPathPsr4, $pos + <span class="number">1</span>), <span class="string">'_'</span>, DIRECTORY_SEPARATOR);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// PEAR-like class name</span></div><div class="line">        $logicalPathPsr0 = strtr($class, <span class="string">'_'</span>, DIRECTORY_SEPARATOR) . $ext;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;prefixesPsr0[$first])) &#123;</div><div class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;prefixesPsr0[$first] <span class="keyword">as</span> $prefix =&gt; $dirs) &#123;</div><div class="line">            <span class="keyword">if</span> (<span class="number">0</span> === strpos($class, $prefix)) &#123;</div><div class="line">                <span class="keyword">foreach</span> ($dirs <span class="keyword">as</span> $dir) &#123;</div><div class="line">                    <span class="keyword">if</span> (file_exists($file = $dir . DIRECTORY_SEPARATOR . $logicalPathPsr0)) &#123;</div><div class="line">                        <span class="keyword">return</span> $file;</div><div class="line">                    &#125;</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// PSR-0 fallback dirs</span></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;fallbackDirsPsr0 <span class="keyword">as</span> $dir) &#123;</div><div class="line">        <span class="keyword">if</span> (file_exists($file = $dir . DIRECTORY_SEPARATOR . $logicalPathPsr0)) &#123;</div><div class="line">            <span class="keyword">return</span> $file;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// PSR-0 include paths.</span></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;useIncludePath &amp;&amp; $file = stream_resolve_include_path($logicalPathPsr0)) &#123;</div><div class="line">        <span class="keyword">return</span> $file;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</code></pre><p>&emsp;&emsp;下面我们通过举例来说下上面代码的流程：<br>&emsp;&emsp;如果我们在代码中写下’phpDocumentor\Reflection\example’，PHP会通过SPL调用loadClass-&gt;findFile-&gt;findFileWithExtension。首先默认用php作为文件后缀名调用findFileWithExtension函数里，利用PSR4标准尝试解析目录文件，如果文件不存在则继续用PSR0标准解析，如果解析出来的目录文件仍然不存在，但是环境是HHVM虚拟机，继续用后缀名为hh再次调用findFileWithExtension函数，如果不存在，说明此命名空间无法加载，放到classMap中设为false，以便以后更快地加载。<br>&emsp;&emsp;对于phpDocumentor\Reflection\example，当尝试利用PSR4标准映射目录时，步骤如下：</p>
+<h2 id="PSR4标准加载"><a href="#PSR4标准加载" class="headerlink" title="PSR4标准加载"></a>PSR4标准加载</h2><blockquote>
+<ul>
+<li>将\转为文件分隔符/，加上后缀php或hh，得到\$logicalPathPsr4即phpDocumentor//Reflection//example.php(hh);</li>
+<li>利用命名空间第一个字母p作为前缀索引搜索prefixLengthsPsr4数组，查到下面这个数组：</li>
+</ul>
+</blockquote>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">p<span class="string">' =&gt; </span></div><div class="line">       array (</div><div class="line">           'phpDocumentor\\Reflection\\<span class="string">' =&gt; 25,</span></div><div class="line">           'phpDocumentor\\Fake\\<span class="string">' =&gt; 19,</span></div><div class="line">     )</div></pre></td></tr></table></figure>
+</code></pre><blockquote>
+<ul>
+<li>遍历这个数组，得到两个顶层命名空间phpDocumentor\Reflection\和phpDocumentor\Fake\</li>
+<li>用这两个顶层命名空间与phpDocumentor\Reflection\example_e相比较，可以得到phpDocumentor\Reflection\这个顶层命名空间</li>
+<li>在prefixLengthsPsr4映射数组中得到phpDocumentor\Reflection\长度为25。</li>
+<li>在prefixDirsPsr4映射数组中得到phpDocumentor\Reflection\的目录映射为：</li>
+</ul>
+</blockquote>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="string">'phpDocumentor\\Reflection\\'</span> =&gt; </div><div class="line">       <span class="keyword">array</span> (</div><div class="line">           <span class="number">0</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/phpdocumentor/reflection-common/src'</span>,</div><div class="line">           <span class="number">1</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/phpdocumentor/type-resolver/src'</span>,</div><div class="line">           <span class="number">2</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/phpdocumentor/reflection-docblock/src'</span>,</div><div class="line">       ),</div></pre></td></tr></table></figure>
+</code></pre><blockquote>
+<ul>
+<li>遍历这个映射数组，得到三个目录映射；</li>
+<li>查看 “目录+文件分隔符//+substr(\$logicalPathPsr4, \$length)”文件是否存在，存在即返回。这里就是’__DIR__/../phpdocumentor/reflection-common/src + /+ substr(phpDocumentor/Reflection/example_e.php(hh),25)’</li>
+<li>如果失败，则利用fallbackDirsPsr4数组里面的目录继续判断是否存在文件，具体方法是“目录+文件分隔符//+\$logicalPathPsr4”</li>
+</ul>
+</blockquote>
+<h2 id="PSR0标准加载"><a href="#PSR0标准加载" class="headerlink" title="PSR0标准加载"></a>PSR0标准加载</h2><p>如果PSR4标准加载失败，则要进行PSR0标准加载：</p>
+<blockquote>
+<ul>
+<li>找到phpDocumentor\Reflection\example<em>e最后“\”的位置，将其后面文件名中’‘</em>’‘字符转为文件分隔符“/”,得到$logicalPathPsr0即phpDocumentor/Reflection/example/e.php(hh)<br>利用命名空间第一个字母p作为前缀索引搜索prefixLengthsPsr4数组，查到下面这个数组：</li>
+</ul>
+</blockquote>
+<pre><code><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="string">'P'</span> =&gt; </div><div class="line">    <span class="keyword">array</span> (</div><div class="line">        <span class="string">'Prophecy\\'</span> =&gt; </div><div class="line">        <span class="keyword">array</span> (</div><div class="line">            <span class="number">0</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/phpspec/prophecy/src'</span>,</div><div class="line">        ),</div><div class="line">        <span class="string">'phpDocumentor'</span> =&gt; </div><div class="line">        <span class="keyword">array</span> (</div><div class="line">            <span class="number">0</span> =&gt; <span class="keyword">__DIR__</span> . <span class="string">'/..'</span> . <span class="string">'/erusev/parsedown'</span>,</div><div class="line">        ),</div><div class="line">    ),</div></pre></td></tr></table></figure>
+</code></pre><blockquote>
+<ul>
+<li>遍历这个数组，得到两个顶层命名空间phpDocumentor和Prophecy</li>
+<li>用这两个顶层命名空间与phpDocumentor\Reflection\example_e相比较，可以得到phpDocumentor这个顶层命名空间</li>
+<li>在映射数组中得到phpDocumentor目录映射为’__DIR__ . ‘/..’ . ‘/erusev/parsedown’</li>
+<li>查看 “目录+文件分隔符//+\$logicalPathPsr0”文件是否存在，存在即返回。这里就是<br>“__DIR__ . ‘/..’ . ‘/erusev/parsedown + //+ phpDocumentor//Reflection//example/e.php(hh)”</li>
+<li>如果失败，则利用fallbackDirsPsr0数组里面的目录继续判断是否存在文件，具体方法是“目录+文件分隔符//+\$logicalPathPsr0”</li>
+<li>如果仍然找不到，则利用stream_resolve_include_path()，在当前include目录寻找该文件，如果找到返回绝对路径。</li>
+</ul>
+</blockquote>
+<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>&emsp;&emsp;经过三篇文章，终于写完了PHP Composer自动加载的原理与实现，结下来我们开始讲解laravel框架下的门面Facade,这个门面功能和自动加载有着一些联系.</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/php/" rel="tag"># php</a>
+          
+            <a href="/tags/composer/" rel="tag"># composer</a>
+          
+            <a href="/tags/autoload/" rel="tag"># autoload</a>
+          
+            <a href="/tags/源码/" rel="tag"># 源码</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/13/Composer Autoload Source Reading —— Start and Initialize/" rel="next" title="Composer的Autoload源码实现——启动与初始化">
+                <i class="fa fa-chevron-left"></i> Composer的Autoload源码实现——启动与初始化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/19/Laravel-Facade/" rel="prev" title="Laravel框架门面Facade源码分析">
+                Laravel框架门面Facade源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/"
+     data-title="Composer的Autoload源码实现——注册与运行"
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/"
+           data-title="Composer的Autoload源码实现——注册与运行" data-url="https://leoyang90.github.io/2017/03/18/Composer-Autoload-Source-Reading-——-Register-and-Run/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Composer自动加载源码分析——注册"><span class="nav-number">2.</span> <span class="nav-text">Composer自动加载源码分析——注册</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Composer自动加载源码分析——全局函数的自动加载"><span class="nav-number">3.</span> <span class="nav-text">Composer自动加载源码分析——全局函数的自动加载</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#静态初始化："><span class="nav-number">3.1.</span> <span class="nav-text">静态初始化：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#普通初始化"><span class="nav-number">3.2.</span> <span class="nav-text">普通初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载全局函数"><span class="nav-number">3.3.</span> <span class="nav-text">加载全局函数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Composer自动加载源码分析——运行"><span class="nav-number">4.</span> <span class="nav-text">Composer自动加载源码分析——运行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#PSR4标准加载"><span class="nav-number">4.1.</span> <span class="nav-text">PSR4标准加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PSR0标准加载"><span class="nav-number">4.2.</span> <span class="nav-text">PSR0标准加载</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结语"><span class="nav-number">5.</span> <span class="nav-text">结语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

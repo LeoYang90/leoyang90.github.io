@@ -1,0 +1,986 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言当路由与请求进行正则匹配后，各个路由的参数就获得了它们各自的数值。然而，有些路由参数变量，我们还想要把它转化为特定的对象，这时候就需要中间件的帮助。 SubstituteBindings 中间件就是一个将路由参数转化为特定对象的组件，它默认可以将特定名称的路由参数转化数据库模型对象，可以转化已绑定的路由参数为把绑定的对象。
+SubstituteBindings 中间件的使用数据库模型隐性转化首">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言当路由与请求进行正则匹配后，各个路由的参数就获得了它们各自的数值。然而，有些路由参数变量，我们还想要把它转化为特定的对象，这时候就需要中间件的帮助。 SubstituteBindings 中间件就是一个将路由参数转化为特定对象的组件，它默认可以将特定名称的路由参数转化数据库模型对象，可以转化已绑定的路由参数为把绑定的对象。
+SubstituteBindings 中间件的使用数据库模型隐性转化首">
+<meta property="og:updated_time" content="2017-08-01T07:43:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言当路由与请求进行正则匹配后，各个路由的参数就获得了它们各自的数值。然而，有些路由参数变量，我们还想要把它转化为特定的对象，这时候就需要中间件的帮助。 SubstituteBindings 中间件就是一个将路由参数转化为特定对象的组件，它默认可以将特定名称的路由参数转化数据库模型对象，可以转化已绑定的路由参数为把绑定的对象。
+SubstituteBindings 中间件的使用数据库模型隐性转化首">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-01T07:43:16+00:00">
+                2017-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>当路由与请求进行正则匹配后，各个路由的参数就获得了它们各自的数值。然而，有些路由参数变量，我们还想要把它转化为特定的对象，这时候就需要中间件的帮助。 <code>SubstituteBindings</code> 中间件就是一个将路由参数转化为特定对象的组件，它默认可以将特定名称的路由参数转化数据库模型对象，可以转化已绑定的路由参数为把绑定的对象。</p>
+<h1 id="SubstituteBindings-中间件的使用"><a href="#SubstituteBindings-中间件的使用" class="headerlink" title="SubstituteBindings 中间件的使用"></a><code>SubstituteBindings</code> 中间件的使用</h1><h2 id="数据库模型隐性转化"><a href="#数据库模型隐性转化" class="headerlink" title="数据库模型隐性转化"></a>数据库模型隐性转化</h2><p>首先我们定义了一个带有路由参数的路由：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Route::put(<span class="string">'user/&#123;userid&#125;'</span>, <span class="string">'UserController@update'</span>);</div></pre></td></tr></table></figure>
+<p>然后我们在路由的控制器方法中或者路由闭包函数中定义一个数据库模型类型的参数，这个参数名与路由参数相同：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(UserModel $userid)</span></span></div><div class="line">    &#123;</div><div class="line">        $userid-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">        $userid-&gt;update();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这时，路由的参数会被中间件隐性地转化为 <code>UserModel</code>，且模型变量 <code>$userid</code> 的主键值为参数变量 <code>{userid}</code> 正则匹配后的数值。</p>
+<p>综合测试样例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testImplicitBindingsWithOptionalParameter</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line">    $router-&gt;get(($str = str_random()).<span class="string">'/&#123;user&#125;/&#123;defaultNull?&#125;/&#123;team?&#125;'</span>, [</div><div class="line">        <span class="string">'middleware'</span> =&gt; SubstituteBindings::class,</div><div class="line">        <span class="string">'uses'</span> =&gt; <span class="string">'Illuminate\Tests\Routing\RouteTestAnotherControllerWithParameterStub@withModels'</span>,</div><div class="line">    ]);</div><div class="line">    </div><div class="line">    $router-&gt;dispatch(Request::create($str.<span class="string">'/1'</span>, <span class="string">'GET'</span>));</div><div class="line"></div><div class="line">    $values = array_values($_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="number">1</span>, $values[<span class="number">0</span>]-&gt;value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteTestAnotherControllerWithParameterStub</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">callAction</span><span class="params">($method, $parameters)</span></span></div><div class="line">    &#123;</div><div class="line">        $_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>] = $parameters;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">withModels</span><span class="params">(RoutingTestUserModel $user)</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoutingTestUserModel</span> <span class="keyword">extends</span> <span class="title">Model</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;value = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOrFail</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由显示绑定"><a href="#路由显示绑定" class="headerlink" title="路由显示绑定"></a>路由显示绑定</h2><p>除了隐示地转化路由参数外，我们还可以给路由参数显示提供绑定。显示绑定有 <code>bind</code>、<code>model</code> 两种方法。</p>
+<ul>
+<li>通过 <code>bind</code> 为参数绑定闭包函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">         <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> strtoupper($value);</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>通过 <code>bind</code> 为参数绑定类方法，可以指定 <code>classname@method</code>，也可以直接使用类名，默认会调用类的 <code>bind</code> 函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteClassBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">    	<span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteBindingStub'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteClassMethodBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteBindingStub@find'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'dragon'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/Dragon'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteBindingStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bind</span><span class="params">($value, $route)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtoupper($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">find</span><span class="params">($value, $route)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtolower($value);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>通过 <code>model</code> 为参数绑定数据库模型，路由的参数就不需要和控制器方法中的变量名相同，<code>laravel</code> 会利用路由参数的值去调用 <code>where</code> 方法查找对应记录：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> ($model = $instance-&gt;where($instance-&gt;getRouteKeyName(), $value)-&gt;first()) &#123;</div><div class="line">     <span class="keyword">return</span> $model;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试样例如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingStub'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;value = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtoupper(<span class="keyword">$this</span>-&gt;value);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>若绑定的 <code>model</code> 并没有找到对应路由参数的记录，可以在 <code>model</code> 中定义一个闭包函数，路由参数会调用闭包函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBindingWithCustomNullReturn</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingNullStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'missing'</span>;</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'missing'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBindingWithBindingClosure</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingNullStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> RouteModelBindingClosureStub())-&gt;findAlternate($value);</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'tayloralt'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/TAYLOR'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingNullStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingClosureStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findAlternate</span><span class="params">($value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtolower($value).<span class="string">'alt'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="SubstituteBindings-中间件的源码解析"><a href="#SubstituteBindings-中间件的源码解析" class="headerlink" title="SubstituteBindings 中间件的源码解析"></a><code>SubstituteBindings</code> 中间件的源码解析</h1><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">SubstituteBindings</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request, Closure $next)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;router-&gt;substituteBindings($route = $request-&gt;route());</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;router-&gt;substituteImplicitBindings($route);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $next($request);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从代码来看，<code>substituteBindings</code> 用于显示的参数转化，<code>substituteImplicitBindings</code> 用于隐性的参数转化。</p>
+<h2 id="隐性参数转化源码解析"><a href="#隐性参数转化源码解析" class="headerlink" title="隐性参数转化源码解析"></a>隐性参数转化源码解析</h2><p>进行隐性参数转化，其步骤为：</p>
+<ul>
+<li>扫描控制器方法或者闭包函数所有的参数，提取出数据库模型类型对象</li>
+<li>根据模型类型对象的 <code>name</code>，找出与模型对象命名相同的路由参数</li>
+<li>根据模型类型对象的 <code>classname</code>，构建数据库模型类型对象，根据路由参数的数值在数据库中执行 <code>sql</code> 语句查询</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">substituteImplicitBindings</span><span class="params">($route)</span></span></div><div class="line">&#123;</div><div class="line">    ImplicitRouteBinding::resolveForRoute(<span class="keyword">$this</span>-&gt;container, $route);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ImplicitRouteBinding</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveForRoute</span><span class="params">($container, $route)</span></span></div><div class="line">    &#123;</div><div class="line">        $parameters = $route-&gt;parameters();</div><div class="line"></div><div class="line">        <span class="keyword">foreach</span> ($route-&gt;signatureParameters(Model::class) <span class="keyword">as</span> $parameter) &#123;</div><div class="line">            $class = $parameter-&gt;getClass();</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (array_key_exists($parameter-&gt;name, $parameters) &amp;&amp;</div><div class="line">                ! $route-&gt;parameter($parameter-&gt;name) <span class="keyword">instanceof</span> Model) &#123;</div><div class="line">                $method = $parameter-&gt;isDefaultValueAvailable() ? <span class="string">'first'</span> : <span class="string">'firstOrFail'</span>;</div><div class="line"></div><div class="line">                $model = $container-&gt;make($class-&gt;name);</div><div class="line"></div><div class="line">                $route-&gt;setParameter(</div><div class="line">                    $parameter-&gt;name, $model-&gt;where(</div><div class="line">                        $model-&gt;getRouteKeyName(), $parameters[$parameter-&gt;name]</div><div class="line">                    )-&gt;&#123;$method&#125;()</div><div class="line">                );</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，显示参数转化的优先级要高于隐性转化，如果当前参数已经被 <code>model</code> 函数显示转化，那么该参数并不会进行隐性转化，也就是上面语句 <code>! $route-&gt;parameter($parameter-&gt;name) instanceof Model</code> 的作用。</p>
+<p>其中扫描控制器方法参数的功能主要利用反射机制：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">signatureParameters</span><span class="params">($subClass = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> RouteSignatureParameters::fromAction(<span class="keyword">$this</span>-&gt;action, $subClass);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteSignatureParameters</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">fromAction</span><span class="params">(array $action, $subClass = null)</span></span></div><div class="line">    &#123;</div><div class="line">        $parameters = is_string($action[<span class="string">'uses'</span>])</div><div class="line">                        ? <span class="keyword">static</span>::fromClassMethodString($action[<span class="string">'uses'</span>])</div><div class="line">                        : (<span class="keyword">new</span> ReflectionFunction($action[<span class="string">'uses'</span>]))-&gt;getParameters();</div><div class="line"></div><div class="line">        <span class="keyword">return</span> is_null($subClass) ? $parameters : array_filter($parameters, <span class="function"><span class="keyword">function</span> <span class="params">($p)</span> <span class="title">use</span> <span class="params">($subClass)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> $p-&gt;getClass() &amp;&amp; $p-&gt;getClass()-&gt;isSubclassOf($subClass);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">fromClassMethodString</span><span class="params">($uses)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">list</span>($class, $method) = Str::parseCallback($uses);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> ReflectionMethod($class, $method))-&gt;getParameters();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="bind-显示参数绑定"><a href="#bind-显示参数绑定" class="headerlink" title="bind 显示参数绑定"></a>bind 显示参数绑定</h2><p>路由的 <code>bind</code> 功能由专门的 <code>binders</code> 数组负责，这个数组中保存着所有的需要显示转化的路由参数与他们的转化闭包函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bind</span><span class="params">($key, $binder)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;binders[str_replace(<span class="string">'-'</span>, <span class="string">'_'</span>, $key)] = RouteBinding::forCallback(</div><div class="line">        <span class="keyword">$this</span>-&gt;container, $binder</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteBinding</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">forCallback</span><span class="params">($container, $binder)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (is_string($binder)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">static</span>::createClassBinding($container, $binder);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $binder;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">createClassBinding</span><span class="params">($container, $binding)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">($value, $route)</span> <span class="title">use</span> <span class="params">($container, $binding)</span> </span>&#123;</div><div class="line">            <span class="keyword">list</span>($class, $method) = Str::parseCallback($binding, <span class="string">'bind'</span>);</div><div class="line"></div><div class="line">            $callable = [$container-&gt;make($class), $method];</div><div class="line"></div><div class="line">            <span class="keyword">return</span> call_user_func($callable, $value, $route);</div><div class="line">        &#125;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，<code>bind</code> 函数可以绑定闭包、<code>classname@method</code>、<code>classname</code>，如果仅仅绑定了一个类名，那么程序默认调用类中 <code>bind</code> 方法。</p>
+<h2 id="model-显示参数绑定"><a href="#model-显示参数绑定" class="headerlink" title="model 显示参数绑定"></a>model 显示参数绑定</h2><p><code>model</code> 调用 <code>bind</code> 函数，赋给 <code>bind</code> 函数一个提前包装好的闭包函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">model</span><span class="params">($key, $class, Closure $callback = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;bind($key, RouteBinding::forModel(<span class="keyword">$this</span>-&gt;container, $class, $callback));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteBinding</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">forModel</span><span class="params">($container, $class, $callback = null)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> <span class="title">use</span> <span class="params">($container, $class, $callback)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> (is_null($value)) &#123;</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            $instance = $container-&gt;make($class);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> ($model = $instance-&gt;where($instance-&gt;getRouteKeyName(), $value)-&gt;first()) &#123;</div><div class="line">                <span class="keyword">return</span> $model;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> ($callback <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">                <span class="keyword">return</span> call_user_func($callback, $value);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">throw</span> (<span class="keyword">new</span> ModelNotFoundException)-&gt;setModel($class);</div><div class="line">        &#125;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，这个闭包函数与隐性转化很相似，都是首先创建数据库模型对象，再利用路由参数值来查询数据库，返回对象。 <code>model</code> 还可以提供默认的闭包函数，以供查询不到数据库时调用。</p>
+<h2 id="显示路由参数转化"><a href="#显示路由参数转化" class="headerlink" title="显示路由参数转化"></a>显示路由参数转化</h2><p>当运行中间件 <code>SubstituteBindings</code> 时，就会将先前绑定的各个闭包函数执行，并对路由参数进行转化：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">substituteBindings</span><span class="params">($route)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> ($route-&gt;parameters() <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;binders[$key])) &#123;</div><div class="line">            $route-&gt;setParameter($key, <span class="keyword">$this</span>-&gt;performBinding($key, $value, $route));</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $route;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">performBinding</span><span class="params">($key, $value, $route)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> call_user_func(<span class="keyword">$this</span>-&gt;binders[$key], $value, $route);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setParameter</span><span class="params">($name, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;parameters();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;parameters[$name] = $value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/28/Laravel Http——路由中间件源码分析/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/01/路由控制器的运行/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/08/01/SubstituteBindings 参数绑定中间件的使用与源码解析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SubstituteBindings-中间件的使用"><span class="nav-number">2.</span> <span class="nav-text">SubstituteBindings 中间件的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库模型隐性转化"><span class="nav-number">2.1.</span> <span class="nav-text">数据库模型隐性转化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由显示绑定"><span class="nav-number">2.2.</span> <span class="nav-text">路由显示绑定</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SubstituteBindings-中间件的源码解析"><span class="nav-number">3.</span> <span class="nav-text">SubstituteBindings 中间件的源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#隐性参数转化源码解析"><span class="nav-number">3.1.</span> <span class="nav-text">隐性参数转化源码解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bind-显示参数绑定"><span class="nav-number">3.2.</span> <span class="nav-text">bind 显示参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#model-显示参数绑定"><span class="nav-number">3.3.</span> <span class="nav-text">model 显示参数绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#显示路由参数转化"><span class="nav-number">3.4.</span> <span class="nav-text">显示路由参数转化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

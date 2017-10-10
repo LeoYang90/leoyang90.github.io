@@ -1,0 +1,991 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言服务提供者是 laravel 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 Laravel 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：服务提供者。
+服务提供者的注册服务提供者的启动由类 \Illuminate\Foundation\Bootstrap\RegisterProviders::class 负责，该类用于加">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/08/14/Laravel Providers/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言服务提供者是 laravel 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 Laravel 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：服务提供者。
+服务提供者的注册服务提供者的启动由类 \Illuminate\Foundation\Bootstrap\RegisterProviders::class 负责，该类用于加">
+<meta property="og:updated_time" content="2017-08-14T15:12:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言服务提供者是 laravel 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 Laravel 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：服务提供者。
+服务提供者的注册服务提供者的启动由类 \Illuminate\Foundation\Bootstrap\RegisterProviders::class 负责，该类用于加">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/08/14/Laravel Providers/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/14/Laravel Providers/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-14T15:12:26+00:00">
+                2017-08-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/08/14/Laravel Providers/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/14/Laravel Providers/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/08/14/Laravel Providers/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>服务提供者是 <code>laravel</code> 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 <code>Laravel</code> 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：<a href="http://laravelacademy.org/post/6703.html" target="_blank" rel="external">服务提供者</a>。</p>
+<h1 id="服务提供者的注册"><a href="#服务提供者的注册" class="headerlink" title="服务提供者的注册"></a>服务提供者的注册</h1><p>服务提供者的启动由类 <code>\Illuminate\Foundation\Bootstrap\RegisterProviders::class</code> 负责，该类用于加载所有服务提供者的 <code>register</code> 函数，并保存延迟加载的服务的信息，以便实现延迟加载。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RegisterProviders</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bootstrap</span><span class="params">(Application $app)</span></span></div><div class="line">    &#123;</div><div class="line">        $app-&gt;registerConfiguredProviders();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">registerConfiguredProviders</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        (<span class="keyword">new</span> ProviderRepository(<span class="keyword">$this</span>, <span class="keyword">new</span> Filesystem, <span class="keyword">$this</span>-&gt;getCachedServicesPath()))</div><div class="line">                    -&gt;load(<span class="keyword">$this</span>-&gt;config[<span class="string">'app.providers'</span>]);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getCachedServicesPath</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;bootstrapPath().<span class="string">'/cache/services.php'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以上可以看出，所有服务提供者都在配置文件 <code>app.php</code> 文件的 <code>providers</code> 数组中。类 <code>ProviderRepository</code> 负责所有的服务加载功能：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProviderRepository</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">load</span><span class="params">(array $providers)</span></span></div><div class="line">    &#123;</div><div class="line">        $manifest = <span class="keyword">$this</span>-&gt;loadManifest();</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;shouldRecompile($manifest, $providers)) &#123;</div><div class="line">            $manifest = <span class="keyword">$this</span>-&gt;compileManifest($providers);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">foreach</span> ($manifest[<span class="string">'when'</span>] <span class="keyword">as</span> $provider =&gt; $events) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;registerLoadEvents($provider, $events);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">foreach</span> ($manifest[<span class="string">'eager'</span>] <span class="keyword">as</span> $provider) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;app-&gt;register($provider);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;addDeferredServices($manifest[<span class="string">'deferred'</span>]);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="加载服务缓存文件"><a href="#加载服务缓存文件" class="headerlink" title="加载服务缓存文件"></a>加载服务缓存文件</h2><p><code>laravel</code> 会把所有的服务整理起来，作为缓存写在缓存文件中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">return</span> <span class="keyword">array</span> (</div><div class="line">	<span class="string">'providers'</span> =&gt; </div><div class="line">	<span class="keyword">array</span> (</div><div class="line">	  <span class="number">0</span> =&gt; <span class="string">'Illuminate\\Auth\\AuthServiceProvider'</span>,</div><div class="line">	  <span class="number">1</span> =&gt; <span class="string">'Illuminate\\Broadcasting\\BroadcastServiceProvider'</span>,</div><div class="line">	  ...</div><div class="line">	),</div><div class="line">	</div><div class="line">	<span class="string">'eager'</span> =&gt; </div><div class="line">	<span class="keyword">array</span> (</div><div class="line">      <span class="number">0</span> =&gt; <span class="string">'Illuminate\\Auth\\AuthServiceProvider'</span>,</div><div class="line">      <span class="number">1</span> =&gt; <span class="string">'Illuminate\\Cookie\\CookieServiceProvider'</span>,</div><div class="line">      ...</div><div class="line">    ),</div><div class="line">    </div><div class="line">    <span class="string">'deferred'</span> =&gt; </div><div class="line">    <span class="keyword">array</span> (</div><div class="line">      <span class="string">'Illuminate\\Broadcasting\\BroadcastManager'</span> =&gt; <span class="string">'Illuminate\\Broadcasting\\BroadcastServiceProvider'</span>,</div><div class="line">      <span class="string">'Illuminate\\Contracts\\Broadcasting\\Factory'</span> =&gt; <span class="string">'Illuminate\\Broadcasting\\BroadcastServiceProvider'</span>,</div><div class="line">      ...</div><div class="line">    ),</div><div class="line">    </div><div class="line">    <span class="string">'when'</span> =&gt; </div><div class="line">    <span class="keyword">array</span> (</div><div class="line">      <span class="string">'Illuminate\\Broadcasting\\BroadcastServiceProvider'</span> =&gt; </div><div class="line">      <span class="keyword">array</span> (</div><div class="line">      ),</div><div class="line">      ...</div><div class="line">    ),</div></pre></td></tr></table></figure>
+<ul>
+<li>缓存文件中 <code>providers</code> 放入了所有自定义和框架核心的服务。</li>
+<li><code>eager</code> 数组中放入了所有需要立即启动的服务提供者。</li>
+<li><code>deferred</code> 数组中放入了所有需要延迟加载的服务提供者。</li>
+<li><code>when</code> 放入了延迟加载需要激活的事件。</li>
+</ul>
+<p>加载服务提供者缓存文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">loadManifest</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;files-&gt;exists(<span class="keyword">$this</span>-&gt;manifestPath)) &#123;</div><div class="line">        $manifest = <span class="keyword">$this</span>-&gt;files-&gt;getRequire(<span class="keyword">$this</span>-&gt;manifestPath);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($manifest) &#123;</div><div class="line">            <span class="keyword">return</span> array_merge([<span class="string">'when'</span> =&gt; []], $manifest);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="编译服务提供者"><a href="#编译服务提供者" class="headerlink" title="编译服务提供者"></a>编译服务提供者</h2><p>若 <code>laravel</code> 中的服务提供者没有缓存文件或者有变动，那么就会重新生成缓存文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">shouldRecompile</span><span class="params">($manifest, $providers)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> is_null($manifest) || $manifest[<span class="string">'providers'</span>] != $providers;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">compileManifest</span><span class="params">($providers)</span></span></div><div class="line">&#123;</div><div class="line">    $manifest = <span class="keyword">$this</span>-&gt;freshManifest($providers);</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($providers <span class="keyword">as</span> $provider) &#123;</div><div class="line">        $instance = <span class="keyword">$this</span>-&gt;createProvider($provider);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($instance-&gt;isDeferred()) &#123;</div><div class="line">            <span class="keyword">foreach</span> ($instance-&gt;provides() <span class="keyword">as</span> $service) &#123;</div><div class="line">                $manifest[<span class="string">'deferred'</span>][$service] = $provider;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            $manifest[<span class="string">'when'</span>][$provider] = $instance-&gt;when();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">else</span> &#123;</div><div class="line">            $manifest[<span class="string">'eager'</span>][] = $provider;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;writeManifest($manifest);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">freshManifest</span><span class="params">(array $providers)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> [<span class="string">'providers'</span> =&gt; $providers, <span class="string">'eager'</span> =&gt; [], <span class="string">'deferred'</span> =&gt; []];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>如果服务提供者是需要立即注册的，那么将会放入缓存文件中 <code>eager</code> 数组中。</li>
+<li>如果服务提供者是延迟加载的，那么其函数 <code>provides()</code> 通常会提供服务别名，这个服务别名通常是向服务容器中注册的别名，别名将会放入缓存文件的 <code>deferred</code> 数组中。</li>
+<li>延迟加载若有 <code>event</code> 事件激活，那么可以在 <code>when</code> 函数中写入事件类，并写入缓存文件的 <code>when</code> 数组中。</li>
+</ul>
+<h2 id="延迟服务提供者事件注册"><a href="#延迟服务提供者事件注册" class="headerlink" title="延迟服务提供者事件注册"></a>延迟服务提供者事件注册</h2><p>延迟服务提供者除了利用 <code>IOC</code> 容器解析服务方式激活，还可以利用 <code>Event</code> 事件来激活：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerLoadEvents</span><span class="params">($provider, array $events)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (count($events) &lt; <span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;make(<span class="string">'events'</span>)-&gt;listen($events, <span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($provider)</span> </span>&#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;register($provider);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="注册即时启动的服务提供者"><a href="#注册即时启动的服务提供者" class="headerlink" title="注册即时启动的服务提供者"></a>注册即时启动的服务提供者</h2><p>服务提供者的注册函数 <code>register()</code> 由类 <code>Application</code> 来调用：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">($provider, $options = [], $force = false)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (($registered = <span class="keyword">$this</span>-&gt;getProvider($provider)) &amp;&amp; ! $force) &#123;</div><div class="line">            <span class="keyword">return</span> $registered;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (is_string($provider)) &#123;</div><div class="line">            $provider = <span class="keyword">$this</span>-&gt;resolveProvider($provider);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (method_exists($provider, <span class="string">'register'</span>)) &#123;</div><div class="line">            $provider-&gt;register();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;markAsRegistered($provider);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;booted) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;bootProvider($provider);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $provider;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getProvider</span><span class="params">($provider)</span></span></div><div class="line">    &#123;</div><div class="line">        $name = is_string($provider) ? $provider : get_class($provider);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> Arr::first(<span class="keyword">$this</span>-&gt;serviceProviders, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> <span class="title">use</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> $value <span class="keyword">instanceof</span> $name;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveProvider</span><span class="params">($provider)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> $provider(<span class="keyword">$this</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">markAsRegistered</span><span class="params">($provider)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;serviceProviders[] = $provider;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;loadedProviders[get_class($provider)] = <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">bootProvider</span><span class="params">(ServiceProvider $provider)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (method_exists($provider, <span class="string">'boot'</span>)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;call([$provider, <span class="string">'boot'</span>]);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，服务提供者的注册过程：</p>
+<ul>
+<li>判断当前服务提供者是否被注册过，如注册过直接返回对象</li>
+<li>解析服务提供者</li>
+<li>调用服务提供者的 <code>register</code> 函数</li>
+<li>标记当前服务提供者已经注册完毕</li>
+<li>若框架已经加载注册完毕所有的服务容器，那么就启动服务提供者的 <code>boot</code> 函数，该函数由于是 <code>call</code> 调用，所以支持依赖注入。</li>
+</ul>
+<h2 id="延迟服务提供者激活与注册"><a href="#延迟服务提供者激活与注册" class="headerlink" title="延迟服务提供者激活与注册"></a>延迟服务提供者激活与注册</h2><p>延迟服务提供者首先需要添加到 <code>Application</code> 中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">addDeferredServices</span><span class="params">(array $services)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;deferredServices = array_merge(<span class="keyword">$this</span>-&gt;deferredServices, $services);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们之前说过，延迟服务提供者的激活注册有两种方法：事件与服务解析。</p>
+<p>当特定的事件被激发后，就会调用 <code>Application</code> 的 <code>register</code> 函数，进而调用服务提供者的 <code>register</code> 函数，实现服务的注册。</p>
+<p>当利用 <code>Ioc</code> 容器解析服务名时，例如解析服务名 <code>BroadcastingFactory</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">BroadcastServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">protected</span> $defer = <span class="keyword">true</span>;</div><div class="line">	</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">provides</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> [</div><div class="line">            BroadcastManager::class,</div><div class="line">            BroadcastingFactory::class,</div><div class="line">            BroadcasterContract::class,</div><div class="line">        ];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">make</span><span class="params">($abstract)</span></span></div><div class="line">&#123;</div><div class="line">    $abstract = <span class="keyword">$this</span>-&gt;getAlias($abstract);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;deferredServices[$abstract])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;loadDeferredProvider($abstract);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">parent</span>::make($abstract);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">loadDeferredProvider</span><span class="params">($service)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;deferredServices[$service])) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $provider = <span class="keyword">$this</span>-&gt;deferredServices[$service];</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;loadedProviders[$provider])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;registerDeferredProvider($provider, $service);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由 <code>deferredServices</code> 数组可以得知，<code>BroadcastingFactory</code> 为延迟服务，接着程序会利用函数 <code>loadDeferredProvider</code> 来加载延迟服务提供者，调用服务提供者的 <code>register</code> 函数，若当前的框架还未注册完全部服务。那么将会放入服务启动的回调函数中，以待服务启动时调用：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">registerDeferredProvider</span><span class="params">($provider, $service = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ($service) &#123;</div><div class="line">        <span class="keyword">unset</span>(<span class="keyword">$this</span>-&gt;deferredServices[$service]);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;register($instance = <span class="keyword">new</span> $provider(<span class="keyword">$this</span>));</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;booted) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;booting(<span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;bootProvider($instance);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>关于服务提供者的注册函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">BroadcastServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">protected</span> $defer = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;singleton(BroadcastManager::class, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> BroadcastManager($app);</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;singleton(BroadcasterContract::class, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> $app-&gt;make(BroadcastManager::class)-&gt;connection();</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;app-&gt;alias(</div><div class="line">            BroadcastManager::class, BroadcastingFactory::class</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">provides</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> [</div><div class="line">            BroadcastManager::class,</div><div class="line">            BroadcastingFactory::class,</div><div class="line">            BroadcasterContract::class,</div><div class="line">        ];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>函数 <code>register</code> 为类 <code>BroadcastingFactory</code> 向 <code>Ioc</code> 容器绑定了特定的实现类 <code>BroadcastManager</code>，这样 <code>Ioc</code> 容器中的 <code>make</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">make</span><span class="params">($abstract)</span></span></div><div class="line">&#123;</div><div class="line">    $abstract = <span class="keyword">$this</span>-&gt;getAlias($abstract);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;deferredServices[$abstract])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;loadDeferredProvider($abstract);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">parent</span>::make($abstract);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>parent::make($abstract)</code> 就会正确的解析服务 <code>BroadcastingFactory</code>。</p>
+<p>因此函数 <code>provides()</code> 返回的元素一定都是 <code>register()</code> 向 <code>IOC</code> 容器中绑定的类名或者别名。这样当我们利用服务容器来利用 <code>App::make()</code> 解析这些类名的时候，服务容器才会根据服务提供者的 <code>register()</code> 函数中绑定的实现类，从而正确解析服务功能。</p>
+<h1 id="服务容器的启动"><a href="#服务容器的启动" class="headerlink" title="服务容器的启动"></a>服务容器的启动</h1><p>服务容器的启动由类 <code>\Illuminate\Foundation\Bootstrap\BootProviders::class</code> 负责：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">BootProviders</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bootstrap</span><span class="params">(Application $app)</span></span></div><div class="line">    &#123;</div><div class="line">        $app-&gt;boot();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;booted) &#123;</div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;fireAppCallbacks(<span class="keyword">$this</span>-&gt;bootingCallbacks);</div><div class="line"></div><div class="line">        array_walk(<span class="keyword">$this</span>-&gt;serviceProviders, <span class="function"><span class="keyword">function</span> <span class="params">($p)</span> </span>&#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;bootProvider($p);</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;booted = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">        <span class="keyword">$this</span>-&gt;fireAppCallbacks(<span class="keyword">$this</span>-&gt;bootedCallbacks);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">bootProvider</span><span class="params">(ServiceProvider $provider)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (method_exists($provider, <span class="string">'boot'</span>)) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;call([$provider, <span class="string">'boot'</span>]);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/13/Laravel Exceptions——异常与错误处理/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/15/Laravel Database——数据库服务的启动与连接/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/08/14/Laravel Providers/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/08/14/Laravel Providers/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/08/14/Laravel Providers/"
+           data-title="" data-url="https://leoyang90.github.io/2017/08/14/Laravel Providers/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务提供者的注册"><span class="nav-number">2.</span> <span class="nav-text">服务提供者的注册</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#加载服务缓存文件"><span class="nav-number">2.1.</span> <span class="nav-text">加载服务缓存文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译服务提供者"><span class="nav-number">2.2.</span> <span class="nav-text">编译服务提供者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#延迟服务提供者事件注册"><span class="nav-number">2.3.</span> <span class="nav-text">延迟服务提供者事件注册</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注册即时启动的服务提供者"><span class="nav-number">2.4.</span> <span class="nav-text">注册即时启动的服务提供者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#延迟服务提供者激活与注册"><span class="nav-number">2.5.</span> <span class="nav-text">延迟服务提供者激活与注册</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务容器的启动"><span class="nav-number">3.</span> <span class="nav-text">服务容器的启动</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

@@ -1,0 +1,1044 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言laravel 在启动时，会加载项目的 env 文件，本文将会详细介绍 env 文件的使用与源码的分析。
+ENV 文件的使用多环境 ENV 文件的设置一、在项目写多个 ENV 文件，例如三个 env 文件： 
+
+.env.development、
+.env.staging、
+.env.production，
+
+这三个文件中分别针对不同环境为某些变量配置了不同的值，
+二、配置 APP_ENV 环">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言laravel 在启动时，会加载项目的 env 文件，本文将会详细介绍 env 文件的使用与源码的分析。
+ENV 文件的使用多环境 ENV 文件的设置一、在项目写多个 ENV 文件，例如三个 env 文件： 
+
+.env.development、
+.env.staging、
+.env.production，
+
+这三个文件中分别针对不同环境为某些变量配置了不同的值，
+二、配置 APP_ENV 环">
+<meta property="og:updated_time" content="2017-08-12T07:41:15.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言laravel 在启动时，会加载项目的 env 文件，本文将会详细介绍 env 文件的使用与源码的分析。
+ENV 文件的使用多环境 ENV 文件的设置一、在项目写多个 ENV 文件，例如三个 env 文件： 
+
+.env.development、
+.env.staging、
+.env.production，
+
+这三个文件中分别针对不同环境为某些变量配置了不同的值，
+二、配置 APP_ENV 环">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-12T07:41:15+00:00">
+                2017-08-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><code>laravel</code> 在启动时，会加载项目的 <code>env</code> 文件，本文将会详细介绍 <code>env</code> 文件的使用与源码的分析。</p>
+<h1 id="ENV-文件的使用"><a href="#ENV-文件的使用" class="headerlink" title="ENV 文件的使用"></a>ENV 文件的使用</h1><h2 id="多环境-ENV-文件的设置"><a href="#多环境-ENV-文件的设置" class="headerlink" title="多环境 ENV 文件的设置"></a>多环境 ENV 文件的设置</h2><p>一、在项目写多个 <code>ENV</code> 文件，例如三个 <code>env</code> 文件： </p>
+<ul>
+<li><code>.env.development</code>、</li>
+<li><code>.env.staging</code>、</li>
+<li><code>.env.production</code>，</li>
+</ul>
+<p>这三个文件中分别针对不同环境为某些变量配置了不同的值，</p>
+<p>二、配置 <code>APP_ENV</code> 环境变量值</p>
+<p>配置环境变量的方法有很多，其中一个方法是在 <code>nginx</code> 的配置文件中写下这句代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">fastcgi_param  APP_ENV  production;</div></pre></td></tr></table></figure>
+<p>那么 <code>laravel</code> 会通过 <code>env(&#39;APP_ENV&#39;)</code> 根据环境变量 <code>APP_ENV</code> 来判断当前具体的环境，假如环境变量 <code>APP_ENV</code> 为 <code>production</code>，那么 <code>laravel</code> 将会自动加载 <code>.env.production</code> 文件。</p>
+<h2 id="自定义-ENV-文件的路径与文件名"><a href="#自定义-ENV-文件的路径与文件名" class="headerlink" title="自定义 ENV 文件的路径与文件名"></a>自定义 ENV 文件的路径与文件名</h2><p><code>laravel</code> 为用户提供了自定义 <code>ENV</code> 文件路径或文件名的函数，</p>
+<p>例如，若想要自定义 <code>env</code> 路径，就可以在 <code>bootstrap</code> 文件夹中 <code>app.php</code> 文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$app = <span class="keyword">new</span> Illuminate\Foundation\Application(</div><div class="line">    realpath(<span class="keyword">__DIR__</span>.<span class="string">'/../'</span>)</div><div class="line">);</div><div class="line"></div><div class="line">$app-&gt;useEnvironmentPath(<span class="string">'/customer/path'</span>)</div></pre></td></tr></table></figure>
+<p>若想要自定义 <code>env</code> 文件名称，就可以在 <code>bootstrap</code> 文件夹中 <code>app.php</code> 文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$app = <span class="keyword">new</span> Illuminate\Foundation\Application(</div><div class="line">    realpath(<span class="keyword">__DIR__</span>.<span class="string">'/../'</span>)</div><div class="line">);</div><div class="line"></div><div class="line">$app-&gt;loadEnvironmentFrom(<span class="string">'customer.env'</span>)</div></pre></td></tr></table></figure>
+<h2 id="ENV-文件变量设置"><a href="#ENV-文件变量设置" class="headerlink" title="ENV 文件变量设置"></a>ENV 文件变量设置</h2><ul>
+<li>在 <code>env</code> 文件中，我们可以为变量赋予具体值：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CFOO=bar</div></pre></td></tr></table></figure>
+<p>值得注意的是，这种具体值不允许赋予多个，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CFOO=bar baz</div></pre></td></tr></table></figure>
+<ul>
+<li>可以为变量赋予字符串引用</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CQUOTES=<span class="string">"a value with a # character"</span></div></pre></td></tr></table></figure>
+<p>值得注意的是，这种引用不允许字符串中存在符号 <code>\</code>，只能使用转义字符 <code>\\</code></p>
+<p>而且也不允许内嵌符号 <code>&quot;&quot;</code>，只能使用转移字符 <code>\&quot;</code>,否则取值会意外结束：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">CQUOTESWITHQUOTE=<span class="string">"a value with a # character &amp; a quote \" character inside quotes"</span> <span class="comment"># " this is a comment</span></div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'a value with a # character &amp; a quote " character inside quotes'</span>, getenv(<span class="string">'CQUOTESWITHQUOTE'</span>));</div></pre></td></tr></table></figure>
+<ul>
+<li>可以在 <code>env</code> 文件中添加注释，方法是以 <code>#</code> 开始：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">CQUOTES=<span class="string">"a value with a # character"</span> <span class="comment"># this is a comment</span></div></pre></td></tr></table></figure>
+<ul>
+<li>可以使用 <code>export</code> 来为变量赋值：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">export EFOO=<span class="string">"bar"</span></div></pre></td></tr></table></figure>
+<ul>
+<li>可以在 <code>env</code> 文件中使用变量为变量赋值：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">NVAR1=<span class="string">"Hello"</span></div><div class="line">NVAR2=<span class="string">"World!"</span></div><div class="line">NVAR3=<span class="string">"&#123;$NVAR1&#125; &#123;$NVAR2&#125;"</span></div><div class="line">NVAR4=<span class="string">"$&#123;NVAR1&#125; $&#123;NVAR2&#125;"</span></div><div class="line">NVAR5=<span class="string">"$NVAR1 &#123;NVAR2&#125;"</span></div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'&#123;$NVAR1&#125; &#123;$NVAR2&#125;'</span>, $_ENV[<span class="string">'NVAR3'</span>]); <span class="comment">// not resolved</span></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'Hello World!'</span>, $_ENV[<span class="string">'NVAR4'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'$NVAR1 &#123;NVAR2&#125;'</span>, $_ENV[<span class="string">'NVAR5'</span>]); <span class="comment">// not resolved</span></div></pre></td></tr></table></figure>
+<h1 id="ENV-加载源码分析"><a href="#ENV-加载源码分析" class="headerlink" title="ENV 加载源码分析"></a>ENV 加载源码分析</h1><h2 id="laravel-加载-ENV"><a href="#laravel-加载-ENV" class="headerlink" title="laravel 加载 ENV"></a>laravel 加载 ENV</h2><p><code>ENV</code> 的加载功能由类 <code>\Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class</code> 完成，它的启动函数为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bootstrap</span><span class="params">(Application $app)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ($app-&gt;configurationIsCached()) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;checkForSpecificEnvironmentFile($app);</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        (<span class="keyword">new</span> Dotenv($app-&gt;environmentPath(), $app-&gt;environmentFile()))-&gt;load();</div><div class="line">    &#125; <span class="keyword">catch</span> (InvalidPathException $e) &#123;</div><div class="line">        <span class="comment">//</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果我们在环境变量中设置了 <code>APP_ENV</code> 变量，那么就会调用函数 <code>checkForSpecificEnvironmentFile</code> 来根据环境加载不同的 <code>env</code> 文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">checkForSpecificEnvironmentFile</span><span class="params">($app)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (php_sapi_name() == <span class="string">'cli'</span> &amp;&amp; with($input = <span class="keyword">new</span> ArgvInput)-&gt;hasParameterOption(<span class="string">'--env'</span>)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setEnvironmentFilePath(</div><div class="line">            $app, $app-&gt;environmentFile().<span class="string">'.'</span>.$input-&gt;getParameterOption(<span class="string">'--env'</span>)</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! env(<span class="string">'APP_ENV'</span>)) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;setEnvironmentFilePath(</div><div class="line">        $app, $app-&gt;environmentFile().<span class="string">'.'</span>.env(<span class="string">'APP_ENV'</span>)</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setEnvironmentFilePath</span><span class="params">($app, $file)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (file_exists($app-&gt;environmentPath().<span class="string">'/'</span>.$file)) &#123;</div><div class="line">        $app-&gt;loadEnvironmentFrom($file);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="vlucas-phpdotenv-源码解读"><a href="#vlucas-phpdotenv-源码解读" class="headerlink" title="vlucas/phpdotenv 源码解读"></a>vlucas/phpdotenv 源码解读</h2><p><code>laravel</code> 中对 <code>env</code> 文件的读取是采用 <code>vlucas/phpdotenv</code> 的开源项目：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dotenv</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">($path, $file = <span class="string">'.env'</span>)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;filePath = <span class="keyword">$this</span>-&gt;getFilePath($path, $file);</div><div class="line">        <span class="keyword">$this</span>-&gt;loader = <span class="keyword">new</span> Loader(<span class="keyword">$this</span>-&gt;filePath, <span class="keyword">true</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">load</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;loadData();</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">loadData</span><span class="params">($overload = false)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;loader = <span class="keyword">new</span> Loader(<span class="keyword">$this</span>-&gt;filePath, !$overload);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;loader-&gt;load();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>env</code> 文件变量的读取依赖类 <code>/Dotenv/Loader</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Loader</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">load</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;ensureFileIsReadable();</div><div class="line"></div><div class="line">        $filePath = <span class="keyword">$this</span>-&gt;filePath;</div><div class="line">        $lines = <span class="keyword">$this</span>-&gt;readLinesFromFile($filePath);</div><div class="line">        <span class="keyword">foreach</span> ($lines <span class="keyword">as</span> $line) &#123;</div><div class="line">            <span class="keyword">if</span> (!<span class="keyword">$this</span>-&gt;isComment($line) &amp;&amp; <span class="keyword">$this</span>-&gt;looksLikeSetter($line)) &#123;</div><div class="line">                <span class="keyword">$this</span>-&gt;setEnvironmentVariable($line);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $lines;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们可以看到，<code>env</code> 文件的读取的流程：</p>
+<ul>
+<li>判断 <code>env</code> 文件是否可读</li>
+<li>读取整个 <code>env</code> 文件，并将文件按行存储</li>
+<li>循环读取每一行，略过注释</li>
+<li>进行环境变量赋值</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">ensureFileIsReadable</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (!is_readable(<span class="keyword">$this</span>-&gt;filePath) || !is_file(<span class="keyword">$this</span>-&gt;filePath)) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InvalidPathException(sprintf(<span class="string">'Unable to read the environment file at %s.'</span>, <span class="keyword">$this</span>-&gt;filePath));</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">readLinesFromFile</span><span class="params">($filePath)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="comment">// Read file into an array of lines with auto-detected line endings</span></div><div class="line">    $autodetect = ini_get(<span class="string">'auto_detect_line_endings'</span>);</div><div class="line">    ini_set(<span class="string">'auto_detect_line_endings'</span>, <span class="string">'1'</span>);</div><div class="line">    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);</div><div class="line">    ini_set(<span class="string">'auto_detect_line_endings'</span>, $autodetect);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $lines;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">isComment</span><span class="params">($line)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> strpos(ltrim($line), <span class="string">'#'</span>) === <span class="number">0</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">looksLikeSetter</span><span class="params">($line)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> strpos($line, <span class="string">'='</span>) !== <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>环境变量赋值是 <code>env</code> 文件加载的核心，主要由 <code>setEnvironmentVariable</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setEnvironmentVariable</span><span class="params">($name, $value = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">list</span>($name, $value) = <span class="keyword">$this</span>-&gt;normaliseEnvironmentVariable($name, $value);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;immutable &amp;&amp; <span class="keyword">$this</span>-&gt;getEnvironmentVariable($name) !== <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (function_exists(<span class="string">'apache_getenv'</span>) &amp;&amp; function_exists(<span class="string">'apache_setenv'</span>) &amp;&amp; apache_getenv($name)) &#123;</div><div class="line">        apache_setenv($name, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (function_exists(<span class="string">'putenv'</span>)) &#123;</div><div class="line">        putenv(<span class="string">"$name=$value"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $_ENV[$name] = $value;</div><div class="line">    $_SERVER[$name] = $value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>normaliseEnvironmentVariable</code> 函数用来加载各种类型的环境变量：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">normaliseEnvironmentVariable</span><span class="params">($name, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">list</span>($name, $value) = <span class="keyword">$this</span>-&gt;splitCompoundStringIntoParts($name, $value);</div><div class="line">    <span class="keyword">list</span>($name, $value) = <span class="keyword">$this</span>-&gt;sanitiseVariableName($name, $value);</div><div class="line">    <span class="keyword">list</span>($name, $value) = <span class="keyword">$this</span>-&gt;sanitiseVariableValue($name, $value);</div><div class="line"></div><div class="line">    $value = <span class="keyword">$this</span>-&gt;resolveNestedVariables($value);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">array</span>($name, $value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>splitCompoundStringIntoParts</code> 用于将赋值语句转化为环境变量名 <code>name</code> 和环境变量值 <code>value</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">splitCompoundStringIntoParts</span><span class="params">($name, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (strpos($name, <span class="string">'='</span>) !== <span class="keyword">false</span>) &#123;</div><div class="line">        <span class="keyword">list</span>($name, $value) = array_map(<span class="string">'trim'</span>, explode(<span class="string">'='</span>, $name, <span class="number">2</span>));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">array</span>($name, $value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>sanitiseVariableName</code> 用于格式化环境变量名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">sanitiseVariableName</span><span class="params">($name, $value)</span></span></div><div class="line">&#123;</div><div class="line">    $name = trim(str_replace(<span class="keyword">array</span>(<span class="string">'export '</span>, <span class="string">'\''</span>, <span class="string">'"'</span>), <span class="string">''</span>, $name));</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">array</span>($name, $value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>sanitiseVariableValue</code> 用于格式化环境变量值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">sanitiseVariableValue</span><span class="params">($name, $value)</span></span></div><div class="line">&#123;</div><div class="line">    $value = trim($value);</div><div class="line">    <span class="keyword">if</span> (!$value) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">array</span>($name, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;beginsWithAQuote($value)) &#123; <span class="comment">// value starts with a quote</span></div><div class="line">        $quote = $value[<span class="number">0</span>];</div><div class="line">        $regexPattern = sprintf(</div><div class="line">            <span class="string">'/^</span></div><div class="line">            %1$s          # match a quote at the start of the value</div><div class="line">            (             # capturing sub-pattern used</div><div class="line">             (?:          # we do not need to capture this</div><div class="line">              [^%1$s\\\\] # any character other than a quote or backslash</div><div class="line">              |\\\\\\\\   # or two backslashes together</div><div class="line">              |\\\\%1$s   # or an escaped quote e.g \"</div><div class="line">             )*           # as many characters that match the previous rules</div><div class="line">            )             # end of the capturing sub-pattern</div><div class="line">            %1$s          # and the closing quote</div><div class="line">            .*$           # and discard any string after the closing quote</div><div class="line">            /mx',</div><div class="line">            $quote</div><div class="line">        );</div><div class="line">        $value = preg_replace($regexPattern, <span class="string">'$1'</span>, $value);</div><div class="line">        $value = str_replace(<span class="string">"\\$quote"</span>, $quote, $value);</div><div class="line">        $value = str_replace(<span class="string">'\\\\'</span>, <span class="string">'\\'</span>, $value);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        $parts = explode(<span class="string">' #'</span>, $value, <span class="number">2</span>);</div><div class="line">        $value = trim($parts[<span class="number">0</span>]);</div><div class="line"></div><div class="line">        <span class="comment">// Unquoted values cannot contain whitespace</span></div><div class="line">        <span class="keyword">if</span> (preg_match(<span class="string">'/\s+/'</span>, $value) &gt; <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> InvalidFileException(<span class="string">'Dotenv values containing spaces must be surrounded by quotes.'</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">array</span>($name, trim($value));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码是加载 <code>env</code> 文件最复杂的部分，我们详细来说：</p>
+<ul>
+<li><p>若环境变量值是具体值，那么仅仅需要分割注释 <code>#</code> 部分，并判断是否存在空格符即可。</p>
+</li>
+<li><p>若环境变量值由引用构成，那么就需要进行正则匹配，具体的正则表达式为：</p>
+</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/^<span class="string">"((?:[^"</span>\\]|\\\\|\\<span class="string">"))"</span>.*$/mx</div></pre></td></tr></table></figure>
+<p>这个正则表达式的意思是：</p>
+<ul>
+<li>提取 <code>“”</code> 双引号内部的字符串，抛弃双引号之后的字符串</li>
+<li>若双引号内部还有双引号，那么以最前面的双引号为提取内容，例如 “dfd(“dfd”)fdf”，我们只能提取出来最前面的部分 “dfd(“</li>
+<li>对于内嵌的引用可以使用 <code>\&quot;</code> ，例如 “dfd\”dfd\”fdf”,我们就可以提取出来 “dfd\”dfd\”fdf”。</li>
+<li>不允许引用中含有 <code>\</code>，但可以使用转义字符 <code>\\</code></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/08/Laravel Http——重定向的使用与源码分析/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/12/Laravel Config—— 配置文件的加载与源码解析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/08/12/Laravel ENV—— 环境变量的加载与源码解析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ENV-文件的使用"><span class="nav-number">2.</span> <span class="nav-text">ENV 文件的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#多环境-ENV-文件的设置"><span class="nav-number">2.1.</span> <span class="nav-text">多环境 ENV 文件的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义-ENV-文件的路径与文件名"><span class="nav-number">2.2.</span> <span class="nav-text">自定义 ENV 文件的路径与文件名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ENV-文件变量设置"><span class="nav-number">2.3.</span> <span class="nav-text">ENV 文件变量设置</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ENV-加载源码分析"><span class="nav-number">3.</span> <span class="nav-text">ENV 加载源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#laravel-加载-ENV"><span class="nav-number">3.1.</span> <span class="nav-text">laravel 加载 ENV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vlucas-phpdotenv-源码解读"><span class="nav-number">3.2.</span> <span class="nav-text">vlucas/phpdotenv 源码解读</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

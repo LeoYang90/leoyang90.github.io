@@ -1,0 +1,1059 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言我们在前面的文章已经讲了整个路由与控制器的源码，我们今天这个文章开始向大家介绍在 laravel 中创建 RESTFul 风格的控制器。
+关于什么是RESTFul风格及其规范可参考这篇文章：理解RESTful架构。
+关于 laravel 中 RESTFul 风格控制器的创建简要介绍 ： HTTP控制器实例教程 —— 创建 RESTFul 风格控制器实现文章增删改查
+创建 RESTFul 风格控">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/08/04/RESTFul 路由的使用与源码分析/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言我们在前面的文章已经讲了整个路由与控制器的源码，我们今天这个文章开始向大家介绍在 laravel 中创建 RESTFul 风格的控制器。
+关于什么是RESTFul风格及其规范可参考这篇文章：理解RESTful架构。
+关于 laravel 中 RESTFul 风格控制器的创建简要介绍 ： HTTP控制器实例教程 —— 创建 RESTFul 风格控制器实现文章增删改查
+创建 RESTFul 风格控">
+<meta property="og:updated_time" content="2017-08-04T15:07:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言我们在前面的文章已经讲了整个路由与控制器的源码，我们今天这个文章开始向大家介绍在 laravel 中创建 RESTFul 风格的控制器。
+关于什么是RESTFul风格及其规范可参考这篇文章：理解RESTful架构。
+关于 laravel 中 RESTFul 风格控制器的创建简要介绍 ： HTTP控制器实例教程 —— 创建 RESTFul 风格控制器实现文章增删改查
+创建 RESTFul 风格控">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/08/04/RESTFul 路由的使用与源码分析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/04/RESTFul 路由的使用与源码分析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-04T15:07:09+00:00">
+                2017-08-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/08/04/RESTFul 路由的使用与源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/04/RESTFul 路由的使用与源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/08/04/RESTFul 路由的使用与源码分析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我们在前面的文章已经讲了整个路由与控制器的源码，我们今天这个文章开始向大家介绍在 <code>laravel</code> 中创建 <code>RESTFul</code> 风格的控制器。</p>
+<p>关于什么是RESTFul风格及其规范可参考这篇文章：<a href="http://www.ruanyifeng.com/blog/2011/09/restful.html" target="_blank" rel="external">理解RESTful架构</a>。</p>
+<p>关于 <code>laravel</code> 中 <code>RESTFul</code> 风格控制器的创建简要介绍 ： <a href="http://laravelacademy.org/post/549.html" target="_blank" rel="external">HTTP控制器实例教程 —— 创建 <code>RESTFul</code> 风格控制器实现文章增删改查</a></p>
+<h1 id="创建-RESTFul-风格控制器"><a href="#创建-RESTFul-风格控制器" class="headerlink" title="创建 RESTFul 风格控制器"></a>创建 <code>RESTFul</code> 风格控制器</h1><p>要想在 <code>laravel</code> 中创建 <code>RESTFul</code> 风格控制器，只需要一句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Route::resource(<span class="string">'post'</span>,<span class="string">'PostController'</span>);</div></pre></td></tr></table></figure>
+<p>该路由包含了指向多个动作的子路由：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>路径</th>
+<th>动作</th>
+<th>路由名称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td>/post</td>
+<td>index</td>
+<td>post.index</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/post/create</td>
+<td>create</td>
+<td>post.create</td>
+</tr>
+<tr>
+<td>POST</td>
+<td>/post</td>
+<td>store</td>
+<td>post.store</td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/post/{post}</td>
+<td>show</td>
+<td>post.show </td>
+</tr>
+<tr>
+<td>GET</td>
+<td>/post/{post}/edit</td>
+<td>edit</td>
+<td>post.edit</td>
+</tr>
+<tr>
+<td>PUT/PATCH</td>
+<td>/post/{post}</td>
+<td>update</td>
+<td>post.update</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>/post/{post}</td>
+<td>destroy</td>
+<td>post.destroy</td>
+</tr>
+</tbody>
+</table>
+<p>这种用法既简单又方便，接下来，我们将会说一下 <code>laravel</code> 为我们提供的更加灵活的用法。</p>
+<h2 id="前缀-RESTFul-路由"><a href="#前缀-RESTFul-路由" class="headerlink" title="前缀 RESTFul 路由"></a>前缀 <code>RESTFul</code> 路由</h2><p>可以为 <code>RESTFul</code> 路由定义前缀：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'prefix/foos'</span>, <span class="string">'FooController'</span>);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'prefix/foos/&#123;foo&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<h2 id="双参数-RESTFul-路由"><a href="#双参数-RESTFul-路由" class="headerlink" title="双参数 RESTFul 路由"></a>双参数 <code>RESTFul</code> 路由</h2><p><code>laravel</code> 允许定义拥有两个参数的 <code>RESTFul</code> 路由：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foos.bars'</span>, <span class="string">'FooController'</span>);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foos/&#123;foo&#125;/bars/&#123;bar&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<h2 id="参数自定义命名"><a href="#参数自定义命名" class="headerlink" title="参数自定义命名"></a>参数自定义命名</h2><p>一般来说，<code>RESTFul</code> 路由的参数命名规则是路由单数，符号 <code>-</code> 转为 <code>_</code>，例如下面例子中 <code>bars</code>，和 <code>foo-baz</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foos'</span>, <span class="string">'FooController'</span>);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foos/&#123;foo&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div><div class="line"></div><div class="line">$router-&gt;resource(<span class="string">'foo-bar.foo-baz'</span>, <span class="string">'FooController'</span>, [<span class="string">'only'</span> =&gt; [<span class="string">'show'</span>]]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo-bar/&#123;foo_bar&#125;/foo-baz/&#123;foo_baz&#125;'</span>, $routes[<span class="number">0</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<p>我们可以利用 <code>parameters</code> 强制这种单数模式：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foos'</span>, <span class="string">'FooController'</span>, [<span class="string">'parameters'</span> =&gt; <span class="string">'singular'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foos/&#123;foo&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<p>我们也可以利用 <code>singularParameters</code> 来强制：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ResourceRegistrar::singularParameters(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">$router-&gt;resource(<span class="string">'foos'</span>, <span class="string">'FooController'</span>, [<span class="string">'parameters'</span> =&gt; <span class="string">'singular'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foos/&#123;foo&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<p>我们还可以不使用单数，利用 <code>parameters</code> 用自己自定义的名字来定义参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'bars.foos.bazs'</span>, <span class="string">'FooController'</span>, [<span class="string">'parameters'</span> =&gt; [<span class="string">'foos'</span> =&gt; <span class="string">'oof'</span>, <span class="string">'bazs'</span> =&gt; <span class="string">'b'</span>]]);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'bars/&#123;bar&#125;/foos/&#123;oof&#125;/bazs/&#123;b&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<p>同时，我们仍然可以利用 <code>setParameters</code> 函数来自定义参数命名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">ResourceRegistrar::setParameters([<span class="string">'foos'</span> =&gt; <span class="string">'oof'</span>, <span class="string">'bazs'</span> =&gt; <span class="string">'b'</span>]);</div><div class="line"></div><div class="line">$router-&gt;resource(<span class="string">'bars.foos.bazs'</span>, <span class="string">'FooController'</span>);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'bars/&#123;bar&#125;/foos/&#123;oof&#125;/bazs/&#123;b&#125;'</span>, $routes[<span class="number">3</span>]-&gt;uri());</div></pre></td></tr></table></figure>
+<h2 id="RESTFul-路由动词控制"><a href="#RESTFul-路由动词控制" class="headerlink" title="RESTFul 路由动词控制"></a><code>RESTFul</code> 路由动词控制</h2><p><code>laravel</code> 为 <code>RESTFul</code> 路由生成了两个带有动词的路由： <code>create</code> 、 <code>edit</code>，分别用于加载订单的创建页面与编辑页面，这两个动词 <code>laravel</code> 是允许修改的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">ResourceRegistrar::verbs([</div><div class="line">    <span class="string">'create'</span> =&gt; <span class="string">'ajouter'</span>,</div><div class="line">    <span class="string">'edit'</span> =&gt; <span class="string">'modifier'</span>,</div><div class="line">]);</div><div class="line"></div><div class="line">$router-&gt;resource(<span class="string">'foo'</span>, <span class="string">'FooController'</span>);</div><div class="line">$routes = $router-&gt;getRoutes();</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo/ajouter'</span>, $routes-&gt;getByName(<span class="string">'foo.create'</span>)-&gt;uri());</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo/&#123;foo&#125;/modifier'</span>, $routes-&gt;getByName(<span class="string">'foo.edit'</span>)-&gt;uri());</div></pre></td></tr></table></figure>
+<h2 id="控制器方法约束"><a href="#控制器方法约束" class="headerlink" title="控制器方法约束"></a>控制器方法约束</h2><p>一般情况下，我们都会一次性想要上面所生成的七个路由，然而，有时候，我们只需要其中几个，或者不想要其中几个。这时候就可以利用 <code>only</code>  或者 <code>except</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">$router-&gt;resource(<span class="string">'foo'</span>, <span class="string">'FooController'</span>, [<span class="string">'only'</span> =&gt; [<span class="string">'show'</span>, <span class="string">'destroy'</span>]]);</div><div class="line">$routes = $router-&gt;getRoutes();</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertCount(<span class="number">2</span>, $routes);</div></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">$router-&gt;resource(<span class="string">'foo'</span>, <span class="string">'FooController'</span>, [<span class="string">'except'</span> =&gt; [<span class="string">'show'</span>, <span class="string">'destroy'</span>]]);</div><div class="line">$routes = $router-&gt;getRoutes();</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertCount(<span class="number">5</span>, $routes);</div></pre></td></tr></table></figure>
+<h2 id="RESTFul-路由名称自定义"><a href="#RESTFul-路由名称自定义" class="headerlink" title="RESTFul 路由名称自定义"></a><code>RESTFul</code> 路由名称自定义</h2><p><code>RESTFul</code> 路由的每个路由都要自己默认的路由名称，<code>laravel</code> 允许我们对路由名称进行修改：</p>
+<p>我们可以用 <code>as</code> 来为路由名称添加前缀：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foo-bars'</span>, <span class="string">'FooController'</span>, [<span class="string">'only'</span> =&gt; [<span class="string">'show'</span>], <span class="string">'as'</span> =&gt; <span class="string">'prefix'</span>]);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'prefix.foo-bars.show'</span>, $routes[<span class="number">0</span>]-&gt;getName());</div></pre></td></tr></table></figure>
+<p>当有多个路由参数的时候，路由参数默认添加到了路由名称中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'prefix/foo.bar'</span>, <span class="string">'FooController'</span>);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($router-&gt;getRoutes()-&gt;hasNamedRoute(<span class="string">'foo.bar.index'</span>));</div></pre></td></tr></table></figure>
+<p>可以利用 <code>names</code> 为单个路由来命名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foo'</span>, <span class="string">'FooController'</span>, [<span class="string">'names'</span> =&gt; [</div><div class="line">    <span class="string">'index'</span> =&gt; <span class="string">'foo'</span>,</div><div class="line">    <span class="string">'show'</span> =&gt; <span class="string">'bar'</span>,</div><div class="line">]]);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($router-&gt;getRoutes()-&gt;hasNamedRoute(<span class="string">'foo'</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($router-&gt;getRoutes()-&gt;hasNamedRoute(<span class="string">'bar'</span>));</div></pre></td></tr></table></figure>
+<p>还可以利用 <code>names</code> 为所有路由来命名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$router-&gt;resource(<span class="string">'foo'</span>, <span class="string">'FooController'</span>, [<span class="string">'names'</span> =&gt; <span class="string">'bar'</span>]);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($router-&gt;getRoutes()-&gt;hasNamedRoute(<span class="string">'bar.index'</span>));</div></pre></td></tr></table></figure>
+<h1 id="RESTFul-路由源码分析"><a href="#RESTFul-路由源码分析" class="headerlink" title="RESTFul 路由源码分析"></a><code>RESTFul</code> 路由源码分析</h1><p><code>RESTFul</code> 路由的创建工作由类 <code>ResourceRegistrar</code> 负责，这个类为默认为用户创建七个路由，函数方法 <code>register</code> 是创建路由的主函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ResourceRegistrar</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">($name, $controller, array $options = [])</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>($options[<span class="string">'parameters'</span>]) &amp;&amp; ! <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;parameters)) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;parameters = $options[<span class="string">'parameters'</span>];</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (Str::contains($name, <span class="string">'/'</span>)) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;prefixedResource($name, $controller, $options);</div><div class="line"></div><div class="line">            <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $base = <span class="keyword">$this</span>-&gt;getResourceWildcard(last(explode(<span class="string">'.'</span>, $name)));</div><div class="line"></div><div class="line">        $defaults = <span class="keyword">$this</span>-&gt;resourceDefaults;</div><div class="line"></div><div class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getResourceMethods($defaults, $options) <span class="keyword">as</span> $m) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;&#123;<span class="string">'addResource'</span>.ucfirst($m)&#125;($name, $base, $controller, $options);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个函数主要流程分为三段：</p>
+<ul>
+<li>判断是否由前缀</li>
+<li>获取路由的基础参数</li>
+<li>添加路由</li>
+</ul>
+<h2 id="拥有前缀的-RESTFul-路由"><a href="#拥有前缀的-RESTFul-路由" class="headerlink" title="拥有前缀的 RESTFul 路由"></a>拥有前缀的 <code>RESTFul</code> 路由</h2><p>如果我们为 <code>RESTFul</code> 路由添加了前缀，那么 <code>laravel</code> 将会以 <code>group</code> 的形式添加路由：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">prefixedResource</span><span class="params">($name, $controller, array $options)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">list</span>($name, $prefix) = <span class="keyword">$this</span>-&gt;getResourcePrefix($name);</div><div class="line"></div><div class="line">    $callback = <span class="function"><span class="keyword">function</span> <span class="params">($me)</span> <span class="title">use</span> <span class="params">($name, $controller, $options)</span> </span>&#123;</div><div class="line">        $me-&gt;resource($name, $controller, $options);</div><div class="line">    &#125;;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;router-&gt;group(compact(<span class="string">'prefix'</span>), $callback);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getResourcePrefix</span><span class="params">($name)</span></span></div><div class="line">&#123;</div><div class="line">    $segments = explode(<span class="string">'/'</span>, $name);</div><div class="line"></div><div class="line">    $prefix = implode(<span class="string">'/'</span>, array_slice($segments, <span class="number">0</span>, <span class="number">-1</span>));</div><div class="line"></div><div class="line">    <span class="keyword">return</span> [end($segments), $prefix];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="获取基础-RESTFul-路由参数"><a href="#获取基础-RESTFul-路由参数" class="headerlink" title="获取基础 RESTFul 路由参数"></a>获取基础 <code>RESTFul</code> 路由参数</h2><p>在添加各种路由之前，我们需要先获取路由的基础参数，也就是当存在多参数情况下，最后的参数。获取参数后，如果用户有自定义命名，则获取自定义命名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getResourceWildcard</span><span class="params">($value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;parameters[$value])) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;parameters[$value];</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">isset</span>(<span class="keyword">static</span>::$parameterMap[$value])) &#123;</div><div class="line">        $value = <span class="keyword">static</span>::$parameterMap[$value];</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">$this</span>-&gt;parameters === <span class="string">'singular'</span> || <span class="keyword">static</span>::$singularParameters) &#123;</div><div class="line">        $value = Str::singular($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> str_replace(<span class="string">'-'</span>, <span class="string">'_'</span>, $value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="添加各种路由"><a href="#添加各种路由" class="headerlink" title="添加各种路由"></a>添加各种路由</h2><p>添加路由主要有三个步骤：</p>
+<ul>
+<li>计算路由 <code>uri</code></li>
+<li>获取路由属性</li>
+<li>创建路由</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addResourceIndex</span><span class="params">($name, $base, $controller, $options)</span></span></div><div class="line">&#123;</div><div class="line">    $uri = <span class="keyword">$this</span>-&gt;getResourceUri($name);</div><div class="line"></div><div class="line">    $action = <span class="keyword">$this</span>-&gt;getResourceAction($name, $controller, <span class="string">'index'</span>, $options);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;router-&gt;get($uri, $action);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当计算路由 <code>uri</code> 时，由于存在多参数的情况，需要循环计算路由参数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getResourceUri</span><span class="params">($resource)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! Str::contains($resource, <span class="string">'.'</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> $resource;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $segments = explode(<span class="string">'.'</span>, $resource);</div><div class="line"></div><div class="line">    $uri = <span class="keyword">$this</span>-&gt;getNestedResourceUri($segments);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> str_replace(<span class="string">'/&#123;'</span>.<span class="keyword">$this</span>-&gt;getResourceWildcard(end($segments)).<span class="string">'&#125;'</span>, <span class="string">''</span>, $uri);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getNestedResourceUri</span><span class="params">(array $segments)</span></span></div><div class="line">&#123;  </div><div class="line">    <span class="keyword">return</span> implode(<span class="string">'/'</span>, array_map(<span class="function"><span class="keyword">function</span> <span class="params">($s)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $s.<span class="string">'/&#123;'</span>.<span class="keyword">$this</span>-&gt;getResourceWildcard($s).<span class="string">'&#125;'</span>;</div><div class="line">    &#125;, $segments));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当计算路由的属性时，最重要的是获取路由的名字，路由的名字可以是默认，也可以是用户利用 <code>names</code> 或者 <code>as</code> 属性来自定义：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getResourceAction</span><span class="params">($resource, $controller, $method, $options)</span></span></div><div class="line">&#123;</div><div class="line">    $name = <span class="keyword">$this</span>-&gt;getResourceRouteName($resource, $method, $options);</div><div class="line"></div><div class="line">    $action = [<span class="string">'as'</span> =&gt; $name, <span class="string">'uses'</span> =&gt; $controller.<span class="string">'@'</span>.$method];</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($options[<span class="string">'middleware'</span>])) &#123;</div><div class="line">        $action[<span class="string">'middleware'</span>] = $options[<span class="string">'middleware'</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $action;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getResourceRouteName</span><span class="params">($resource, $method, $options)</span></span></div><div class="line">&#123;</div><div class="line">    $name = $resource;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($options[<span class="string">'names'</span>])) &#123;</div><div class="line">        <span class="keyword">if</span> (is_string($options[<span class="string">'names'</span>])) &#123;</div><div class="line">            $name = $options[<span class="string">'names'</span>];</div><div class="line">        &#125; <span class="keyword">elseif</span> (<span class="keyword">isset</span>($options[<span class="string">'names'</span>][$method])) &#123;</div><div class="line">            <span class="keyword">return</span> $options[<span class="string">'names'</span>][$method];</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">        </div><div class="line">    $prefix = <span class="keyword">isset</span>($options[<span class="string">'as'</span>]) ? $options[<span class="string">'as'</span>].<span class="string">'.'</span> : <span class="string">''</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> trim(sprintf(<span class="string">'%s%s.%s'</span>, $prefix, $name, $method), <span class="string">'.'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，如果单独为某一个方法命名，那么直接回返回命名，而不会受 <code>as</code> 和方法名 ‘method’ 的影响。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/01/路由控制器的运行/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/08/Laravel Http——重定向的使用与源码分析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/08/04/RESTFul 路由的使用与源码分析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/08/04/RESTFul 路由的使用与源码分析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/08/04/RESTFul 路由的使用与源码分析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/08/04/RESTFul 路由的使用与源码分析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#创建-RESTFul-风格控制器"><span class="nav-number">2.</span> <span class="nav-text">创建 RESTFul 风格控制器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前缀-RESTFul-路由"><span class="nav-number">2.1.</span> <span class="nav-text">前缀 RESTFul 路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#双参数-RESTFul-路由"><span class="nav-number">2.2.</span> <span class="nav-text">双参数 RESTFul 路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数自定义命名"><span class="nav-number">2.3.</span> <span class="nav-text">参数自定义命名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RESTFul-路由动词控制"><span class="nav-number">2.4.</span> <span class="nav-text">RESTFul 路由动词控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制器方法约束"><span class="nav-number">2.5.</span> <span class="nav-text">控制器方法约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RESTFul-路由名称自定义"><span class="nav-number">2.6.</span> <span class="nav-text">RESTFul 路由名称自定义</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RESTFul-路由源码分析"><span class="nav-number">3.</span> <span class="nav-text">RESTFul 路由源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#拥有前缀的-RESTFul-路由"><span class="nav-number">3.1.</span> <span class="nav-text">拥有前缀的 RESTFul 路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取基础-RESTFul-路由参数"><span class="nav-number">3.2.</span> <span class="nav-text">获取基础 RESTFul 路由参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加各种路由"><span class="nav-number">3.3.</span> <span class="nav-text">添加各种路由</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

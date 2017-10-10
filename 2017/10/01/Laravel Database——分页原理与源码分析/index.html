@@ -1,0 +1,1040 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Laravel Database——paginate 分页服务源码分析paginate 分页laravel 的分页用起来非常简单，只需要对 query 调用 paginate 函数，把返回的对象扔给前端 blade 文件，在 blade 文件调用函数 render 函数或者 link 函数，就可以得到 上一页、下一页 等等分页特效。
+实际上，我们可以简单地把分页服务看作一个前端资源，render">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/10/01/Laravel Database——分页原理与源码分析/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="Laravel Database——paginate 分页服务源码分析paginate 分页laravel 的分页用起来非常简单，只需要对 query 调用 paginate 函数，把返回的对象扔给前端 blade 文件，在 blade 文件调用函数 render 函数或者 link 函数，就可以得到 上一页、下一页 等等分页特效。
+实际上，我们可以简单地把分页服务看作一个前端资源，render">
+<meta property="og:image" content="http://owql68l6p.bkt.clouddn.com/QQ20171001-104935@2x.png">
+<meta property="og:image" content="http://owql68l6p.bkt.clouddn.com/QQ20171001-102833@2x.png">
+<meta property="og:image" content="http://owql68l6p.bkt.clouddn.com/QQ20171001-102858@2x.png">
+<meta property="og:image" content="http://owql68l6p.bkt.clouddn.com/QQ20171001-102916@2x.png">
+<meta property="og:updated_time" content="2017-10-01T04:02:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="Laravel Database——paginate 分页服务源码分析paginate 分页laravel 的分页用起来非常简单，只需要对 query 调用 paginate 函数，把返回的对象扔给前端 blade 文件，在 blade 文件调用函数 render 函数或者 link 函数，就可以得到 上一页、下一页 等等分页特效。
+实际上，我们可以简单地把分页服务看作一个前端资源，render">
+<meta name="twitter:image" content="http://owql68l6p.bkt.clouddn.com/QQ20171001-104935@2x.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/10/01/Laravel Database——分页原理与源码分析/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/10/01/Laravel Database——分页原理与源码分析/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-01T04:02:07+00:00">
+                2017-10-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/10/01/Laravel Database——分页原理与源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/10/01/Laravel Database——分页原理与源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/10/01/Laravel Database——分页原理与源码分析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Laravel-Database——paginate-分页服务源码分析"><a href="#Laravel-Database——paginate-分页服务源码分析" class="headerlink" title="Laravel Database——paginate 分页服务源码分析"></a>Laravel Database——paginate 分页服务源码分析</h1><h2 id="paginate-分页"><a href="#paginate-分页" class="headerlink" title="paginate 分页"></a>paginate 分页</h2><p><code>laravel</code> 的分页用起来非常简单，只需要对 <code>query</code> 调用 <code>paginate</code> 函数，把返回的对象扔给前端 <code>blade</code> 文件，在 <code>blade</code> 文件调用函数 <code>render</code> 函数或者 <code>link</code> 函数，就可以得到 <code>上一页</code>、<code>下一页</code> 等等分页特效。</p>
+<p>实际上，我们可以简单地把分页服务看作一个前端资源，<code>render</code> 函数或者 <code>link</code> 函数的结果就是分页前端代码。</p>
+<p>如果你还对 <code>laravel</code> 的分页不是很熟悉，请先阅读官方文档 ： <a href="https://d.laravel-china.org/docs/5.5/pagination" target="_blank" rel="external">分页</a>。</p>
+<h2 id="分页服务的启动"><a href="#分页服务的启动" class="headerlink" title="分页服务的启动"></a>分页服务的启动</h2><p>分页功能也是由一个服务提供者所启动的，<code>PaginationServiceProvider</code> 就是负责注册和启动分页服务的服务提供者：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PaginationServiceProvider</span> <span class="keyword">extends</span> <span class="title">ServiceProvider</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        Paginator::viewFactoryResolver(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;app[<span class="string">'view'</span>];</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        Paginator::currentPathResolver(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;app[<span class="string">'request'</span>]-&gt;url();</div><div class="line">        &#125;);</div><div class="line"></div><div class="line">        Paginator::currentPageResolver(<span class="function"><span class="keyword">function</span> <span class="params">($pageName = <span class="string">'page'</span>)</span> </span>&#123;</div><div class="line">            $page = <span class="keyword">$this</span>-&gt;app[<span class="string">'request'</span>]-&gt;input($pageName);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (filter_var($page, FILTER_VALIDATE_INT) !== <span class="keyword">false</span> &amp;&amp; (int) $page &gt;= <span class="number">1</span>) &#123;</div><div class="line">                <span class="keyword">return</span> $page;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们看到，服务提供者的注册函数为 <code>Paginator</code> 设置三个闭包函数：</p>
+<ul>
+<li>viewFactoryResolver 为 <code>Paginator</code> 设置了生成前端资源的类，用于获取分页前端代码。</li>
+<li>currentPathResolver 为 <code>Paginator</code> 设置了 <code>url</code> 的地址。我们知道， <code>上一页</code>、<code>下一页</code> 等等都是可以执行翻页的操作，所以实际上这些按钮必然含有链接，而链接的地址就是当前请求的 <code>url</code> 地址，不同的按钮的链接地址只是 <code>page</code> 的参数不同而已。</li>
+<li>currentPageResolver 为 <code>Paginator</code> 获取了当前的页数。</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;loadViewsFrom(<span class="keyword">__DIR__</span>.<span class="string">'/resources/views'</span>, <span class="string">'pagination'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;app-&gt;runningInConsole()) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;publishes([</div><div class="line">            <span class="keyword">__DIR__</span>.<span class="string">'/resources/views'</span> =&gt; <span class="keyword">$this</span>-&gt;app-&gt;resourcePath(<span class="string">'views/vendor/pagination'</span>),</div><div class="line">        ], <span class="string">'laravel-pagination'</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">loadViewsFrom</span><span class="params">($path, $namespace)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_dir($appPath = <span class="keyword">$this</span>-&gt;app-&gt;resourcePath().<span class="string">'/views/vendor/'</span>.$namespace)) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;app[<span class="string">'view'</span>]-&gt;addNamespace($namespace, $appPath);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app[<span class="string">'view'</span>]-&gt;addNamespace($namespace, $path);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>服务的启动函数为分页服务设置了默认的前端分页资源。</p>
+<h2 id="分页服务-paginator"><a href="#分页服务-paginator" class="headerlink" title="分页服务 paginator"></a>分页服务 paginator</h2><p>分页服务 <code>paginator</code> 函数用于 <code>queryBuilder</code>，用于获取分页的数据库数据：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">paginate</span><span class="params">($perPage = <span class="number">15</span>, $columns = [<span class="string">'*'</span>], $pageName = <span class="string">'page'</span>, $page = null)</span></span></div><div class="line">&#123;</div><div class="line">    $page = $page ?: Paginator::resolveCurrentPage($pageName);</div><div class="line"></div><div class="line">    $total = <span class="keyword">$this</span>-&gt;getCountForPagination($columns);</div><div class="line"></div><div class="line">    $results = $total</div><div class="line">        ? <span class="keyword">$this</span>-&gt;forPage($page, $perPage)-&gt;get($columns) : collect();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;paginator($results, $total, $perPage, $page, [</div><div class="line">        <span class="string">'path'</span> =&gt; Paginator::resolveCurrentPath(),</div><div class="line">        <span class="string">'pageName'</span> =&gt; $pageName,</div><div class="line">    ]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">paginator</span><span class="params">($items, $total, $perPage, $currentPage, $options)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> Container::getInstance()-&gt;makeWith(LengthAwarePaginator::class, compact(</div><div class="line">        <span class="string">'items'</span>, <span class="string">'total'</span>, <span class="string">'perPage'</span>, <span class="string">'currentPage'</span>, <span class="string">'options'</span></div><div class="line">    ));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>也就是说，当我们写下这样的代码时：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'user'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;where(<span class="string">'status'</span>,<span class="number">1</span>)-&gt;paginator();</div></pre></td></tr></table></figure>
+<p>我们可以获取到一个 <code>LengthAwarePaginator</code> 类对象，对这个对象调用 <code>render</code> 函数就可以获取分页前端资源。</p>
+<p>我们先来研究一下 <code>paginator</code> 函数。</p>
+<h3 id="获取当前页"><a href="#获取当前页" class="headerlink" title="获取当前页"></a>获取当前页</h3><p>我们可以看到，在这个函数中程序先获取当前页数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">resolveCurrentPage</span><span class="params">($pageName = <span class="string">'page'</span>, $default = <span class="number">1</span>)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">static</span>::$currentPageResolver)) &#123;</div><div class="line">        <span class="keyword">return</span> call_user_func(<span class="keyword">static</span>::$currentPageResolver, $pageName);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $default;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>currentPageResolver 就是上一节中 <code>currentPageResolver</code> 设置的闭包函数，这个闭包函数从请求参数中获取当前页：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$page = <span class="keyword">$this</span>-&gt;app[<span class="string">'request'</span>]-&gt;input($pageName);</div></pre></td></tr></table></figure>
+<h3 id="获取数据库总记录数"><a href="#获取数据库总记录数" class="headerlink" title="获取数据库总记录数"></a>获取数据库总记录数</h3><p>计算数据库符合搜索条件的总记录数理所当然的是使用聚合函数 <code>count</code> ：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getCountForPagination</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line">&#123;</div><div class="line">    $results = <span class="keyword">$this</span>-&gt;runPaginationCountQuery($columns);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;groups)) &#123;</div><div class="line">        <span class="keyword">return</span> count($results);</div><div class="line">    &#125; <span class="keyword">elseif</span> (! <span class="keyword">isset</span>($results[<span class="number">0</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125; <span class="keyword">elseif</span> (is_object($results[<span class="number">0</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> (int) $results[<span class="number">0</span>]-&gt;aggregate;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">return</span> (int) array_change_key_case((<span class="keyword">array</span>) $results[<span class="number">0</span>])[<span class="string">'aggregate'</span>];</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">runPaginationCountQuery</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;cloneWithout([<span class="string">'columns'</span>, <span class="string">'orders'</span>, <span class="string">'limit'</span>, <span class="string">'offset'</span>])</div><div class="line">                -&gt;cloneWithoutBindings([<span class="string">'select'</span>, <span class="string">'order'</span>])</div><div class="line">                -&gt;setAggregate(<span class="string">'count'</span>, <span class="keyword">$this</span>-&gt;withoutSelectAliases($columns))</div><div class="line">                -&gt;get()-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="获取当前页数据"><a href="#获取当前页数据" class="headerlink" title="获取当前页数据"></a>获取当前页数据</h3><p>获取当前页当然是使用 <code>forPage</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$results = $total</div><div class="line">        ? <span class="keyword">$this</span>-&gt;forPage($page, $perPage)-&gt;get($columns) : collect();</div></pre></td></tr></table></figure>
+<h3 id="初始化-LengthAwarePaginator"><a href="#初始化-LengthAwarePaginator" class="headerlink" title="初始化 LengthAwarePaginator"></a>初始化 LengthAwarePaginator</h3><p><code>paginator</code> 函数利用 Ioc 容器来生成 <code>LengthAwarePaginator</code> 实例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">paginator</span><span class="params">($items, $total, $perPage, $currentPage, $options)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> Container::getInstance()-&gt;makeWith(LengthAwarePaginator::class, compact(</div><div class="line">        <span class="string">'items'</span>, <span class="string">'total'</span>, <span class="string">'perPage'</span>, <span class="string">'currentPage'</span>, <span class="string">'options'</span></div><div class="line">    ));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>LengthAwarePaginator</code> 的初始化：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">($items, $total, $perPage, $currentPage = null, array $options = [])</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> ($options <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;&#123;$key&#125; = $value;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;total = $total;</div><div class="line">    <span class="keyword">$this</span>-&gt;perPage = $perPage;</div><div class="line">    <span class="keyword">$this</span>-&gt;lastPage = max((int) ceil($total / $perPage), <span class="number">1</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;path = <span class="keyword">$this</span>-&gt;path !== <span class="string">'/'</span> ? rtrim(<span class="keyword">$this</span>-&gt;path, <span class="string">'/'</span>) : <span class="keyword">$this</span>-&gt;path;</div><div class="line">    <span class="keyword">$this</span>-&gt;currentPage = <span class="keyword">$this</span>-&gt;setCurrentPage($currentPage, <span class="keyword">$this</span>-&gt;pageName);</div><div class="line">    <span class="keyword">$this</span>-&gt;items = $items <span class="keyword">instanceof</span> Collection ? $items : Collection::make($items);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="分页资源-render"><a href="#分页资源-render" class="headerlink" title="分页资源 render"></a>分页资源 render</h2><p>对 <code>LengthAwarePaginator</code> 调用 <code>render</code> 函数会得到分页所需要的前端资源：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">render</span><span class="params">($view = null, $data = [])</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> HtmlString(<span class="keyword">static</span>::viewFactory()-&gt;make($view ?: <span class="keyword">static</span>::$defaultView, array_merge($data, [</div><div class="line">        <span class="string">'paginator'</span> =&gt; <span class="keyword">$this</span>,</div><div class="line">        <span class="string">'elements'</span> =&gt; <span class="keyword">$this</span>-&gt;elements(),</div><div class="line">    ]))-&gt;render());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当我们使用默认的分页样式的时候，不需要向 <code>render</code> 函数传入 <code>view</code> 参数，此时程序会自动加载默认的前端资源:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> $defaultView = <span class="string">'pagination::default'</span>;</div></pre></td></tr></table></figure>
+<p>该资源的默认地址是 <code>illuminate\Pagination\resources\views\default.blade.php</code>:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">@if ($paginator-&gt;hasPages())</div><div class="line">    &lt;ul class="pagination"&gt;</div><div class="line">        &#123;&#123;-- Previous Page Link --&#125;&#125;</div><div class="line">        @if ($paginator-&gt;onFirstPage())</div><div class="line">            &lt;li class="disabled"&gt;&lt;span&gt;&lt;&lt;&lt;/span&gt;&lt;/li&gt;</div><div class="line">        @else</div><div class="line">            &lt;li&gt;&lt;a href="&#123;&#123; $paginator-&gt;previousPageUrl() &#125;&#125;" rel="prev"&gt;&lt;&lt;&lt;/a&gt;&lt;/li&gt;</div><div class="line">        @endif</div><div class="line"></div><div class="line">        &#123;&#123;-- Pagination Elements --&#125;&#125;</div><div class="line">        @foreach ($elements as $element)</div><div class="line">            &#123;&#123;-- "Three Dots" Separator --&#125;&#125;</div><div class="line">            @if (is_string($element))</div><div class="line">                &lt;li class="disabled"&gt;&lt;span&gt;&#123;&#123; $element &#125;&#125;&lt;/span&gt;&lt;/li&gt;</div><div class="line">            @endif</div><div class="line"></div><div class="line">            &#123;&#123;-- Array Of Links --&#125;&#125;</div><div class="line">            @if (is_array($element))</div><div class="line">                @foreach ($element as $page =&gt; $url)</div><div class="line">                    @if ($page == $paginator-&gt;currentPage())</div><div class="line">                        &lt;li class="active"&gt;&lt;span&gt;&#123;&#123; $page &#125;&#125;&lt;/span&gt;&lt;/li&gt;</div><div class="line">                    @else</div><div class="line">                        &lt;li&gt;&lt;a href="&#123;&#123; $url &#125;&#125;"&gt;&#123;&#123; $page &#125;&#125;&lt;/a&gt;&lt;/li&gt;</div><div class="line">                    @endif</div><div class="line">                @endforeach</div><div class="line">            @endif</div><div class="line">        @endforeach</div><div class="line"></div><div class="line">        &#123;&#123;-- Next Page Link --&#125;&#125;</div><div class="line">        @if ($paginator-&gt;hasMorePages())</div><div class="line">            &lt;li&gt;&lt;a href="&#123;&#123; $paginator-&gt;nextPageUrl() &#125;&#125;" rel="next"&gt;&gt;&gt;&lt;/a&gt;&lt;/li&gt;</div><div class="line">        @else</div><div class="line">            &lt;li class="disabled"&gt;&lt;span&gt;&gt;&gt;&lt;/span&gt;&lt;/li&gt;</div><div class="line">        @endif</div><div class="line">    &lt;/ul&gt;</div><div class="line">@endif</div></pre></td></tr></table></figure>
+<p>可以看到，分页效果的代码分为三部分：前一页、后一页、分页元素。</p>
+<h3 id="前一页"><a href="#前一页" class="headerlink" title="前一页"></a>前一页</h3><p>如果当前页是第一页的话，<code>前一页</code> 按钮需要置灰：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">onFirstPage</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;currentPage() &lt;= <span class="number">1</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>否则的话，就要为 <code>前一页</code> 按钮赋予链接：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">previousPageUrl</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;currentPage() &gt; <span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;url(<span class="keyword">$this</span>-&gt;currentPage() - <span class="number">1</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">url</span><span class="params">($page)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ($page &lt;= <span class="number">0</span>) &#123;</div><div class="line">        $page = <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $parameters = [<span class="keyword">$this</span>-&gt;pageName =&gt; $page];</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count(<span class="keyword">$this</span>-&gt;query) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $parameters = array_merge(<span class="keyword">$this</span>-&gt;query, $parameters);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;path</div><div class="line">                    .(Str::contains(<span class="keyword">$this</span>-&gt;path, <span class="string">'?'</span>) ? <span class="string">'&amp;'</span> : <span class="string">'?'</span>)</div><div class="line">                    .http_build_query($parameters, <span class="string">''</span>, <span class="string">'&amp;'</span>)</div><div class="line">                    .<span class="keyword">$this</span>-&gt;buildFragment();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果列表页中存在一些搜索条件，这些搜索条件会被加载到 <code>$this-&gt;query</code> 成员变量中，生成 <code>url</code> 的时候，这些搜索添加会被加到 <code>request</code> 的参数中。可以使用 <code>append</code> 方法附加查询参数到分页链接中：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">appends</span><span class="params">($key, $value = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_array($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;appendArray($key);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;addQuery($key, $value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">appendArray</span><span class="params">(array $keys)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> ($keys <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;addQuery($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="下一页"><a href="#下一页" class="headerlink" title="下一页"></a>下一页</h3><p>与 <code>前一页</code> 类似，如果已经在最后一页，那么 <code>下一页</code> 按钮将会被置灰：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hasMorePages</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;currentPage() &lt; <span class="keyword">$this</span>-&gt;lastPage();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下一页的链接：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">nextPageUrl</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;lastPage() &gt; <span class="keyword">$this</span>-&gt;currentPage()) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;url(<span class="keyword">$this</span>-&gt;currentPage() + <span class="number">1</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>上一页</code> 与 <code>下一页</code> 按钮的功能比较简单，至于中间的分页特效比较复杂，我们由下一节来说。</p>
+<h2 id="分页-elements"><a href="#分页-elements" class="headerlink" title="分页 elements"></a>分页 elements</h2><p>我们先说一下不同的分页样式：</p>
+<ul>
+<li>当我们设置两侧页数为 3 时，当前数据总页数小于 8 页时分页效果：</li>
+</ul>
+<p><img src="http://owql68l6p.bkt.clouddn.com/QQ20171001-104935@2x.png" alt=""></p>
+<ul>
+<li>总页数大于 6 页，且当前页在前 8 页（2 * 3 + 2）时分页效果：</li>
+</ul>
+<p><img src="http://owql68l6p.bkt.clouddn.com/QQ20171001-102833@2x.png" alt="img"></p>
+<ul>
+<li>当前页在前 6 页与后 6 页之间分页效果：</li>
+</ul>
+<p><img src="http://owql68l6p.bkt.clouddn.com/QQ20171001-102858@2x.png" alt="img"></p>
+<ul>
+<li>当前页在最后 6 页时分页效果：</li>
+</ul>
+<p><img src="http://owql68l6p.bkt.clouddn.com/QQ20171001-102916@2x.png" alt="img"></p>
+<p>分页效果样式的关键来源于 <code>UrlWindow</code>，这个类用于根据总页数与当前页的不同来控制不同的分页样式。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">elements</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $window = UrlWindow::make(<span class="keyword">$this</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> array_filter([</div><div class="line">        $window[<span class="string">'first'</span>],</div><div class="line">        is_array($window[<span class="string">'slider'</span>]) ? <span class="string">'...'</span> : <span class="keyword">null</span>,</div><div class="line">        $window[<span class="string">'slider'</span>],</div><div class="line">        is_array($window[<span class="string">'last'</span>]) ? <span class="string">'...'</span> : <span class="keyword">null</span>,</div><div class="line">        $window[<span class="string">'last'</span>],</div><div class="line">    ]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">make</span><span class="params">(PaginatorContract $paginator, $onEachSide = <span class="number">3</span>)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> (<span class="keyword">new</span> <span class="keyword">static</span>($paginator))-&gt;get($onEachSide);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($onEachSide = <span class="number">3</span>)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;paginator-&gt;lastPage() &lt; ($onEachSide * <span class="number">2</span>) + <span class="number">6</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getSmallSlider();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getUrlSlider($onEachSide);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="小型分页-getSmallSlider"><a href="#小型分页-getSmallSlider" class="headerlink" title="小型分页 getSmallSlider"></a>小型分页 getSmallSlider</h3><p>如果当前总页数小于 <code>($onEachSide * 2) + 6</code> 的话，就会调用小型分页效果，这种小型分页效果直接将所有页数全部显示：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getSmallSlider</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> [</div><div class="line">        <span class="string">'first'</span>  =&gt; <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(<span class="number">1</span>, <span class="keyword">$this</span>-&gt;lastPage()),</div><div class="line">        <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">        <span class="string">'last'</span>   =&gt; <span class="keyword">null</span>,</div><div class="line">    ];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getUrlRange</span><span class="params">($start, $end)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> collect(range($start, $end))-&gt;mapWithKeys(<span class="function"><span class="keyword">function</span> <span class="params">($page)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> [$page =&gt; <span class="keyword">$this</span>-&gt;url($page)];</div><div class="line">    &#125;)-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="CloseToBeginning-分页效果"><a href="#CloseToBeginning-分页效果" class="headerlink" title="CloseToBeginning 分页效果"></a>CloseToBeginning 分页效果</h3><p>当前页数位于前 <code>($onEachSide * 2)</code> 页时：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getUrlSlider</span><span class="params">($onEachSide)</span></span></div><div class="line">&#123;</div><div class="line">    $window = $onEachSide * <span class="number">2</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;hasPages()) &#123;</div><div class="line">        <span class="keyword">return</span> [<span class="string">'first'</span> =&gt; <span class="keyword">null</span>, <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>, <span class="string">'last'</span> =&gt; <span class="keyword">null</span>];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;currentPage() &lt;= $window) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getSliderTooCloseToBeginning($window);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">elseif</span> (<span class="keyword">$this</span>-&gt;currentPage() &gt; (<span class="keyword">$this</span>-&gt;lastPage() - $window)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getSliderTooCloseToEnding($window);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getFullSlider($onEachSide);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getSliderTooCloseToBeginning</span><span class="params">($window)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> [</div><div class="line">        <span class="string">'first'</span> =&gt; <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(<span class="number">1</span>, $window + <span class="number">2</span>),</div><div class="line">        <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">        <span class="string">'last'</span> =&gt; <span class="keyword">$this</span>-&gt;getFinish(),</div><div class="line">    ];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getFinish</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(</div><div class="line">        <span class="keyword">$this</span>-&gt;lastPage() - <span class="number">1</span>,</div><div class="line">        <span class="keyword">$this</span>-&gt;lastPage()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>假设我们设置当前两侧页数为 3，当前页为 5，总页数22，函数 <code>getSliderTooCloseToBeginning</code> 返回结果为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">return</span> [</div><div class="line">    <span class="string">'first'</span> =&gt; [</div><div class="line">        <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">        <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span></div><div class="line">        <span class="number">3</span> =&gt; <span class="string">'/www.example.com/example?page=3'</span></div><div class="line">        <span class="number">4</span> =&gt; <span class="string">'/www.example.com/example?page=4'</span></div><div class="line">        <span class="number">5</span> =&gt; <span class="string">'/www.example.com/example?page=5'</span></div><div class="line">        <span class="number">6</span> =&gt; <span class="string">'/www.example.com/example?page=6'</span></div><div class="line">        <span class="number">7</span> =&gt; <span class="string">'/www.example.com/example?page=7'</span></div><div class="line">        <span class="number">8</span> =&gt; <span class="string">'/www.example.com/example?page=8'</span>],</div><div class="line">    <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">    <span class="string">'last'</span> =&gt; [</div><div class="line">        <span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">        <span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>],</div><div class="line">];</div></pre></td></tr></table></figure>
+<p>这个时候 <code>element</code> 函数返回数据：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">elements</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $window = UrlWindow::make(<span class="keyword">$this</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> array_filter([</div><div class="line">        $window[<span class="string">'first'</span>],</div><div class="line">        is_array($window[<span class="string">'slider'</span>]) ? <span class="string">'...'</span> : <span class="keyword">null</span>,</div><div class="line">        $window[<span class="string">'slider'</span>],</div><div class="line">        is_array($window[<span class="string">'last'</span>]) ? <span class="string">'...'</span> : <span class="keyword">null</span>,</div><div class="line">        $window[<span class="string">'last'</span>],</div><div class="line">    ]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//返回结果</span></div><div class="line">[</div><div class="line">    [</div><div class="line">        <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">        <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span>,</div><div class="line">        <span class="number">3</span> =&gt; <span class="string">'/www.example.com/example?page=3'</span>,</div><div class="line">        <span class="number">4</span> =&gt; <span class="string">'/www.example.com/example?page=4'</span>,</div><div class="line">        <span class="number">5</span> =&gt; <span class="string">'/www.example.com/example?page=5'</span>,</div><div class="line">        <span class="number">6</span> =&gt; <span class="string">'/www.example.com/example?page=6'</span>,</div><div class="line">        <span class="number">7</span> =&gt; <span class="string">'/www.example.com/example?page=7'</span>,</div><div class="line">        <span class="number">8</span> =&gt; <span class="string">'/www.example.com/example?page=8'</span>,</div><div class="line">    ],                                        <span class="comment">//$window['first']</span></div><div class="line">    ‘...’,                                    <span class="comment">//is_array($window['last']) ? '...' : null</span></div><div class="line">    [</div><div class="line">        <span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">        <span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>,</div><div class="line">    ],                                        <span class="comment">//$window['last']</span></div><div class="line">]</div></pre></td></tr></table></figure>
+<h3 id="TooCloseToEnding-分页效果"><a href="#TooCloseToEnding-分页效果" class="headerlink" title="TooCloseToEnding 分页效果"></a>TooCloseToEnding 分页效果</h3><p>当前页数位于后 <code>($onEachSide * 2)</code> 页时：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getSliderTooCloseToEnding</span><span class="params">($window)</span></span></div><div class="line">&#123;</div><div class="line">    $last = <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(</div><div class="line">        <span class="keyword">$this</span>-&gt;lastPage() - ($window + <span class="number">2</span>),</div><div class="line">        <span class="keyword">$this</span>-&gt;lastPage()</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">return</span> [</div><div class="line">        <span class="string">'first'</span> =&gt; <span class="keyword">$this</span>-&gt;getStart(),</div><div class="line">        <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">        <span class="string">'last'</span> =&gt; $last,</div><div class="line">    ];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getStart</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(<span class="number">1</span>, <span class="number">2</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>假设我们设置当前两侧页数为 3，当前页为 18，总页数22，函数 <code>getSliderTooCloseToEnding</code> 返回结果为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">return</span> [</div><div class="line">    <span class="string">'first'</span> =&gt; [</div><div class="line">        <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">        <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span></div><div class="line">    ],</div><div class="line">    <span class="string">'slider'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">    <span class="string">'last'</span> =&gt; [</div><div class="line">        <span class="number">15</span> =&gt; <span class="string">'/www.example.com/example?page=15'</span>,</div><div class="line">        <span class="number">16</span> =&gt; <span class="string">'/www.example.com/example?page=16'</span>,</div><div class="line">        <span class="number">17</span> =&gt; <span class="string">'/www.example.com/example?page=17'</span>,</div><div class="line">        <span class="number">18</span> =&gt; <span class="string">'/www.example.com/example?page=18'</span>,</div><div class="line">        <span class="number">19</span> =&gt; <span class="string">'/www.example.com/example?page=19'</span>,</div><div class="line">        <span class="number">20</span> =&gt; <span class="string">'/www.example.com/example?page=20'</span>,</div><div class="line">        <span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">        <span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>,</div><div class="line">    ],</div><div class="line">];</div></pre></td></tr></table></figure>
+<p>这个时候 <code>element</code> 函数返回数据：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">[</div><div class="line">	[</div><div class="line">	    <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">	    <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span></div><div class="line">   ],</div><div class="line">   <span class="string">'...'</span>,</div><div class="line">   [</div><div class="line">   		<span class="number">15</span> =&gt; <span class="string">'/www.example.com/example?page=15'</span>,</div><div class="line">   		<span class="number">16</span> =&gt; <span class="string">'/www.example.com/example?page=16'</span>,</div><div class="line">   		<span class="number">17</span> =&gt; <span class="string">'/www.example.com/example?page=17'</span>,</div><div class="line">   		<span class="number">18</span> =&gt; <span class="string">'/www.example.com/example?page=18'</span>,</div><div class="line">   		<span class="number">19</span> =&gt; <span class="string">'/www.example.com/example?page=19'</span>,</div><div class="line">   		<span class="number">20</span> =&gt; <span class="string">'/www.example.com/example?page=20'</span>,</div><div class="line">   		<span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">   		<span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>,</div><div class="line">   ]</div><div class="line">]</div></pre></td></tr></table></figure>
+<h3 id="FullSlider-分页效果"><a href="#FullSlider-分页效果" class="headerlink" title="FullSlider 分页效果"></a>FullSlider 分页效果</h3><p>当前页数位于中间时：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getFullSlider</span><span class="params">($onEachSide)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> [</div><div class="line">        <span class="string">'first'</span>  =&gt; <span class="keyword">$this</span>-&gt;getStart(),</div><div class="line">        <span class="string">'slider'</span> =&gt; <span class="keyword">$this</span>-&gt;getAdjacentUrlRange($onEachSide),</div><div class="line">        <span class="string">'last'</span>   =&gt; <span class="keyword">$this</span>-&gt;getFinish(),</div><div class="line">    ];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getAdjacentUrlRange</span><span class="params">($onEachSide)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;paginator-&gt;getUrlRange(</div><div class="line">        <span class="keyword">$this</span>-&gt;currentPage() - $onEachSide,</div><div class="line">        <span class="keyword">$this</span>-&gt;currentPage() + $onEachSide</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>假设我们设置当前两侧页数为 3，当前页为 10，总页数22，函数 <code>getFullSlider</code> 返回结果为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">return</span> [</div><div class="line">    <span class="string">'first'</span> =&gt; [</div><div class="line">        <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">        <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span></div><div class="line">    ],</div><div class="line">    <span class="string">'slider'</span> =&gt; [</div><div class="line">        <span class="number">7</span> =&gt; <span class="string">'/www.example.com/example?page=7'</span>, </div><div class="line">        <span class="number">8</span> =&gt; <span class="string">'/www.example.com/example?page=8'</span>, </div><div class="line">        <span class="number">9</span> =&gt; <span class="string">'/www.example.com/example?page=9'</span>,</div><div class="line">        <span class="number">10</span> =&gt; <span class="string">'/www.example.com/example?page=10'</span>, </div><div class="line">        <span class="number">11</span> =&gt; <span class="string">'/www.example.com/example?page=11'</span>, </div><div class="line">        <span class="number">12</span> =&gt; <span class="string">'/www.example.com/example?page=12'</span>,</div><div class="line">        <span class="number">13</span> =&gt; <span class="string">'/www.example.com/example?page=13'</span>, </div><div class="line">    ],</div><div class="line">    <span class="string">'last'</span> =&gt; [</div><div class="line">        <span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">        <span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>,</div><div class="line">    ],</div><div class="line">];</div></pre></td></tr></table></figure>
+<p>这个时候 <code>element</code> 函数返回数据：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">[</div><div class="line">	[</div><div class="line">	    <span class="number">1</span> =&gt; <span class="string">'/www.example.com/example?page=1'</span>, </div><div class="line">	    <span class="number">2</span> =&gt; <span class="string">'/www.example.com/example?page=2'</span></div><div class="line">   ],</div><div class="line">   <span class="string">'...'</span>,</div><div class="line">   [</div><div class="line">       <span class="number">7</span> =&gt; <span class="string">'/www.example.com/example?page=7'</span>, </div><div class="line">       <span class="number">8</span> =&gt; <span class="string">'/www.example.com/example?page=8'</span>, </div><div class="line">       <span class="number">9</span> =&gt; <span class="string">'/www.example.com/example?page=9'</span>,</div><div class="line">       <span class="number">10</span> =&gt; <span class="string">'/www.example.com/example?page=10'</span>, </div><div class="line">       <span class="number">11</span> =&gt; <span class="string">'/www.example.com/example?page=11'</span>, </div><div class="line">       <span class="number">12</span> =&gt; <span class="string">'/www.example.com/example?page=12'</span>,</div><div class="line">       <span class="number">13</span> =&gt; <span class="string">'/www.example.com/example?page=13'</span>,</div><div class="line">   ],</div><div class="line">   <span class="string">'...'</span>,</div><div class="line">   [</div><div class="line">   		<span class="number">21</span> =&gt; <span class="string">'/www.example.com/example?page=21'</span>,</div><div class="line">   		<span class="number">22</span> =&gt; <span class="string">'/www.example.com/example?page=22'</span>,</div><div class="line">   ]</div><div class="line">]</div></pre></td></tr></table></figure>
+<h2 id="simplePaginate-简单分页"><a href="#simplePaginate-简单分页" class="headerlink" title="simplePaginate 简单分页"></a>simplePaginate 简单分页</h2><p>简单分页相比以上的功能来说，精简了 <code>elements</code> 的特效：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">simplePaginate</span><span class="params">($perPage = <span class="number">15</span>, $columns = [<span class="string">'*'</span>], $pageName = <span class="string">'page'</span>, $page = null)</span></span></div><div class="line">&#123;</div><div class="line">    $page = $page ?: Paginator::resolveCurrentPage($pageName);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;skip(($page - <span class="number">1</span>) * $perPage)-&gt;take($perPage + <span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;simplePaginator(<span class="keyword">$this</span>-&gt;get($columns), $perPage, $page, [</div><div class="line">        <span class="string">'path'</span> =&gt; Paginator::resolveCurrentPath(),</div><div class="line">        <span class="string">'pageName'</span> =&gt; $pageName,</div><div class="line">    ]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">simplePaginator</span><span class="params">($items, $perPage, $currentPage, $options)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> Container::getInstance()-&gt;makeWith(Paginator::class, compact(</div><div class="line">        <span class="string">'items'</span>, <span class="string">'perPage'</span>, <span class="string">'currentPage'</span>, <span class="string">'options'</span></div><div class="line">    ));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>分页服务的类不再使用 <code>LengthAwarePaginator</code> 类，而开始使用 <code>Paginator</code>，这两个类最大的不同在于 <code>render</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> $defaultSimpleView = <span class="string">'pagination::simple-default'</span>;</div><div class="line"> </div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">render</span><span class="params">($view = null, $data = [])</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> HtmlString(</div><div class="line">        <span class="keyword">static</span>::viewFactory()-&gt;make($view ?: <span class="keyword">static</span>::$defaultSimpleView, array_merge($data, [</div><div class="line">            <span class="string">'paginator'</span> =&gt; <span class="keyword">$this</span>,</div><div class="line">        ]))-&gt;render()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>render</code> 函数调用的前端资源默认地址为 <code>illuminate\Pagination\resources\views\simple-default.blade.php</code>:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">@if ($paginator-&gt;hasPages())</div><div class="line">    &lt;ul class="pagination"&gt;</div><div class="line">        &#123;&#123;-- Previous Page Link --&#125;&#125;</div><div class="line">        @if ($paginator-&gt;onFirstPage())</div><div class="line">            &lt;li class="disabled"&gt;&lt;span&gt;@lang('pagination.previous')&lt;/span&gt;&lt;/li&gt;</div><div class="line">        @else</div><div class="line">            &lt;li&gt;&lt;a href="&#123;&#123; $paginator-&gt;previousPageUrl() &#125;&#125;" rel="prev"&gt;@lang('pagination.previous')&lt;/a&gt;&lt;/li&gt;</div><div class="line">        @endif</div><div class="line"></div><div class="line">        &#123;&#123;-- Next Page Link --&#125;&#125;</div><div class="line">        @if ($paginator-&gt;hasMorePages())</div><div class="line">            &lt;li&gt;&lt;a href="&#123;&#123; $paginator-&gt;nextPageUrl() &#125;&#125;" rel="next"&gt;@lang('pagination.next')&lt;/a&gt;&lt;/li&gt;</div><div class="line">        @else</div><div class="line">            &lt;li class="disabled"&gt;&lt;span&gt;@lang('pagination.next')&lt;/span&gt;&lt;/li&gt;</div><div class="line">        @endif</div><div class="line">    &lt;/ul&gt;</div><div class="line">@endif</div></pre></td></tr></table></figure>
+<p>可以看到，简单分页只有 <code>上一页</code>、<code>下一页</code> 两个按钮。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/09/25/Laravel Datebase——查询构造器与语法编译器源码分析(上)/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(中)/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/10/01/Laravel Database——分页原理与源码分析/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/10/01/Laravel Database——分页原理与源码分析/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/10/01/Laravel Database——分页原理与源码分析/"
+           data-title="" data-url="https://leoyang90.github.io/2017/10/01/Laravel Database——分页原理与源码分析/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——paginate-分页服务源码分析"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——paginate 分页服务源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#paginate-分页"><span class="nav-number">1.1.</span> <span class="nav-text">paginate 分页</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分页服务的启动"><span class="nav-number">1.2.</span> <span class="nav-text">分页服务的启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分页服务-paginator"><span class="nav-number">1.3.</span> <span class="nav-text">分页服务 paginator</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取当前页"><span class="nav-number">1.3.1.</span> <span class="nav-text">获取当前页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取数据库总记录数"><span class="nav-number">1.3.2.</span> <span class="nav-text">获取数据库总记录数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取当前页数据"><span class="nav-number">1.3.3.</span> <span class="nav-text">获取当前页数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化-LengthAwarePaginator"><span class="nav-number">1.3.4.</span> <span class="nav-text">初始化 LengthAwarePaginator</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分页资源-render"><span class="nav-number">1.4.</span> <span class="nav-text">分页资源 render</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前一页"><span class="nav-number">1.4.1.</span> <span class="nav-text">前一页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#下一页"><span class="nav-number">1.4.2.</span> <span class="nav-text">下一页</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分页-elements"><span class="nav-number">1.5.</span> <span class="nav-text">分页 elements</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#小型分页-getSmallSlider"><span class="nav-number">1.5.1.</span> <span class="nav-text">小型分页 getSmallSlider</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CloseToBeginning-分页效果"><span class="nav-number">1.5.2.</span> <span class="nav-text">CloseToBeginning 分页效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TooCloseToEnding-分页效果"><span class="nav-number">1.5.3.</span> <span class="nav-text">TooCloseToEnding 分页效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FullSlider-分页效果"><span class="nav-number">1.5.4.</span> <span class="nav-text">FullSlider 分页效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#simplePaginate-简单分页"><span class="nav-number">1.6.</span> <span class="nav-text">simplePaginate 简单分页</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

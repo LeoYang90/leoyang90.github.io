@@ -1,0 +1,1028 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。
+Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。
+Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+<meta property="og:updated_time" content="2017-10-08T16:09:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。
+Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-08T16:09:11+00:00">
+                2017-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Laravel-Database——Eloquent-Model-源码分析（上）"><a href="#Laravel-Database——Eloquent-Model-源码分析（上）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（上）"></a>Laravel Database——Eloquent Model 源码分析（上）</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 <code>Eloquent Model</code> 服务的，我们对数据库操作更加方便的是使用 <code>Eloquent Model</code>。 本篇文章将会大家介绍 <code>Model</code> 的一些特性原理。</p>
+<h2 id="Eloquent-Model-修改器"><a href="#Eloquent-Model-修改器" class="headerlink" title="Eloquent Model 修改器"></a>Eloquent Model 修改器</h2><p>当我们在 <code>Eloquent</code> 模型实例中设置某些属性值的时候，修改器允许对 <code>Eloquent</code> 属性值进行格式化。如果对修改器不熟悉，请参考官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent-mutators" target="_blank" rel="external">Eloquent： 修改器</a></p>
+<p>下面先看看修改器的原理：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">offsetSet</span><span class="params">($offset, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;setAttribute($offset, $value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setAttribute</span><span class="params">($key, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasSetMutator($key)) &#123;</div><div class="line">        $method = <span class="string">'set'</span>.Str::studly($key).<span class="string">'Attribute'</span>;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;&#123;$method&#125;($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">elseif</span> ($value &amp;&amp; <span class="keyword">$this</span>-&gt;isDateAttribute($key)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;fromDateTime($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isJsonCastable($key) &amp;&amp; ! is_null($value)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;castAttributeAsJson($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (Str::contains($key, <span class="string">'-&gt;'</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fillJsonAttribute($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;attributes[$key] = $value;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自定义修改器"><a href="#自定义修改器" class="headerlink" title="自定义修改器"></a>自定义修改器</h3><p>当我们为 <code>model</code> 的成员变量赋值的时候，就会调用 <code>offsetSet</code> 函数，进而运行 <code>setAttribute</code> 函数，在这个函数中第一个检查的就是是否存在预处理函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hasSetMutator</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> method_exists(<span class="keyword">$this</span>, <span class="string">'set'</span>.Str::studly($key).<span class="string">'Attribute'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果存在该函数，就会直接调用自定义修改器。</p>
+<h3 id="日期转换器"><a href="#日期转换器" class="headerlink" title="日期转换器"></a>日期转换器</h3><p>接着如果没有自定义修改器的话，还会检查当前更新的成员变量是否是日期属性：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">isDateAttribute</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> in_array($key, <span class="keyword">$this</span>-&gt;getDates()) ||</div><div class="line">                                <span class="keyword">$this</span>-&gt;isDateCastable($key);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getDates</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $defaults = [<span class="keyword">static</span>::CREATED_AT, <span class="keyword">static</span>::UPDATED_AT];</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;usesTimestamps()</div><div class="line">                ? array_unique(array_merge(<span class="keyword">$this</span>-&gt;dates, $defaults))</div><div class="line">                : <span class="keyword">$this</span>-&gt;dates;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">isDateCastable</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;hasCast($key, [<span class="string">'date'</span>, <span class="string">'datetime'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>字段的时间属性有两种设置方法，一种是设置 <code>$dates</code> 属性：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $dates = [<span class="string">'date_attr'</span>];</div></pre></td></tr></table></figure>
+<p>还有一种方法是设置 <code>cast</code> 数组：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $casts = [<span class="string">'date_attr'</span> =&gt; <span class="string">'date'</span>];</div></pre></td></tr></table></figure>
+<p>只要是时间属性的字段，无论是什么类型的值，<code>laravel</code> 都会自动将其转化为数据库的时间格式。数据库的时间格式设置是 <code>dateFormat</code> 成员变量，不设置的时候，默认的时间格式为 `Y-m-d H:i:s’:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $dateFormat = [<span class="string">'U'</span>];</div><div class="line"></div><div class="line"><span class="keyword">protected</span> $dateFormat = [<span class="string">'Y-m-d H:i:s'</span>];</div></pre></td></tr></table></figure>
+<p>当数据库对应的字段是时间类型时，为其赋值就可以非常灵活。我们可以赋值 <code>Carbon</code> 类型、<code>DateTime</code> 类型、数字类型、字符串等等：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">fromDateTime</span><span class="params">($value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> is_null($value) ? $value : <span class="keyword">$this</span>-&gt;asDateTime($value)-&gt;format(</div><div class="line">        <span class="keyword">$this</span>-&gt;getDateFormat()</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">asDateTime</span><span class="params">($value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ($value <span class="keyword">instanceof</span> Carbon) &#123;</div><div class="line">        <span class="keyword">return</span> $value;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($value <span class="keyword">instanceof</span> DateTimeInterface) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Carbon(</div><div class="line">            $value-&gt;format(<span class="string">'Y-m-d H:i:s.u'</span>), $value-&gt;getTimezone()</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (is_numeric($value)) &#123;</div><div class="line">        <span class="keyword">return</span> Carbon::createFromTimestamp($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isStandardDateFormat($value)) &#123;</div><div class="line">        <span class="keyword">return</span> Carbon::createFromFormat(<span class="string">'Y-m-d'</span>, $value)-&gt;startOfDay();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> Carbon::createFromFormat(</div><div class="line">        <span class="keyword">$this</span>-&gt;getDateFormat(), $value</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="json-转换器"><a href="#json-转换器" class="headerlink" title="json 转换器"></a>json 转换器</h3><p>接下来，如果该变量被设置为 <code>array</code>、<code>json</code> 等属性，那么其将会转化为 <code>json</code> 类型。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">isJsonCastable</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;hasCast($key, [<span class="string">'array'</span>, <span class="string">'json'</span>, <span class="string">'object'</span>, <span class="string">'collection'</span>]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">asJson</span><span class="params">($value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> json_encode($value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="Eloquent-Model-访问器"><a href="#Eloquent-Model-访问器" class="headerlink" title="Eloquent Model 访问器"></a>Eloquent Model 访问器</h2><p>相比较修改器来说，访问器的适用情景会更加多。例如，我们经常把一些关于类型的字段设置为 <code>1</code>、<code>2</code>、<code>3</code> 等等，例如用户数据表中用户性别字段，<code>1</code> 代表男，<code>2</code> 代表女，很多时候我们取出这些值之后必然要经过转换，然后再显示出来。这时候就需要定义访问器。</p>
+<p>访问器的源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getAttribute</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! $key) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (array_key_exists($key, <span class="keyword">$this</span>-&gt;attributes) ||</div><div class="line">        <span class="keyword">$this</span>-&gt;hasGetMutator($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getAttributeValue($key);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (method_exists(<span class="keyword">self</span>::class, $key)) &#123;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getRelationValue($key);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，当我们访问数据库对象的成员变量的时候，大致可以分为两类：属性值与关系对象。关系对象我们以后再详细来说，本文中先说关于属性的访问。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getAttributeValue</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    $value = <span class="keyword">$this</span>-&gt;getAttributeFromArray($key);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasGetMutator($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;mutateAttribute($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasCast($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;castAttribute($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (in_array($key, <span class="keyword">$this</span>-&gt;getDates()) &amp;&amp;</div><div class="line">        ! is_null($value)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;asDateTime($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>与修改器类似，访问器也由三部分构成：自定义访问器、日期访问器、类型访问器。</p>
+<h3 id="获取原始值"><a href="#获取原始值" class="headerlink" title="获取原始值"></a>获取原始值</h3><p>访问器的第一步就是从成员变量 <code>attributes</code> 中获取原始的字段值，一般指的是存在数据库的值。有的时候，我们要取的属性并不在 <code>attributes</code> 中，这时候就会返回 <code>null</code>。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getAttributeFromArray</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;attributes[$key])) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;attributes[$key];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自定义访问器"><a href="#自定义访问器" class="headerlink" title="自定义访问器"></a>自定义访问器</h3><p>如果定义了访问器，那么就会调用访问器，获取返回值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hasGetMutator</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> method_exists(<span class="keyword">$this</span>, <span class="string">'get'</span>.Str::studly($key).<span class="string">'Attribute'</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mutateAttribute</span><span class="params">($key, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;&#123;<span class="string">'get'</span>.Str::studly($key).<span class="string">'Attribute'</span>&#125;($value);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h3><p>若我们在成员变量 <code>$casts</code> 数组中为属性定义了类型转换，那么就要进行类型转换：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hasCast</span><span class="params">($key, $types = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (array_key_exists($key, <span class="keyword">$this</span>-&gt;getCasts())) &#123;</div><div class="line">        <span class="keyword">return</span> $types ? in_array(<span class="keyword">$this</span>-&gt;getCastType($key), (<span class="keyword">array</span>) $types, <span class="keyword">true</span>) : <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">castAttribute</span><span class="params">($key, $value)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_null($value)) &#123;</div><div class="line">        <span class="keyword">return</span> $value;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">switch</span> (<span class="keyword">$this</span>-&gt;getCastType($key)) &#123;</div><div class="line">        <span class="keyword">case</span> <span class="string">'int'</span>:</div><div class="line">        <span class="keyword">case</span> <span class="string">'integer'</span>:</div><div class="line">            <span class="keyword">return</span> (int) $value;</div><div class="line">        <span class="keyword">case</span> <span class="string">'real'</span>:</div><div class="line">        <span class="keyword">case</span> <span class="string">'float'</span>:</div><div class="line">        <span class="keyword">case</span> <span class="string">'double'</span>:</div><div class="line">            <span class="keyword">return</span> (float) $value;</div><div class="line">        <span class="keyword">case</span> <span class="string">'string'</span>:</div><div class="line">            <span class="keyword">return</span> (string) $value;</div><div class="line">        <span class="keyword">case</span> <span class="string">'bool'</span>:</div><div class="line">        <span class="keyword">case</span> <span class="string">'boolean'</span>:</div><div class="line">            <span class="keyword">return</span> (bool) $value;</div><div class="line">        <span class="keyword">case</span> <span class="string">'object'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fromJson($value, <span class="keyword">true</span>);</div><div class="line">        <span class="keyword">case</span> <span class="string">'array'</span>:</div><div class="line">        <span class="keyword">case</span> <span class="string">'json'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fromJson($value);</div><div class="line">        <span class="keyword">case</span> <span class="string">'collection'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> BaseCollection(<span class="keyword">$this</span>-&gt;fromJson($value));</div><div class="line">        <span class="keyword">case</span> <span class="string">'date'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;asDate($value);</div><div class="line">        <span class="keyword">case</span> <span class="string">'datetime'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;asDateTime($value);</div><div class="line">        <span class="keyword">case</span> <span class="string">'timestamp'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;asTimestamp($value);</div><div class="line">        <span class="keyword">default</span>:</div><div class="line">            <span class="keyword">return</span> $value;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="日期转换"><a href="#日期转换" class="headerlink" title="日期转换"></a>日期转换</h3><p>若当前属性是 <code>CREATED_AT</code>、<code>UPDATED_AT</code> 或者被存入成员变量 <code>dates</code> 中，那么就要进行日期转换。日期转换函数 <code>asDateTime</code> 可以查看上一节中的内容。</p>
+<h2 id="Eloquent-Model-数组转化"><a href="#Eloquent-Model-数组转化" class="headerlink" title="Eloquent Model 数组转化"></a>Eloquent Model 数组转化</h2><p>在使用数据库对象中，我们经常使用 <code>toArray</code> 函数，它可以将从数据库中取出的所有属性和关系模型转化为数组：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">toArray</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> array_merge(<span class="keyword">$this</span>-&gt;attributesToArray(), <span class="keyword">$this</span>-&gt;relationsToArray());</div><div class="line">&#125;</div><div class="line">``` </div><div class="line"></div><div class="line">本文中只介绍属性转化为数组的部分：</div><div class="line"></div><div class="line">```php</div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">attributesToArray</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $attributes = <span class="keyword">$this</span>-&gt;addDateAttributesToArray(</div><div class="line">        $attributes = <span class="keyword">$this</span>-&gt;getArrayableAttributes()</div><div class="line">    );</div><div class="line"></div><div class="line">    $attributes = <span class="keyword">$this</span>-&gt;addMutatedAttributesToArray(</div><div class="line">        $attributes, $mutatedAttributes = <span class="keyword">$this</span>-&gt;getMutatedAttributes()</div><div class="line">    );</div><div class="line">    </div><div class="line">    $attributes = <span class="keyword">$this</span>-&gt;addCastAttributesToArray(</div><div class="line">        $attributes, $mutatedAttributes</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getArrayableAppends() <span class="keyword">as</span> $key) &#123;</div><div class="line">        $attributes[$key] = <span class="keyword">$this</span>-&gt;mutateAttributeForArray($key, <span class="keyword">null</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $attributes;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>与访问器与修改器类似，需要转为数组的元素有日期类型、自定义访问器、类型转换，我们接下来一个个看：</p>
+<h3 id="getArrayableAttributes-原始值获取"><a href="#getArrayableAttributes-原始值获取" class="headerlink" title="getArrayableAttributes 原始值获取"></a>getArrayableAttributes 原始值获取</h3><p>首先我们要从成员变量 <code>attributes</code> 数组中获取原始值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getArrayableAttributes</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getArrayableItems(<span class="keyword">$this</span>-&gt;attributes);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getArrayableItems</span><span class="params">(array $values)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (count(<span class="keyword">$this</span>-&gt;getVisible()) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $values = array_intersect_key($values, array_flip(<span class="keyword">$this</span>-&gt;getVisible()));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count(<span class="keyword">$this</span>-&gt;getHidden()) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $values = array_diff_key($values, array_flip(<span class="keyword">$this</span>-&gt;getHidden()));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $values;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们还可以为数据库对象设置可见元素 <code>$visible</code> 与隐藏元素 <code>$hidden</code>，这两个变量会控制 <code>toArray</code> 可转化的元素属性。</p>
+<h3 id="日期转换-1"><a href="#日期转换-1" class="headerlink" title="日期转换"></a>日期转换</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addDateAttributesToArray</span><span class="params">(array $attributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getDates() <span class="keyword">as</span> $key) &#123;</div><div class="line">        <span class="keyword">if</span> (! <span class="keyword">isset</span>($attributes[$key])) &#123;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $attributes[$key] = <span class="keyword">$this</span>-&gt;serializeDate(</div><div class="line">            <span class="keyword">$this</span>-&gt;asDateTime($attributes[$key])</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $attributes;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">serializeDate</span><span class="params">(DateTimeInterface $date)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> $date-&gt;format(<span class="keyword">$this</span>-&gt;getDateFormat());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自定义访问器转换"><a href="#自定义访问器转换" class="headerlink" title="自定义访问器转换"></a>自定义访问器转换</h3><p>定义了自定义访问器的属性，会调用访问器函数来覆盖原有的属性值，首先我们需要获取所有的自定义访问器变量：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getMutatedAttributes</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $class = <span class="keyword">static</span>::class;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>(<span class="keyword">static</span>::$mutatorCache[$class])) &#123;</div><div class="line">        <span class="keyword">static</span>::cacheMutatedAttributes($class);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">static</span>::$mutatorCache[$class];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">cacheMutatedAttributes</span><span class="params">($class)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">static</span>::$mutatorCache[$class] = collect(<span class="keyword">static</span>::getMutatorMethods($class))-&gt;map(<span class="function"><span class="keyword">function</span> <span class="params">($match)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> lcfirst(<span class="keyword">static</span>::$snakeAttributes ? Str::snake($match) : $match);</div><div class="line">    &#125;)-&gt;all();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getMutatorMethods</span><span class="params">($class)</span></span></div><div class="line">&#123;</div><div class="line">    preg_match_all(<span class="string">'/(?&lt;=^|;)get([^;]+?)Attribute(;|$)/'</span>, implode(<span class="string">';'</span>, get_class_methods($class)), $matches);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $matches[<span class="number">1</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，函数用 <code>get_class_methods</code> 获取类内所有的函数，并筛选出符合 <code>get...Attribute</code> 的函数，获得自定义的访问器变量，并缓存到 <code>mutatorCache</code> 中。</p>
+<p>接着将会利用自定义访问器变量替换原始值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addMutatedAttributesToArray</span><span class="params">(array $attributes, array $mutatedAttributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> ($mutatedAttributes <span class="keyword">as</span> $key) &#123;</div><div class="line">        <span class="keyword">if</span> (! array_key_exists($key, $attributes)) &#123;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $attributes[$key] = <span class="keyword">$this</span>-&gt;mutateAttributeForArray(</div><div class="line">            $key, $attributes[$key]</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $attributes;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mutateAttributeForArray</span><span class="params">($key, $value)</span></span></div><div class="line">&#123;</div><div class="line">    $value = <span class="keyword">$this</span>-&gt;mutateAttribute($key, $value);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $value <span class="keyword">instanceof</span> Arrayable ? $value-&gt;toArray() : $value;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="cast-类型转换"><a href="#cast-类型转换" class="headerlink" title="cast 类型转换"></a>cast 类型转换</h3><p>被定义在 <code>cast</code> 数组中的变量也要进行数组转换，调用的方法和访问器相同，也是 <code>castAttribute</code>，如果是时间类型，还要按照时间格式来转换：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addCastAttributesToArray</span><span class="params">(array $attributes, array $mutatedAttributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getCasts() <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        <span class="keyword">if</span> (! array_key_exists($key, $attributes) || in_array($key, $mutatedAttributes)) &#123;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $attributes[$key] = <span class="keyword">$this</span>-&gt;castAttribute(</div><div class="line">            $key, $attributes[$key]</div><div class="line">        );</div><div class="line"></div><div class="line">        <span class="keyword">if</span> ($attributes[$key] &amp;&amp;</div><div class="line">            ($value === <span class="string">'date'</span> || $value === <span class="string">'datetime'</span>)) &#123;</div><div class="line">            $attributes[$key] = <span class="keyword">$this</span>-&gt;serializeDate($attributes[$key]);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $attributes;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="appends-额外属性添加"><a href="#appends-额外属性添加" class="headerlink" title="appends 额外属性添加"></a>appends 额外属性添加</h3><p><code>toArray()</code> 还会将我们定义在 <code>appends</code> 变量中的属性一起进行数组转换，但是注意被放入 <code>appends</code> 成员变量数组中的属性需要有自定义访问器函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getArrayableAppends</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! count(<span class="keyword">$this</span>-&gt;appends)) &#123;</div><div class="line">        <span class="keyword">return</span> [];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;getArrayableItems(</div><div class="line">        array_combine(<span class="keyword">$this</span>-&gt;appends, <span class="keyword">$this</span>-&gt;appends)</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="查询作用域"><a href="#查询作用域" class="headerlink" title="查询作用域"></a>查询作用域</h2><p>查询作用域分为全局作用域与本地作用域。全局作用域不需要手动调用，由程序在每次的查询中自动加载，本地作用域需要在查询的时候进行手动调用。官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent#query-scopes" target="_blank" rel="external">查询作用域</a></p>
+<h3 id="全局作用域"><a href="#全局作用域" class="headerlink" title="全局作用域"></a>全局作用域</h3><p>一般全局作用域需要定义一个实现 <code>Illuminate\Database\Eloquent\Scope</code> 接口的类，该接口要求你实现一个方法：<code>apply</code>。需要的话可以在 <code>apply</code> 方法中添加 <code>where</code> 条件到查询。</p>
+<p>要将全局作用域分配给模型，需要重写给定模型的 <code>boot</code> 方法并使用 <code>addGlobalScope</code> 方法。</p>
+<p>另外，我们还可以向 <code>addGlobalScope</code> 中添加匿名函数实现匿名全局作用域。</p>
+<p>我们先看看源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">addGlobalScope</span><span class="params">($scope, Closure $implementation = null)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (is_string($scope) &amp;&amp; ! is_null($implementation)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">static</span>::$globalScopes[<span class="keyword">static</span>::class][$scope] = $implementation;</div><div class="line">    &#125; <span class="keyword">elseif</span> ($scope <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">static</span>::$globalScopes[<span class="keyword">static</span>::class][spl_object_hash($scope)] = $scope;</div><div class="line">    &#125; <span class="keyword">elseif</span> ($scope <span class="keyword">instanceof</span> Scope) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">static</span>::$globalScopes[<span class="keyword">static</span>::class][get_class($scope)] = $scope;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">'Global scope must be an instance of Closure or Scope.'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，全局作用域使用的是全局的静态变量 <code>globalScopes</code>，该变量保存着所有数据库对象的全局作用域。</p>
+<p><code>Eloquent\Model</code> 类并不负责查询功能，相关功能由 <code>Eloquent\Builder</code> 负责，因此每次查询都会间接调用 <code>Eloquent\Builder</code> 类。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (in_array($method, [<span class="string">'increment'</span>, <span class="string">'decrement'</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;$method(...$parameters);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;newQuery()-&gt;$method(...$parameters);</div><div class="line">    &#125; <span class="keyword">catch</span> (BadMethodCallException $e) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BadMethodCallException(</div><div class="line">            sprintf(<span class="string">'Call to undefined method %s::%s()'</span>, get_class(<span class="keyword">$this</span>), $method)</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>创建新的 <code>Eloquent\Builder</code> 类需要 <code>newQuery</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">newQuery</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;newQueryWithoutScopes();</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;getGlobalScopes() <span class="keyword">as</span> $identifier =&gt; $scope) &#123;</div><div class="line">        $builder-&gt;withGlobalScope($identifier, $scope);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getGlobalScopes</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> Arr::get(<span class="keyword">static</span>::$globalScopes, <span class="keyword">static</span>::class, []);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">withGlobalScope</span><span class="params">($identifier, $scope)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;scopes[$identifier] = $scope;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (method_exists($scope, <span class="string">'extend'</span>)) &#123;</div><div class="line">        $scope-&gt;extend(<span class="keyword">$this</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>newQuery</code> 函数为 <code>Eloquent\builder</code> 加载全局作用域，这样静态变量 <code>globalScopes</code> 的值就会被赋到 <code>Eloquent\builder</code> 的 <code>scopes</code> 成员变量中。</p>
+<p>当我们使用 <code>get()</code> 函数获取数据库数据的时候，也需要借助魔术方法调用 <code>Illuminate\Database\Eloquent\Builder</code> 类的 <code>get</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line">&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>调用 <code>applyScopes</code> 函数加载所有的全局作用域：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">applyScopes</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">$this</span>-&gt;scopes) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $builder = <span class="keyword">clone</span> <span class="keyword">$this</span>;</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;scopes <span class="keyword">as</span> $identifier =&gt; $scope) &#123;</div><div class="line">        <span class="keyword">if</span> (! <span class="keyword">isset</span>($builder-&gt;scopes[$identifier])) &#123;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $builder-&gt;callScope(<span class="function"><span class="keyword">function</span> <span class="params">(Builder $builder)</span> <span class="title">use</span> <span class="params">($scope)</span> </span>&#123;</div><div class="line">            <span class="keyword">if</span> ($scope <span class="keyword">instanceof</span> Closure) &#123;</div><div class="line">                $scope($builder);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">if</span> ($scope <span class="keyword">instanceof</span> Scope) &#123;</div><div class="line">                $scope-&gt;apply($builder, <span class="keyword">$this</span>-&gt;getModel());</div><div class="line">            &#125;</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看到，<code>builder</code> 查询类会通过 <code>callScope</code> 加载全局作用域的查询条件。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">callScope</span><span class="params">(callable $scope, $parameters = [])</span></span></div><div class="line">&#123;</div><div class="line">    array_unshift($parameters, <span class="keyword">$this</span>);</div><div class="line"></div><div class="line">    $query = <span class="keyword">$this</span>-&gt;getQuery();</div><div class="line"></div><div class="line">    $originalWhereCount = is_null($query-&gt;wheres)</div><div class="line">                ? <span class="number">0</span> : count($query-&gt;wheres);</div><div class="line"></div><div class="line">    $result = $scope(...array_values($parameters)) ?? <span class="keyword">$this</span>;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count((<span class="keyword">array</span>) $query-&gt;wheres) &gt; $originalWhereCount) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;addNewWheresWithinGroup($query, $originalWhereCount);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>callScope</code> 函数首先会获取更加底层的 <code>Query\builder</code>，更新 <code>query\bulid</code> 的 <code>where</code> 条件。</p>
+<p><code>addNewWheresWithinGroup</code> 这个函数很重要，它为 <code>Query\builder</code> 提供 <code>nest</code> 类型的 <code>where</code> 条件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">addNewWheresWithinGroup</span><span class="params">(QueryBuilder $query, $originalWhereCount)</span></span></div><div class="line">&#123;</div><div class="line">    $allWheres = $query-&gt;wheres;</div><div class="line"></div><div class="line">    $query-&gt;wheres = [];</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;groupWhereSliceForScope(</div><div class="line">        $query, array_slice($allWheres, <span class="number">0</span>, $originalWhereCount)</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;groupWhereSliceForScope(</div><div class="line">        $query, array_slice($allWheres, $originalWhereCount)</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">groupWhereSliceForScope</span><span class="params">(QueryBuilder $query, $whereSlice)</span></span></div><div class="line">&#123;</div><div class="line">    $whereBooleans = collect($whereSlice)-&gt;pluck(<span class="string">'boolean'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($whereBooleans-&gt;contains(<span class="string">'or'</span>)) &#123;</div><div class="line">        $query-&gt;wheres[] = <span class="keyword">$this</span>-&gt;createNestedWhere(</div><div class="line">            $whereSlice, $whereBooleans-&gt;first()</div><div class="line">        );</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        $query-&gt;wheres = array_merge($query-&gt;wheres, $whereSlice);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createNestedWhere</span><span class="params">($whereSlice, $boolean = <span class="string">'and'</span>)</span></span></div><div class="line">&#123;</div><div class="line">    $whereGroup = <span class="keyword">$this</span>-&gt;getQuery()-&gt;forNestedWhere();</div><div class="line"></div><div class="line">    $whereGroup-&gt;wheres = $whereSlice;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> [<span class="string">'type'</span> =&gt; <span class="string">'Nested'</span>, <span class="string">'query'</span> =&gt; $whereGroup, <span class="string">'boolean'</span> =&gt; $boolean];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当我们在查询作用域中，所有的查询条件连接符都是 <code>and</code> 的时候，可以直接合并到 <code>where</code> 中。</p>
+<p>如果我们在查询作用域中或者原查询条件写下了 <code>orWhere</code>、<code>orWhereColumn</code> 等等连接符为 <code>or</code> 的查询条件，那么就会利用 <code>createNestedWhere</code> 函数创建 <code>nest</code> 类型的 <code>where</code> 条件。这个 <code>where</code> 条件会包含查询作用域的所有查询条件，或者原查询的所有查询条件。</p>
+<h3 id="本地作用域"><a href="#本地作用域" class="headerlink" title="本地作用域"></a>本地作用域</h3><p>全局作用域会自定加载到所有的查询条件当中，<code>laravel</code> 中还有本地作用域，只有在查询时调用才会生效。</p>
+<p>本地作用域是由魔术方法 <code>__call</code> 实现的：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line">&#123;</div><div class="line">    ...</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (method_exists(<span class="keyword">$this</span>-&gt;model, $scope = <span class="string">'scope'</span>.ucfirst($method))) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;callScope([<span class="keyword">$this</span>-&gt;model, $scope], $parameters);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (in_array($method, <span class="keyword">$this</span>-&gt;passthru)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;toBase()-&gt;&#123;$method&#125;(...$parameters);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;query-&gt;&#123;$method&#125;(...$parameters);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="批量调用本地作用域"><a href="#批量调用本地作用域" class="headerlink" title="批量调用本地作用域"></a>批量调用本地作用域</h3><p><code>laravel</code> 还提供一个方法可以一次性调用多个本地作用域：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$scopes = [</div><div class="line">    <span class="string">'published'</span>,</div><div class="line">    <span class="string">'category'</span> =&gt; <span class="string">'Laravel'</span>,</div><div class="line">    <span class="string">'framework'</span> =&gt; [<span class="string">'Laravel'</span>, <span class="string">'5.3'</span>],</div><div class="line">];</div><div class="line"></div><div class="line">(<span class="keyword">new</span> EloquentModelStub)-&gt;scopes($scopes);</div></pre></td></tr></table></figure>
+<p>上面的写法会调用三个本地作用域，它们的参数是 <code>$scopes</code> 的值。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">scopes</span><span class="params">(array $scopes)</span></span></div><div class="line">&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>;</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> ($scopes <span class="keyword">as</span> $scope =&gt; $parameters) &#123;</div><div class="line">        <span class="keyword">if</span> (is_int($scope)) &#123;</div><div class="line">            <span class="keyword">list</span>($scope, $parameters) = [$parameters, []];</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        $builder = $builder-&gt;callScope(</div><div class="line">            [<span class="keyword">$this</span>-&gt;model, <span class="string">'scope'</span>.ucfirst($scope)],</div><div class="line">            (<span class="keyword">array</span>) $parameters</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="fill-批量赋值"><a href="#fill-批量赋值" class="headerlink" title="fill 批量赋值"></a>fill 批量赋值</h2><p><code>Eloquent Model</code> 默认只能一个一个的设置数据库对象的属性，这是为了保护数据库。但是有的时候，字段过多会造成代码很繁琐。因此，<code>laravel</code> 提供属性批量赋值的功能，<code>fill</code> 函数，相关的官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent#mass-assignment" target="_blank" rel="external">批量赋值</a></p>
+<h3 id="fill-函数"><a href="#fill-函数" class="headerlink" title="fill 函数"></a>fill 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">fill</span><span class="params">(array $attributes)</span></span></div><div class="line">&#123;</div><div class="line">    $totallyGuarded = <span class="keyword">$this</span>-&gt;totallyGuarded();</div><div class="line"></div><div class="line">    <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;fillableFromArray($attributes) <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">        $key = <span class="keyword">$this</span>-&gt;removeTableFromKey($key);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isFillable($key)) &#123;</div><div class="line">            <span class="keyword">$this</span>-&gt;setAttribute($key, $value);</div><div class="line">        &#125; <span class="keyword">elseif</span> ($totallyGuarded) &#123;</div><div class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> MassAssignmentException($key);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>fill</code> 函数会从参数 <code>attributes</code> 中选取可以批量赋值的属性。所谓的可以批量赋值的属性，是指被 <code>fillable</code> 或 <code>guarded</code> 成员变量设置的参数。被放入 <code>fillable</code> 的属性允许批量赋值的属性，被放入 <code>guarded</code> 的属性禁止批量赋值。</p>
+<p>获取可批量赋值的属性：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">fillableFromArray</span><span class="params">(array $attributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (count(<span class="keyword">$this</span>-&gt;getFillable()) &gt; <span class="number">0</span> &amp;&amp; ! <span class="keyword">static</span>::$unguarded) &#123;</div><div class="line">        <span class="keyword">return</span> array_intersect_key($attributes, array_flip(<span class="keyword">$this</span>-&gt;getFillable()));</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $attributes;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getFillable</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fillable;</div><div class="line">&#125;</div><div class="line">``` </div><div class="line">可以看到，若想要实现批量赋值，需要将属性设置在 `fillable` 成员数组中。</div><div class="line"></div><div class="line">在 `laravel` 中，有一种数据库对象关系是 `morph`，也就是 `多态` 关系，这种关系也会调用 `fill` 函数，这个时候传入的参数 `attributes` 会带有数据库前缀。接下来，就要调用 `removeTableFromKey` 函数来去除数据库前缀：</div><div class="line"></div><div class="line">```php</div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">removeTableFromKey</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> Str::contains($key, <span class="string">'.'</span>) ? last(explode(<span class="string">'.'</span>, $key)) : $key;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下一步，还要进一步验证属性的 <code>fillable</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">isFillable</span><span class="params">($key)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">static</span>::$unguarded) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (in_array($key, <span class="keyword">$this</span>-&gt;getFillable())) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isGuarded($key)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">empty</span>(<span class="keyword">$this</span>-&gt;getFillable()) &amp;&amp;</div><div class="line">        ! Str::startsWith($key, <span class="string">'_'</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果当前 <code>unguarded</code> 开启，也就是不会保护任何属性，那么直接返回 <code>true</code>。如果当前属性在 <code>fillable</code> 中，也会返回 <code>true</code>。如果当前属性在 <code>guarded</code> 中，返回 <code>false</code>。最后，如果 <code>fillable</code> 是空数组，也会返回 <code>true</code>。</p>
+<h3 id="forceFill"><a href="#forceFill" class="headerlink" title="forceFill"></a>forceFill</h3><p>如果不想受 <code>fillable</code> 或者 <code>guarded</code> 等的影响，还可以使用 <code>forceFill</code> 强制来批量赋值。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">forceFill</span><span class="params">(array $attributes)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">static</span>::unguarded(<span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($attributes)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fill($attributes);</div><div class="line">    &#125;);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">unguarded</span><span class="params">(callable $callback)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">static</span>::$unguarded) &#123;</div><div class="line">        <span class="keyword">return</span> $callback();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">static</span>::unguard();</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> $callback();</div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="keyword">static</span>::reguard();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/03/Laravel Database——查询构造器与语法编译器源码分析(下)/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/10/Laravel Database——Eloquent Model 源码分析（下）/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/"
+           data-title="" data-url="https://leoyang90.github.io/2017/10/08/Laravel Database——Eloquent Model 源码分析(上)/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——Eloquent-Model-源码分析（上）"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——Eloquent Model 源码分析（上）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-修改器"><span class="nav-number">1.2.</span> <span class="nav-text">Eloquent Model 修改器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义修改器"><span class="nav-number">1.2.1.</span> <span class="nav-text">自定义修改器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换器"><span class="nav-number">1.2.2.</span> <span class="nav-text">日期转换器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#json-转换器"><span class="nav-number">1.2.3.</span> <span class="nav-text">json 转换器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-访问器"><span class="nav-number">1.3.</span> <span class="nav-text">Eloquent Model 访问器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取原始值"><span class="nav-number">1.3.1.</span> <span class="nav-text">获取原始值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器"><span class="nav-number">1.3.2.</span> <span class="nav-text">自定义访问器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型转换"><span class="nav-number">1.3.3.</span> <span class="nav-text">类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换"><span class="nav-number">1.3.4.</span> <span class="nav-text">日期转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-数组转化"><span class="nav-number">1.4.</span> <span class="nav-text">Eloquent Model 数组转化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#getArrayableAttributes-原始值获取"><span class="nav-number">1.4.1.</span> <span class="nav-text">getArrayableAttributes 原始值获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换-1"><span class="nav-number">1.4.2.</span> <span class="nav-text">日期转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器转换"><span class="nav-number">1.4.3.</span> <span class="nav-text">自定义访问器转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cast-类型转换"><span class="nav-number">1.4.4.</span> <span class="nav-text">cast 类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appends-额外属性添加"><span class="nav-number">1.4.5.</span> <span class="nav-text">appends 额外属性添加</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询作用域"><span class="nav-number">1.5.</span> <span class="nav-text">查询作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#全局作用域"><span class="nav-number">1.5.1.</span> <span class="nav-text">全局作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地作用域"><span class="nav-number">1.5.2.</span> <span class="nav-text">本地作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#批量调用本地作用域"><span class="nav-number">1.5.3.</span> <span class="nav-text">批量调用本地作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fill-批量赋值"><span class="nav-number">1.6.</span> <span class="nav-text">fill 批量赋值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fill-函数"><span class="nav-number">1.6.1.</span> <span class="nav-text">fill 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#forceFill"><span class="nav-number">1.6.2.</span> <span class="nav-text">forceFill</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

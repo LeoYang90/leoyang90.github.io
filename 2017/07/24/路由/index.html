@@ -1,0 +1,1115 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言作为一个 web 后台框架，路由无疑是极其重要的一部分。本博客接下来几篇文章都将会围绕路由这一主题来展开讨论，分别讲述：
+
+
+路由的使用
+路由属性注册
+路由的正则编译与匹配
+路由的中间件
+路由的控制器与参数绑定
+RESTful 路由
+
+
+和之前一样，第一篇将会利用单元测试样例说明我们在平时可能用到的 route 的 api 函数用法，后面几篇文章将会剖析 laravel 的 route 源码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LEOYANG'S BLOG">
+<meta property="og:url" content="https://leoyang90.github.io/2017/07/24/路由/index.html">
+<meta property="og:site_name" content="LEOYANG'S BLOG">
+<meta property="og:description" content="前言作为一个 web 后台框架，路由无疑是极其重要的一部分。本博客接下来几篇文章都将会围绕路由这一主题来展开讨论，分别讲述：
+
+
+路由的使用
+路由属性注册
+路由的正则编译与匹配
+路由的中间件
+路由的控制器与参数绑定
+RESTful 路由
+
+
+和之前一样，第一篇将会利用单元测试样例说明我们在平时可能用到的 route 的 api 函数用法，后面几篇文章将会剖析 laravel 的 route 源码。">
+<meta property="og:updated_time" content="2017-07-18T13:41:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LEOYANG'S BLOG">
+<meta name="twitter:description" content="前言作为一个 web 后台框架，路由无疑是极其重要的一部分。本博客接下来几篇文章都将会围绕路由这一主题来展开讨论，分别讲述：
+
+
+路由的使用
+路由属性注册
+路由的正则编译与匹配
+路由的中间件
+路由的控制器与参数绑定
+RESTful 路由
+
+
+和之前一样，第一篇将会利用单元测试样例说明我们在平时可能用到的 route 的 api 函数用法，后面几篇文章将会剖析 laravel 的 route 源码。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/07/24/路由/"/>
+
+
+
+
+
+  <title>  | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/07/24/路由/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-24T08:48:44+00:00">
+                2017-07-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/07/24/路由/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/07/24/路由/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/07/24/路由/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>作为一个 web 后台框架，路由无疑是极其重要的一部分。本博客接下来几篇文章都将会围绕路由这一主题来展开讨论，分别讲述：</p>
+<blockquote>
+<ul>
+<li>路由的使用</li>
+<li>路由属性注册</li>
+<li>路由的正则编译与匹配</li>
+<li>路由的中间件</li>
+<li>路由的控制器与参数绑定</li>
+<li>RESTful 路由</li>
+</ul>
+</blockquote>
+<p>和之前一样，第一篇将会利用单元测试样例说明我们在平时可能用到的 route 的 api 函数用法，后面几篇文章将会剖析 laravel 的 route 源码。下面开始介绍 laravel 中路由的各种用法。</p>
+<hr>
+<h1 id="路由属性注册"><a href="#路由属性注册" class="headerlink" title="路由属性注册"></a>路由属性注册</h1><p>所有 Laravel 路由都定义在位于 routes 目录下的路由文件中，这些文件通过框架自动加载。routes/web.php 文件定义了 web 界面的路由，这些路由被分配了 web 中间件组，从而可以提供 session 和 csrf 防护等功能。routes/api.php 中的路由是无状态的，被分配了 api 中间件组。</p>
+<p>对大多数应用而言，都是从 routes/web.php 文件开始定义路由。</p>
+<h2 id="路由-method-方法"><a href="#路由-method-方法" class="headerlink" title="路由 method 方法"></a>路由 method 方法</h2><p>我们可以注册路由来响应任何 HTTP 请求：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Route::get($uri, $callback);</div><div class="line">Route::post($uri, $callback);</div><div class="line">Route::put($uri, $callback);</div><div class="line">Route::patch($uri, $callback);</div><div class="line">Route::delete($uri, $callback);</div><div class="line">Route::options($uri, $callback);</div></pre></td></tr></table></figure>
+<p>有时候还需要注册路由响应多个 HTTP 请求——这可以通过 <code>match</code> 方法来实现。或者，可以使用 <code>any</code> 方法注册一个路由来响应所有 HTTP 请求：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">Route::match([<span class="string">'get'</span>, <span class="string">'post'</span>], <span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;);</div><div class="line"></div><div class="line">Route::any(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>值得注意的是，一般的HTML表单仅仅支持<code>get</code>、<code>post</code>，并不支持<code>put</code>、<code>patch</code>、<code>delete</code>等动作，这时候就需要在前端添加一个隐藏的 <code>_method</code> 字段到给表单中，其值被用作 <code>HTTP</code> 请求方法名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;input type=<span class="string">"hidden"</span> name=<span class="string">"_method"</span> value=<span class="string">"PUT"</span>&gt;</div></pre></td></tr></table></figure>
+<p>在 web 路由文件中所有请求方式为<code>PUT</code>、<code>POST</code>或<code>DELETE</code>的 HTML 表单都会包含一个<code>CSRF</code>令牌字段，否则，请求会被拒绝。关于 <code>CSRF</code> 的更多细节，可以参考 <a href="http://www.cnblogs.com/hyddd/archive/2009/04/09/1432744.html?login=1" target="_blank" rel="external">浅谈CSRF攻击方式</a>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;form method=<span class="string">"POST"</span> action=<span class="string">"/profile"</span>&gt;</div><div class="line">    &#123;&#123; csrf_field() &#125;&#125;</div><div class="line">    ...</div><div class="line">&lt;/form&gt;</div></pre></td></tr></table></figure>
+<h2 id="路由-scheme-协议"><a href="#路由-scheme-协议" class="headerlink" title="路由 scheme 协议"></a>路由 scheme 协议</h2><p>对于 web 后台框架来说，路由的 <code>scheme</code> 底层协议一般使用 <code>http</code>、<code>https</code>:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'http'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line">Route::get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'https'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div></pre></td></tr></table></figure>
+<h2 id="路由-domain-子域名"><a href="#路由-domain-子域名" class="headerlink" title="路由 domain 子域名"></a>路由 domain 子域名</h2><p>子域名可以像 URI 一样被分配给路由参数，子域名可以通过路由属性中的 <code>domain</code> 来指定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Route::domain(<span class="string">'api.name.bar'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'domain'</span> =&gt; <span class="string">'api.name.bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div></pre></td></tr></table></figure>
+<h2 id="路由-prefix-前缀"><a href="#路由-prefix-前缀" class="headerlink" title="路由 prefix 前缀"></a>路由 prefix 前缀</h2><p>可以为路由添加一个给定 <code>URI</code> 前缀，通过利用路由属性的 <code>prefix</code> 指定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Route::prefix(<span class="string">'pre'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'prefix'</span> =&gt; <span class="string">'pre'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;)-&gt;prefix(<span class="string">'pre'</span>);</div></pre></td></tr></table></figure>
+<h2 id="路由-where-正则约束"><a href="#路由-where-正则约束" class="headerlink" title="路由 where 正则约束"></a>路由 where 正则约束</h2><p>可以为路由的 <code>URI</code> 参数指定正则约束：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'&#123;one&#125;'</span>, [<span class="string">'where'</span> =&gt; [<span class="string">'one'</span> =&gt; <span class="string">'(.+)'</span>], <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'&#123;one&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;)-&gt;where(<span class="string">'one'</span>, <span class="string">'(.+)'</span>);</div></pre></td></tr></table></figure>
+<p>如果想要路由参数在全局范围内被给定正则表达式约束，可以使用 <code>pattern</code> 方法。在 <code>RouteServiceProvider</code> 类的 <code>boot</code> 方法中定义约束模式：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    Route::pattern(<span class="string">'one'</span>, <span class="string">'(.+)'</span>);</div><div class="line">    <span class="keyword">parent</span>::boot();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由-middleware-中间件"><a href="#路由-middleware-中间件" class="headerlink" title="路由 middleware 中间件"></a>路由 middleware 中间件</h2><p>为路由添加中间件，通过利用路由属性的 <code>middleware</code> 指定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Route::middleware(<span class="string">'web'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'middleware'</span> =&gt; <span class="string">'web'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line"></div><div class="line">Route::get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;)-&gt;middleware(<span class="string">'web'</span>);</div></pre></td></tr></table></figure>
+<h2 id="路由-namespace-属性"><a href="#路由-namespace-属性" class="headerlink" title="路由 namespace 属性"></a>路由 namespace 属性</h2><p>可以为路由的控制器添加 <code>namespace</code> 来指定控制器的命名空间：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Route::namespace(<span class="string">'Namespace\\Example\\'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'namespace'</span> =&gt; <span class="string">'Namespace\\Example\\'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div></pre></td></tr></table></figure>
+<h2 id="路由-uses-属性"><a href="#路由-uses-属性" class="headerlink" title="路由 uses 属性"></a>路由 uses 属性</h2><p>可以为路由添加 <code>URI</code> 对应的执行逻辑，例如闭包或者控制器：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'uses'</span> =&gt; ‘Illuminate\Tests\Routing\RouteTestControllerStub@index’]);</div><div class="line"></div><div class="line">Route::get(<span class="string">'foo/bar'</span>)-&gt;uses(<span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">Route::get(<span class="string">'foo/bar'</span>)-&gt;uses(‘Illuminate\Tests\Routing\RouteTestControllerStub@index’);</div></pre></td></tr></table></figure>
+<h2 id="路由-as-别名"><a href="#路由-as-别名" class="headerlink" title="路由 as 别名"></a>路由 as 别名</h2><p>可以为路由指定别名，通过路由属性的 <code>as</code> 来指定：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">Route::as(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">Route::name(<span class="string">'Foo'</span>)</div><div class="line">     -&gt;get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">Route::get(<span class="string">'foo/bar'</span>, [<span class="string">'as'</span> =&gt; <span class="string">'Foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;]);</div><div class="line"></div><div class="line">Route::get(<span class="string">'foo/bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;)-&gt;name(<span class="string">'Foo'</span>);</div></pre></td></tr></table></figure>
+<h2 id="路由-group-群组属性"><a href="#路由-group-群组属性" class="headerlink" title="路由 group 群组属性"></a>路由 group 群组属性</h2><p>可以为一系列具有类似属性的路由归为同一组，利用 <code>group</code> 将这些路由归并到一起：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">Route::group([<span class="string">'domain'</span>     =&gt; <span class="string">'group.domain.name'</span>,</div><div class="line">              <span class="string">'prefix'</span>     =&gt; <span class="string">'grouppre'</span>,</div><div class="line">              <span class="string">'where'</span>      =&gt; [<span class="string">'one'</span> =&gt; <span class="string">'(.+)'</span>], </div><div class="line">              <span class="string">'middleware'</span> =&gt; <span class="string">'groupMiddleware'</span>,</div><div class="line">              <span class="string">'namespace'</span>  =&gt; <span class="string">'Namespace\\Group\\'</span>, </div><div class="line">              <span class="string">'as'</span>         =&gt; <span class="string">'Group::'</span>,]</div><div class="line">              <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">                  Route::get(<span class="string">'/replace'</span>,‘domain’ =&gt; <span class="string">'route.domain.name'</span>，</div><div class="line">                                        <span class="string">'uses'</span>   =&gt; <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">                                        <span class="keyword">return</span> <span class="string">'replace'</span>;</div><div class="line">                  &#125;);</div><div class="line"></div><div class="line">                 Route::get(<span class="string">'additional/&#123;one&#125;/&#123;two&#125;'</span>, <span class="string">'prefix'</span>     =&gt; <span class="string">'routepre'</span>,</div><div class="line">                                                      <span class="string">'where'</span>      =&gt; <span class="string">'['</span>one<span class="string">' =&gt; '</span>([<span class="number">0</span><span class="number">-9</span>]+)<span class="string">','</span>two<span class="string">' =&gt; '</span>(.+)<span class="string">']'</span>,</div><div class="line">                                                      <span class="string">'middleware'</span> =&gt; <span class="string">'routeMiddleware'</span>,</div><div class="line">                                                      <span class="string">'namespace'</span>  =&gt; <span class="string">'Namespace\\Group\\'</span>, </div><div class="line">                                                      <span class="string">'as'</span>         =&gt; <span class="string">'Route'</span>,</div><div class="line">                                                      <span class="string">'use         =&gt; '</span><span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">                                                      <span class="keyword">return</span> <span class="string">'additional'</span>;</div><div class="line">                 &#125;);</div><div class="line">&#125;);</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'replace'</span>, $router-&gt;dispatch(Request::create(<span class="string">'http://route.domain.name/grouppre/replace'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'additional'</span>, $router-&gt;dispatch(Request::create(<span class="string">'http://group.domain.name/routepre/grouppre/additional/111/add'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line">$routes = $router-&gt;getRoutes()-&gt;getRoutes();</div><div class="line">$action = $routes[<span class="number">0</span>]-&gt;getAction();</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'Namespace\\Group\\'</span>, $action[<span class="string">'namespace'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'Group::'</span>, $action[<span class="string">'as'</span>]);</div><div class="line"></div><div class="line">$routes = $router-&gt;getRoutes()-&gt;getRoutes();</div><div class="line">$action = $routes[<span class="number">1</span>]-&gt;getAction();</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals([<span class="string">'groupMiddleware'</span>, <span class="string">'routeMiddleware'</span>], $action[<span class="string">'middleware'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'Namespace\\Group\\Namespace\\Group\\'</span>, $action[<span class="string">'namespace'</span>]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'Group::Route'</span>, $action[<span class="string">'as'</span>]);</div></pre></td></tr></table></figure>
+<p><code>group</code> 群组的属性分为两类：替换型、递增型。当群组属性与路由属性重复的时候，替换型属性会用路由的属性替换群组的属性，递增型的属性会综合路由和群组的属性。</p>
+<p>在上面的例子可以看出：</p>
+<ul>
+<li><code>domain</code> 这个属性是替换型属性，路由的属性会覆盖和替换群组的这几个属性；</li>
+<li><code>prefix</code>、<code>middleware</code>、<code>namespace</code>、<code>as</code> 、<code>where</code> 这几个属性是递增型属性，路由的属性和群组属性会相互结合。</li>
+</ul>
+<p>另外值得注意的是：</p>
+<ul>
+<li>路由的 <code>prefix</code> 属性具有优先级,因此上面第二个路由的 <code>uri</code> 是 <code>routepre/grouppre/additional/111/add</code>,而不是 <code>grouppre/routepre/additional/111/add</code>；</li>
+<li><code>where</code>属性对于相同的路由参数会替换，不同的路由参数会结合，因此上面 <code>where</code> 中 <code>one</code> 被替换，<code>two</code> 被结合进来</li>
+</ul>
+<h1 id="路由参数与匹配"><a href="#路由参数与匹配" class="headerlink" title="路由参数与匹配"></a>路由参数与匹配</h1><p>laravel 允许在注册定义路由的时候设定路由参数，以供控制器或者闭包所用。路由参数可以设定在 <code>URI</code> 中，也可以设定在 <code>domain</code> 中。</p>
+<h2 id="路由编码匹配"><a href="#路由编码匹配" class="headerlink" title="路由编码匹配"></a>路由编码匹配</h2><p>对于已编码的请求 <code>URI</code>，框架会自动进行解码然后进行匹配:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line"> $router-&gt;get(<span class="string">'foo/bar/åαф'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">     <span class="keyword">return</span> <span class="string">'hello'</span>;</div><div class="line">&#125;);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'hello'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar/%C3%A5%CE%B1%D1%84'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">$route = $router-&gt;get(<span class="string">'foo/&#123;file&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($file)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> $file;</div><div class="line">&#125;);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'oxygen%20'</span>, $router-&gt;dispatch(Request::create(<span class="string">'http://test.com/foo/oxygen%2520'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div></pre></td></tr></table></figure>
+<h2 id="路由参数"><a href="#路由参数" class="headerlink" title="路由参数"></a>路由参数</h2><p>路由参数总是通过花括号进行包裹，这些参数在路由被执行时会被传递到路由的闭包。路由参数不能包含 - 字符，需要的话可以使用 _ 替代。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">$route = $router-&gt;get(<span class="string">'foo/&#123;age&#125;'</span>, [<span class="string">'domain'</span> =&gt; <span class="string">'api.&#123;name&#125;.bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name, $age)</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> $name.$age;</div><div class="line">&#125;]);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'taylor25'</span>, $router-&gt;dispatch(Request::create(<span class="string">'http://api.taylor.bar/foo/25'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line">$route = <span class="keyword">new</span> Route(<span class="string">'GET'</span>, <span class="string">'images/&#123;id&#125;.&#123;ext&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">$request1 = Request::create(<span class="string">'images/1.png'</span>, <span class="string">'GET'</span>);</div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($route-&gt;matches($request1));</div><div class="line">$route-&gt;bind($request1);</div><div class="line"><span class="keyword">$this</span>-&gt;assertTrue($route-&gt;hasParameter(<span class="string">'id'</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertFalse($route-&gt;hasParameter(<span class="string">'foo'</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'1'</span>, $route-&gt;parameter(<span class="string">'id'</span>));</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'png'</span>, $route-&gt;parameter(<span class="string">'ext'</span>));</div></pre></td></tr></table></figure>
+<h2 id="路由可选参数"><a href="#路由可选参数" class="headerlink" title="路由可选参数"></a>路由可选参数</h2><p>有时候可能需要指定可选的路由参数，这可以通过在参数名后加一个 ? 标记来实现，这种情况下需要给相应的变量指定默认值：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">$router-&gt;get(<span class="string">'&#123;foo?&#125;/&#123;baz?&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name = <span class="string">'taylor'</span>, $age = <span class="number">25</span>)</span> </span>&#123;</div><div class="line">     <span class="keyword">return</span> $name.$age;</div><div class="line">&#125;);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'fred25'</span>, $router-&gt;dispatch(Request::create(<span class="string">'fred'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line">$router-&gt;get(<span class="string">'default/&#123;foo?&#125;/&#123;baz?&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name, $age = <span class="number">25</span>)</span> </span>&#123;</div><div class="line">     <span class="keyword">return</span> $name.$age;</div><div class="line">&#125;)-&gt;default(<span class="string">'name'</span>, <span class="string">'taylor'</span>);</div><div class="line"><span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'fred25'</span>, $router-&gt;dispatch(Request::create(<span class="string">'fred'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div></pre></td></tr></table></figure>
+<h2 id="路由参数正则约束"><a href="#路由参数正则约束" class="headerlink" title="路由参数正则约束"></a>路由参数正则约束</h2><p>可以使用路由实例上的 <code>where</code> 方法来约束路由参数的格式。<code>where</code> 方法接收参数名和一个正则表达式来定义该参数如何被约束：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'user/&#123;name&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;where(<span class="string">'name'</span>, <span class="string">'[A-Za-z]+'</span>);</div></pre></td></tr></table></figure>
+<p>如果想要路由参数在全局范围内被给定正则表达式约束，可以使用 <code>pattern</code> 方法。在 <code>RouteServiceProvider</code> 类的 <code>boot</code> 方法中定义约束模式:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    Route::pattern(<span class="string">'id'</span>, <span class="string">'[0-9]+'</span>);</div><div class="line">    <span class="keyword">parent</span>::boot();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>值得注意的是，路由参数是不允许出现 <code>/</code> 字符的，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$router-&gt;get(<span class="string">'&#123;one?&#125;'</span>, [</div><div class="line">            <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($one = null)</span></span>&#123;</div><div class="line">                 <span class="keyword">return</span> $one;</div><div class="line">            &#125;,</div><div class="line">        ]);</div><div class="line">$request = Request::create(<span class="string">'foo/bar/baz'</span>, <span class="string">'GET'</span>);</div><div class="line"><span class="keyword">$this</span>-&gt;assertFalse($route-&gt;matches($request2));</div></pre></td></tr></table></figure>
+<p>上例中 <code>one</code> 只能匹配 <code>foo</code>，不能匹配 <code>foo/bar/baz</code>,这时就需要对 <code>one</code> 进行正则约束：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testLeadingParamDoesntReceiveForwardSlashOnEmptyPath</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'&#123;one?&#125;'</span>, [</div><div class="line">            <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($one = null)</span></span>&#123;</div><div class="line">                 <span class="keyword">return</span> $one;</div><div class="line">            &#125;,</div><div class="line">            <span class="string">'where'</span> =&gt; [<span class="string">'one'</span> =&gt; <span class="string">'(.+)'</span>],</div><div class="line">        ]);</div><div class="line">        </div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo'</span>, $router-&gt;dispatch(Request::create(<span class="string">'/foo'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo/bar/baz'</span>, $router-&gt;dispatch(Request::create(<span class="string">'/foo/bar/baz'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="路由中间件"><a href="#路由中间件" class="headerlink" title="路由中间件"></a>路由中间件</h1><p>HTTP 中间件为过滤进入应用的 HTTP 请求提供了一套便利的机制。例如，Laravel 内置了一个中间件来验证用户是否经过认证，如果用户没有经过认证，中间件会将用户重定向到登录页面，否则如果用户经过认证，中间件就会允许请求继续往前进入下一步操作。</p>
+<p>Laravel框架自带了一些中间件，包括认证、CSRF 保护中间件等等。所有的中间件都位于 app/Http/Middleware 目录。</p>
+<h2 id="中间件之前-之后-终止"><a href="#中间件之前-之后-终止" class="headerlink" title="中间件之前/之后/终止"></a>中间件之前/之后/终止</h2><p>一个中间件是请求前还是请求后执行取决于中间件本身。比如，以下中间件会在请求处理前执行一些任务：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">BeforeMiddleware</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request, Closure $next)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="comment">// 执行动作</span></div><div class="line"></div><div class="line">        <span class="keyword">return</span> $next($request);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">AfterMiddleware</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request, Closure $next)</span></span></div><div class="line">    &#123;</div><div class="line">        $response = $next($request);</div><div class="line"></div><div class="line">        <span class="comment">// 执行动作</span></div><div class="line"></div><div class="line">        <span class="keyword">return</span> $response;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>有时候中间件可能需要在 HTTP 响应发送到浏览器之后做一些工作。比如，Laravel 内置的“session”中间件会在响应发送到浏览器之后将 Session 数据写到存储器中，为了实现这个功能，需要定义一个终止中间件并添加 terminate 方法到这个中间件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">StartSession</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request, Closure $next)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> $next($request);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">terminate</span><span class="params">($request, $response)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="comment">// 存储session数据...</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="全局中间件"><a href="#全局中间件" class="headerlink" title="全局中间件"></a>全局中间件</h2><p>如果你想要中间件在每一个 HTTP 请求期间被执行，只需要将相应的中间件类设置到 <code>app/Http/Kernel.php</code> 的数组属性 <code>$middleware</code> 中即可。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $middleware = [</div><div class="line">        \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,</div><div class="line">        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,</div><div class="line">        \App\Http\Middleware\TrimStrings::class,</div><div class="line">        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,</div><div class="line">    ];</div></pre></td></tr></table></figure>
+<h2 id="路由中间件-1"><a href="#路由中间件-1" class="headerlink" title="路由中间件"></a>路由中间件</h2><p>如果你想要分配中间件到指定路由，可以传递完整的类名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">use</span> <span class="title">App</span>\<span class="title">Http</span>\<span class="title">Middleware</span>\<span class="title">CheckAge</span>;</div><div class="line"></div><div class="line">Route::get(<span class="string">'admin/profile'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;middleware(CheckAge::class);</div></pre></td></tr></table></figure>
+<p>或者可以给中间件提供一个别名：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testDefinedClosureMiddleware</span><span class="params">()</span></span></div><div class="line"> &#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/bar'</span>, [<span class="string">'middleware'</span> =&gt; <span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'hello'</span>;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;aliasMiddleware(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($request, $next)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'caught'</span>;</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'caught'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>也可以应该在 <code>app/Http/Kernel.php</code> 文件中分配给该中间件一个 <code>key</code>，默认情况下，该类的 <code>$routeMiddleware</code> 属性包含了 <code>Laravel</code> 自带的中间件，要添加你自己的中间件，只需要将其追加到后面并为其分配一个 <code>key</code>，例如：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $routeMiddleware = [</div><div class="line">    <span class="string">'auth'</span> =&gt; \Illuminate\Auth\Middleware\Authenticate::class,</div><div class="line">    <span class="string">'auth.basic'</span> =&gt; \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,</div><div class="line">    <span class="string">'bindings'</span> =&gt; \Illuminate\Routing\Middleware\SubstituteBindings::class,</div><div class="line">    <span class="string">'can'</span> =&gt; \Illuminate\Auth\Middleware\Authorize::class,</div><div class="line">    <span class="string">'guest'</span> =&gt; \App\Http\Middleware\RedirectIfAuthenticated::class,</div><div class="line">    <span class="string">'throttle'</span> =&gt; \Illuminate\Routing\Middleware\ThrottleRequests::class,</div><div class="line">];</div><div class="line"></div><div class="line">Route::get(<span class="string">'admin/profile'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;middleware(<span class="string">'auth'</span>);</div></pre></td></tr></table></figure>
+<p>使用数组分配多个中间件到路由：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Route::get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;middleware(<span class="string">'first'</span>, <span class="string">'second'</span>);</div></pre></td></tr></table></figure>
+<h2 id="中间件组"><a href="#中间件组" class="headerlink" title="中间件组"></a>中间件组</h2><p>有时候你可能想要通过指定一个键名的方式将相关中间件分到同一个组里面，从而更方便将其分配到路由中，这可以通过使用 <code>HTTP Kernel</code> 的 <code>$middlewareGroups</code> 属性实现。</p>
+<p><code>Laravel</code> 自带了开箱即用的 <code>web</code> 和 <code>api</code> 两个中间件组以分别包含可以应用到 <code>Web UI</code> 和 <code>API</code> 路由的通用中间件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $middlewareGroups = [</div><div class="line">    <span class="string">'web'</span> =&gt; [</div><div class="line">        \App\Http\Middleware\EncryptCookies::class,</div><div class="line">        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,</div><div class="line">        \Illuminate\Session\Middleware\StartSession::class,</div><div class="line">        \Illuminate\View\Middleware\ShareErrorsFromSession::class,</div><div class="line">        \App\Http\Middleware\VerifyCsrfToken::class,</div><div class="line">        \Illuminate\Routing\Middleware\SubstituteBindings::class,</div><div class="line">    ],</div><div class="line"></div><div class="line">    <span class="string">'api'</span> =&gt; [</div><div class="line">        <span class="string">'throttle:60,1'</span>,</div><div class="line">        <span class="string">'auth:api'</span>,</div><div class="line">    ],</div><div class="line">];</div><div class="line"></div><div class="line">Route::get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;middleware(<span class="string">'web'</span>);</div></pre></td></tr></table></figure>
+<p>值得注意的是，中间件组中可以循环嵌套中间件组：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testMiddlewareGroupsCanReferenceOtherGroups</span><span class="params">()</span></span></div><div class="line"> &#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__middleware.group'</span>]);</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/bar'</span>, [<span class="string">'middleware'</span> =&gt; <span class="string">'web'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'hello'</span>;</div><div class="line">    &#125;]);</div><div class="line"></div><div class="line">    $router-&gt;aliasMiddleware(<span class="string">'two'</span>, <span class="string">'Illuminate\Tests\Routing\RoutingTestMiddlewareGroupTwo'</span>);</div><div class="line">    $router-&gt;middlewareGroup(<span class="string">'first'</span>, [<span class="string">'two:abigail'</span>]);</div><div class="line">    $router-&gt;middlewareGroup(<span class="string">'web'</span>, [<span class="string">'Illuminate\Tests\Routing\RoutingTestMiddlewareGroupOne'</span>, <span class="string">'first'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'caught abigail'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue($_SERVER[<span class="string">'__middleware.group'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__middleware.group'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="中间件参数"><a href="#中间件参数" class="headerlink" title="中间件参数"></a>中间件参数</h2><p>中间件还可以接收额外的自定义参数，例如，如果应用需要在执行给定动作之前验证认证用户是否拥有指定的角色，可以创建一个 <code>CheckRole</code> 来接收角色名作为额外参数。</p>
+<p>额外的中间件参数会在 <code>$next</code> 参数之后传入中间件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">namespace</span> <span class="title">App</span>\<span class="title">Http</span>\<span class="title">Middleware</span>;</div><div class="line"></div><div class="line"><span class="keyword">use</span> <span class="title">Closure</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CheckRole</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">handle</span><span class="params">($request, Closure $next, $role)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">if</span> (! $request-&gt;user()-&gt;hasRole($role)) &#123;</div><div class="line">            <span class="comment">// Redirect...</span></div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $next($request);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line">Route::put(<span class="string">'post/&#123;id&#125;'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($id)</span> </span>&#123;</div><div class="line">    <span class="comment">//</span></div><div class="line">&#125;)-&gt;middleware(<span class="string">'role:editor'</span>);</div></pre></td></tr></table></figure>
+<h2 id="中间件的顺序"><a href="#中间件的顺序" class="headerlink" title="中间件的顺序"></a>中间件的顺序</h2><p>当 <code>router</code> 中有多个中间件的时候，中间件的执行顺序并不是严格按照中间件数组进行的，框架中存在一个数组 <code>$middlewarePriority</code>,规定了这个数组中各个中间件的顺序：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $middlewarePriority = [</div><div class="line">        \Illuminate\Session\Middleware\StartSession::class,</div><div class="line">        \Illuminate\View\Middleware\ShareErrorsFromSession::class,</div><div class="line">        \Illuminate\Auth\Middleware\Authenticate::class,</div><div class="line">        \Illuminate\Session\Middleware\AuthenticateSession::class,</div><div class="line">        \Illuminate\Routing\Middleware\SubstituteBindings::class,</div><div class="line">        \Illuminate\Auth\Middleware\Authorize::class,</div><div class="line">    ];</div></pre></td></tr></table></figure>
+<p>当我们使用了上面其中多个中间件的时候，框架会自动按照上面的数组进行排序：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testMiddlewarePrioritySorting</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $middleware = [</div><div class="line">        Placeholder1::class,</div><div class="line">        SubstituteBindings::class,</div><div class="line">        Placeholder2::class,</div><div class="line">        Authenticate::class,</div><div class="line">        Placeholder3::class,</div><div class="line">    ];</div><div class="line"></div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line"></div><div class="line">    $router-&gt;middlewarePriority = [Authenticate::class, SubstituteBindings::class, Authorize::class];</div><div class="line"></div><div class="line">    $route = $router-&gt;get(<span class="string">'foo'</span>, [<span class="string">'middleware'</span> =&gt; $middleware, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals([</div><div class="line">        Placeholder1::class,</div><div class="line">        Authenticate::class,</div><div class="line">        SubstituteBindings::class,</div><div class="line">        Placeholder2::class,</div><div class="line">        Placeholder3::class,</div><div class="line">    ], $router-&gt;gatherRouteMiddleware($route));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h1><h2 id="控制器类"><a href="#控制器类" class="headerlink" title="控制器类"></a>控制器类</h2><p>更普遍的方法是使用控制器来组织管理这些行为。控制器可以将相关的 <code>HTTP</code> 请求封装到一个类中进行处理。通常控制器存放在 <code>app/Http/Controllers</code> 目录中.</p>
+<p>所有的 Laravel 控制器应该继承自 Laravel 自带的控制器基类 <code>Controller</code>，控制器基类提供了一些很方便的方法如 <code>middleware</code>，用于添加中间件到控制器动作：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">show</span><span class="params">($id)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> view(<span class="string">'user.profile'</span>, [<span class="string">'user'</span> =&gt; User::findOrFail($id)]);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">Route::get(<span class="string">'user/&#123;id&#125;'</span>, <span class="string">'UserController@show'</span>);</div></pre></td></tr></table></figure>
+<h2 id="单动作控制器"><a href="#单动作控制器" class="headerlink" title="单动作控制器"></a>单动作控制器</h2><p>如果想要定义一个只处理一个动作的控制器，可以在这个控制器中定义 __invoke 方法,当为这个单动作控制器注册路由的时候，不需要指定方法：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testDispatchingCallableActionClasses</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/bar'</span>, <span class="string">'Illuminate\Tests\Routing\ActionStub'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'hello'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line"></div><div class="line">    $router-&gt;get(<span class="string">'foo/bar2'</span>, [</div><div class="line">        <span class="string">'uses'</span> =&gt; <span class="string">'Illuminate\Tests\Routing\ActionStub@func'</span>,</div><div class="line">    ]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'hello2'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar2'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">ActionStub</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__invoke</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'hello'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="控制器中间件"><a href="#控制器中间件" class="headerlink" title="控制器中间件"></a>控制器中间件</h2><p>将中间件放在控制器构造函数中更方便，在控制器的构造函数中使用 middleware 方法你可以很轻松的分配中间件给该控制器。你甚至可以限定该中间件应用到该控制器类的指定方法：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;middleware(<span class="string">'auth'</span>);</div><div class="line">        <span class="keyword">$this</span>-&gt;middleware(<span class="string">'log'</span>)-&gt;only(<span class="string">'index'</span>);</div><div class="line">        <span class="keyword">$this</span>-&gt;middleware(<span class="string">'subscribed'</span>)-&gt;except(<span class="string">'store'</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="callAction-方法"><a href="#callAction-方法" class="headerlink" title="callAction 方法"></a>callAction 方法</h2><p>值得注意的是每次执行控制器方法都会先执行控制器的 <code>callAction</code> 函数：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">callAction</span><span class="params">($method, $parameters)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> call_user_func_array([<span class="keyword">$this</span>, $method], $parameters);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试样例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="keyword">unset</span>($_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line">$router-&gt;get(($str = str_random()).<span class="string">'/&#123;one&#125;/&#123;two&#125;'</span>, <span class="string">'Illuminate\Tests\Routing\RouteTestAnotherControllerWithParameterStub@oneArgument'</span>);</div><div class="line">$router-&gt;dispatch(Request::create($str.<span class="string">'/one/two'</span>, <span class="string">'GET'</span>));</div><div class="line"> <span class="keyword">$this</span>-&gt;assertEquals([<span class="string">'one'</span> =&gt; <span class="string">'one'</span>, <span class="string">'two'</span> =&gt; <span class="string">'two'</span>], $_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteTestAnotherControllerWithParameterStub</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">callAction</span><span class="params">($method, $parameters)</span></span></div><div class="line">    &#123;</div><div class="line">        $_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>] = $parameters;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">oneArgument</span><span class="params">($one)</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="call方法"><a href="#call方法" class="headerlink" title="__call方法"></a>__call方法</h2><p>和普通类一样，若控制器中没有对应 <code>classname@method</code> 中的 <code>method</code> ,则会调用类的 <code>__call</code> 函数。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testCallableControllerRouting</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line"></div><div class="line">    $router-&gt;get(<span class="string">'foo/bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteTestControllerCallableStub@bar'</span>);</div><div class="line">    $router-&gt;get(<span class="string">'foo/baz'</span>, <span class="string">'Illuminate\Tests\Routing\RouteTestControllerCallableStub@baz'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'bar'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/bar'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'baz'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/baz'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteTestControllerCallableStub</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $arguments = [])</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> $method;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="路由参数依赖注入与绑定"><a href="#路由参数依赖注入与绑定" class="headerlink" title="路由参数依赖注入与绑定"></a>路由参数依赖注入与绑定</h1><p>Laravel 使用服务容器解析所有的 Laravel 控制器，因此，可以在控制器的构造函数中类型声明任何依赖，这些依赖会被自动解析并注入到控制器实例中。路由的参数绑定可以分为两种：显示绑定与隐示绑定。</p>
+<h2 id="路由隐示绑定"><a href="#路由隐示绑定" class="headerlink" title="路由隐示绑定"></a>路由隐示绑定</h2><ul>
+<li>控制器方法期望输入路由参数，只需要将路由参数放到其他依赖之后</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">Route::put(<span class="string">'user/&#123;id&#125;'</span>, <span class="string">'UserController@update'</span>);</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(Request $request, $id)</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>可以在控制器的动作方法中进行依赖的类型提示，例如，我们可以在某个方法中类型提示 <code>Illuminate\Http\Request</code> 实例：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">store</span><span class="params">(Request $request)</span></span></div><div class="line">    &#123;</div><div class="line">        $name = $request-&gt;input(<span class="string">'name'</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>可以为控制器的动作方法中添加数据库模型的主键，框架会自动利用主键来获取对应的记录，需要注意的是，route定义路由的路由参数必须和控制器内的变量名相同，例如下例中路由参数 <code>userid</code> 和控制器参数 <code>userid</code>:</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">Route::put(<span class="string">'user/&#123;userid&#125;'</span>, <span class="string">'UserController@update'</span>);</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserController</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">update</span><span class="params">(UserModel $userid)</span></span></div><div class="line">    &#123;</div><div class="line">        $userid-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">        $userid-&gt;update();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>综合测试样例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testImplicitBindingsWithOptionalParameter</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line">    $router-&gt;get(($str = str_random()).<span class="string">'/&#123;user&#125;/&#123;defaultNull?&#125;/&#123;team?&#125;'</span>, [</div><div class="line">        <span class="string">'middleware'</span> =&gt; SubstituteBindings::class,</div><div class="line">        <span class="string">'uses'</span> =&gt; <span class="string">'Illuminate\Tests\Routing\RouteTestAnotherControllerWithParameterStub@withModels'</span>,</div><div class="line">    ]);</div><div class="line">    </div><div class="line">    $router-&gt;dispatch(Request::create($str.<span class="string">'/1'</span>, <span class="string">'GET'</span>));</div><div class="line"></div><div class="line">    $values = array_values($_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(<span class="string">'Illuminate\Http\Request'</span>, $values[<span class="number">0</span>]);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="number">1</span>, $values[<span class="number">1</span>]-&gt;value);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertNull($values[<span class="number">2</span>]);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(<span class="string">'Illuminate\Tests\Routing\RoutingTestTeamModel'</span>, $values[<span class="number">3</span>]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteTestAnotherControllerWithParameterStub</span> <span class="keyword">extends</span> <span class="title">Controller</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">callAction</span><span class="params">($method, $parameters)</span></span></div><div class="line">    &#123;</div><div class="line">        $_SERVER[<span class="string">'__test.controller_callAction_parameters'</span>] = $parameters;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">withModels</span><span class="params">(Request $request, RoutingTestUserModel $user, $defaultNull = null, RoutingTestTeamModel $team = null)</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoutingTestUserModel</span> <span class="keyword">extends</span> <span class="title">Model</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;value = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOrFail</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RoutingTestTeamModel</span> <span class="keyword">extends</span> <span class="title">Model</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;value = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">firstOrFail</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="路由显示绑定"><a href="#路由显示绑定" class="headerlink" title="路由显示绑定"></a>路由显示绑定</h2><p>除了隐示地转化路由参数外，我们还可以给路由参数显示提供绑定。显示绑定有 <code>bind</code>、<code>model</code> 两种方法。</p>
+<ul>
+<li>通过 <code>bind</code> 为参数绑定闭包函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">         <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> strtoupper($value);</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>通过 <code>bind</code> 为参数绑定类方法，可以指定 <code>classname@method</code>，也可以直接使用类名，默认会调用类的 <code>bind</code> 函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteClassBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">    	<span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteBindingStub'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testRouteClassMethodBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;bind(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteBindingStub@find'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'dragon'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/Dragon'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteBindingStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bind</span><span class="params">($value, $route)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtoupper($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">find</span><span class="params">($value, $route)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtolower($value);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>通过 <code>model</code> 为参数绑定数据库模型，路由的参数就不需要和控制器方法中的变量名相同，<code>laravel</code> 会利用路由参数的值去调用 <code>where</code> 方法查找对应记录：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> ($model = $instance-&gt;where($instance-&gt;getRouteKeyName(), $value)-&gt;first()) &#123;</div><div class="line">     <span class="keyword">return</span> $model;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>测试样例如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBinding</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingStub'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'TAYLOR'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;value = $value;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtoupper(<span class="keyword">$this</span>-&gt;value);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>若绑定的 <code>model</code> 并没有找到对应路由参数的记录，可以在 <code>model</code> 中定义一个闭包函数，路由参数会调用闭包函数：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBindingWithCustomNullReturn</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingNullStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'missing'</span>;</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'missing'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/taylor'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testModelBindingWithBindingClosure</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;get(<span class="string">'foo/&#123;bar&#125;'</span>, [<span class="string">'middleware'</span> =&gt; SubstituteBindings::class, <span class="string">'uses'</span> =&gt; <span class="function"><span class="keyword">function</span> <span class="params">($name)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $name;</div><div class="line">    &#125;]);</div><div class="line">    $router-&gt;model(<span class="string">'bar'</span>, <span class="string">'Illuminate\Tests\Routing\RouteModelBindingNullStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($value)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">new</span> RouteModelBindingClosureStub())-&gt;findAlternate($value);</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'tayloralt'</span>, $router-&gt;dispatch(Request::create(<span class="string">'foo/TAYLOR'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingNullStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getRouteKeyName</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'id'</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">where</span><span class="params">($key, $value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">first</span><span class="params">()</span></span></div><div class="line">    &#123;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RouteModelBindingClosureStub</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">findAlternate</span><span class="params">($value)</span></span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">return</span> strtolower($value).<span class="string">'alt'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h1 id="router扩展方法"><a href="#router扩展方法" class="headerlink" title="router扩展方法"></a>router扩展方法</h1><p>router支持添加自定义的方法，只需要利用 <code>macro</code> 函数来注册对应的函数名和函数实现：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testMacro</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    $router = <span class="keyword">$this</span>-&gt;getRouter();</div><div class="line">    $router-&gt;macro(<span class="string">'webhook'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($router)</span> </span>&#123;</div><div class="line">        $router-&gt;match([<span class="string">'GET'</span>, <span class="string">'POST'</span>], <span class="string">'webhook'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">'OK'</span>;</div><div class="line">        &#125;);</div><div class="line">    &#125;);</div><div class="line">    $router-&gt;webhook();</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'OK'</span>, $router-&gt;dispatch(Request::create(<span class="string">'webhook'</span>, <span class="string">'GET'</span>))-&gt;getContent());</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'OK'</span>, $router-&gt;dispatch(Request::create(<span class="string">'webhook'</span>, <span class="string">'POST'</span>))-&gt;getContent());</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/24/路由加载源码分析/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/24/Laravel HTTP——Pipeline 中间件处理源码分析/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/07/24/路由/"
+     data-title=""
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/07/24/路由/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/07/24/路由/"
+           data-title="" data-url="https://leoyang90.github.io/2017/07/24/路由/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由属性注册"><span class="nav-number">2.</span> <span class="nav-text">路由属性注册</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-method-方法"><span class="nav-number">2.1.</span> <span class="nav-text">路由 method 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-scheme-协议"><span class="nav-number">2.2.</span> <span class="nav-text">路由 scheme 协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-domain-子域名"><span class="nav-number">2.3.</span> <span class="nav-text">路由 domain 子域名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-prefix-前缀"><span class="nav-number">2.4.</span> <span class="nav-text">路由 prefix 前缀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-where-正则约束"><span class="nav-number">2.5.</span> <span class="nav-text">路由 where 正则约束</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-middleware-中间件"><span class="nav-number">2.6.</span> <span class="nav-text">路由 middleware 中间件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-namespace-属性"><span class="nav-number">2.7.</span> <span class="nav-text">路由 namespace 属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-uses-属性"><span class="nav-number">2.8.</span> <span class="nav-text">路由 uses 属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-as-别名"><span class="nav-number">2.9.</span> <span class="nav-text">路由 as 别名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由-group-群组属性"><span class="nav-number">2.10.</span> <span class="nav-text">路由 group 群组属性</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由参数与匹配"><span class="nav-number">3.</span> <span class="nav-text">路由参数与匹配</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#路由编码匹配"><span class="nav-number">3.1.</span> <span class="nav-text">路由编码匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由参数"><span class="nav-number">3.2.</span> <span class="nav-text">路由参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由可选参数"><span class="nav-number">3.3.</span> <span class="nav-text">路由可选参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由参数正则约束"><span class="nav-number">3.4.</span> <span class="nav-text">路由参数正则约束</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由中间件"><span class="nav-number">4.</span> <span class="nav-text">路由中间件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#中间件之前-之后-终止"><span class="nav-number">4.1.</span> <span class="nav-text">中间件之前/之后/终止</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全局中间件"><span class="nav-number">4.2.</span> <span class="nav-text">全局中间件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由中间件-1"><span class="nav-number">4.3.</span> <span class="nav-text">路由中间件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中间件组"><span class="nav-number">4.4.</span> <span class="nav-text">中间件组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中间件参数"><span class="nav-number">4.5.</span> <span class="nav-text">中间件参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中间件的顺序"><span class="nav-number">4.6.</span> <span class="nav-text">中间件的顺序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#控制器"><span class="nav-number">5.</span> <span class="nav-text">控制器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#控制器类"><span class="nav-number">5.1.</span> <span class="nav-text">控制器类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#单动作控制器"><span class="nav-number">5.2.</span> <span class="nav-text">单动作控制器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制器中间件"><span class="nav-number">5.3.</span> <span class="nav-text">控制器中间件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#callAction-方法"><span class="nav-number">5.4.</span> <span class="nav-text">callAction 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#call方法"><span class="nav-number">5.5.</span> <span class="nav-text">__call方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#路由参数依赖注入与绑定"><span class="nav-number">6.</span> <span class="nav-text">路由参数依赖注入与绑定</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#路由隐示绑定"><span class="nav-number">6.1.</span> <span class="nav-text">路由隐示绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#路由显示绑定"><span class="nav-number">6.2.</span> <span class="nav-text">路由显示绑定</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#router扩展方法"><span class="nav-number">7.</span> <span class="nav-text">router扩展方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
