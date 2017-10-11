@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处理">
+<meta name="description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:title" content="Laravel Exceptions——异常与错误处理">
 <meta property="og:url" content="https://leoyang90.github.io/2017/08/13/Laravel Exceptions——异常与错误处理/index.html">
 <meta property="og:site_name" content="LEOYANG&#39;S BLOG">
-<meta property="og:description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处理">
+<meta property="og:description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-08-13T15:45:01.000Z">
+<meta property="og:updated_time" content="2017-10-11T09:44:28.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
-<meta name="twitter:description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处理">
+<meta name="twitter:title" content="Laravel Exceptions——异常与错误处理">
+<meta name="twitter:description" content="前言对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 laravel 异常处理的源码。 PHP 异常处理本章节参考 PHP错误异常处理详解。 异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。　　异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处">
 
 
 
@@ -131,7 +131,7 @@
 
 
 
-  <title>  | LEOYANG'S BLOG </title>
+  <title> Laravel Exceptions——异常与错误处理 | LEOYANG'S BLOG </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -334,7 +334,7 @@
             
             
               
-                
+                Laravel Exceptions——异常与错误处理
               
             
           </h1>
@@ -349,7 +349,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T23:45:01+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T23:45:19+08:00">
                 2017-08-13
               </time>
             
@@ -377,7 +377,7 @@
 
           
           
-             <span id="/2017/08/13/Laravel Exceptions——异常与错误处理/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/08/13/Laravel Exceptions——异常与错误处理/" class="leancloud_visitors" data-flag-title="Laravel Exceptions——异常与错误处理">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -406,7 +406,8 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 <code>laravel</code> 异常处理的源码。</p>
+        <hr>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 <code>laravel</code> 异常处理的源码。</p>
 <h1 id="PHP-异常处理"><a href="#PHP-异常处理" class="headerlink" title="PHP 异常处理"></a>PHP 异常处理</h1><p>本章节参考 <a href="http://blog.csdn.net/hguisu/article/details/7464977" target="_blank" rel="external">PHP错误异常处理详解</a>。</p>
 <p>异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。<br>　　<br>异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处理某一类错误提供了一个很有效的方法，使编程效率大大提高。当异常被触发时，通常会发生：</p>
 <ul>
@@ -591,8 +592,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/08/12/Laravel Config—— 配置文件的加载与源码解析/" rel="next" title="">
-                <i class="fa fa-chevron-left"></i> 
+              <a href="/2017/08/12/Laravel Config—— 配置文件的加载与源码解析/" rel="next" title="Laravel Config—— 配置文件的加载与源码解析">
+                <i class="fa fa-chevron-left"></i> Laravel Config—— 配置文件的加载与源码解析
               </a>
             
           </div>
@@ -601,8 +602,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/08/14/Laravel Providers/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/" rel="prev" title="Laravel Providers——服务提供者的注册与启动源码解析">
+                Laravel Providers——服务提供者的注册与启动源码解析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -619,7 +620,7 @@
     <div class="post-spread">
       
         <div class="ds-share flat" data-thread-key="2017/08/13/Laravel Exceptions——异常与错误处理/"
-     data-title=""
+     data-title="Laravel Exceptions——异常与错误处理"
      data-content=""
      data-url="https://leoyang90.github.io/2017/08/13/Laravel Exceptions——异常与错误处理/">
   <div class="ds-share-inline">
@@ -649,7 +650,7 @@
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2017/08/13/Laravel Exceptions——异常与错误处理/"
-           data-title="" data-url="https://leoyang90.github.io/2017/08/13/Laravel Exceptions——异常与错误处理/">
+           data-title="Laravel Exceptions——异常与错误处理" data-url="https://leoyang90.github.io/2017/08/13/Laravel Exceptions——异常与错误处理/">
       </div>
     
   </div>
@@ -707,7 +708,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">23</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -716,7 +717,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

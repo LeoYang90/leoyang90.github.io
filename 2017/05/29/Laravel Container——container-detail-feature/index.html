@@ -1,0 +1,1023 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="php,laravel,Ioc,container," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="前言在前面几个博客中，我详细讲了 Ioc 容器各个功能的使用、绑定的源码、解析的源码，今天这篇博客会详细介绍 Ioc 容器的一些细节，一些特性，以便更好地掌握容器的功能。 注：本文使用的测试类与测试对象都取自 laravel 的单元测试文件src/illuminate/tests/Container/ContainerTest.php rebind绑定特性rebind 在绑定之前instance">
+<meta name="keywords" content="php,laravel,Ioc,container">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Laravel核心——服务容器的细节特性">
+<meta property="og:url" content="https://leoyang90.github.io/2017/05/29/Laravel Container——container-detail-feature/index.html">
+<meta property="og:site_name" content="LEOYANG&#39;S BLOG">
+<meta property="og:description" content="前言在前面几个博客中，我详细讲了 Ioc 容器各个功能的使用、绑定的源码、解析的源码，今天这篇博客会详细介绍 Ioc 容器的一些细节，一些特性，以便更好地掌握容器的功能。 注：本文使用的测试类与测试对象都取自 laravel 的单元测试文件src/illuminate/tests/Container/ContainerTest.php rebind绑定特性rebind 在绑定之前instance">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-07-16T14:45:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Laravel核心——服务容器的细节特性">
+<meta name="twitter:description" content="前言在前面几个博客中，我详细讲了 Ioc 容器各个功能的使用、绑定的源码、解析的源码，今天这篇博客会详细介绍 Ioc 容器的一些细节，一些特性，以便更好地掌握容器的功能。 注：本文使用的测试类与测试对象都取自 laravel 的单元测试文件src/illuminate/tests/Container/ContainerTest.php rebind绑定特性rebind 在绑定之前instance">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'LeoYang'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://leoyang90.github.io/2017/05/29/Laravel Container——container-detail-feature/"/>
+
+
+
+
+
+  <title> Laravel核心——服务容器的细节特性 | LEOYANG'S BLOG </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?c45898c39ba7512b69229aa34c07263a";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">LEOYANG'S BLOG</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Notes and Blogs</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="st-search-show-outputs">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'qzqmBx1WzwFX9LPuU1Rc','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/05/29/Laravel Container——container-detail-feature/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Leo Yang">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/master.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="LEOYANG'S BLOG">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="LEOYANG'S BLOG" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Laravel核心——服务容器的细节特性
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-29T00:13:00+08:00">
+                2017-05-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/laravel/container/" itemprop="url" rel="index">
+                    <span itemprop="name">container</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/05/29/Laravel Container——container-detail-feature/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/05/29/Laravel Container——container-detail-feature/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/05/29/Laravel Container——container-detail-feature/" class="leancloud_visitors" data-flag-title="Laravel核心——服务容器的细节特性">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在前面几个博客中，我详细讲了 Ioc 容器各个功能的使用、绑定的源码、解析的源码，今天这篇博客会详细介绍 Ioc 容器的一些细节，一些特性，以便更好地掌握容器的功能。</p>
+<p>注：本文使用的测试类与测试对象都取自 laravel 的单元测试文件src/illuminate/tests/Container/ContainerTest.php</p>
+<h1 id="rebind绑定特性"><a href="#rebind绑定特性" class="headerlink" title="rebind绑定特性"></a>rebind绑定特性</h1><h2 id="rebind-在绑定之前"><a href="#rebind-在绑定之前" class="headerlink" title="rebind 在绑定之前"></a>rebind 在绑定之前</h2><p>instance 和 普通 bind 绑定一样，当重新绑定的时候都会调用 rebind 回调函数，但是有趣的是，对于普通 bind 绑定来说，rebind 回调函数被调用的条件是当前接口被解析过：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testReboundListeners</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        $_SERVER[<span class="string">'__test.rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>所以遇到下面这样的情况,rebinding 的回调函数是不会调用的：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testReboundListeners</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        $_SERVER[<span class="string">'__test.rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(<span class="keyword">isset</span>($_SERVER[<span class="string">'__test.rebind'</span>]));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>有趣的是对于 instance 绑定：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testReboundListeners</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        $_SERVER[<span class="string">'__test.rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;instance(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue(<span class="keyword">isset</span>($_SERVER[<span class="string">'__test.rebind'</span>]));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>rebinding 回调函数却是可以被调用的。其实原因就是 instance 源码中 rebinding 回调函数调用的条件是 rebound 为真，而普通 bind 函数调用 rebinding 回调函数的条件是 resolved 为真. 目前笔者不是很清楚为什么要对 instance 和 bind 区别对待，希望有大牛指导。</p>
+<h2 id="rebind-在绑定之后"><a href="#rebind-在绑定之后" class="headerlink" title="rebind 在绑定之后"></a>rebind 在绑定之后</h2><p>为了使得 rebind 回调函数在下一次的绑定中被激活，在 rebind 函数的源码中，如果判断当前对象已经绑定过，那么将会立即解析：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">rebinding</span><span class="params">($abstract, Closure $callback)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;reboundCallbacks[$abstract = <span class="keyword">$this</span>-&gt;getAlias($abstract)][] = $callback;</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;bound($abstract)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;make($abstract);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>单元测试代码：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testReboundListeners1</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">unset</span>($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'foo'</span>;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    $container-&gt;resolving(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        $_SERVER[<span class="string">'__test.rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($container,$object)</span> </span>&#123;<span class="comment">//会立即解析</span></div><div class="line">        $container[<span class="string">'foobar'</span>] = $object.<span class="string">'bar'</span>;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue($_SERVER[<span class="string">'__test.rebind'</span>]);</div><div class="line"></div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'bar'</span>, $container[<span class="string">'foobar'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="resolving-特性"><a href="#resolving-特性" class="headerlink" title="resolving 特性"></a>resolving 特性</h1><h2 id="resolving-回调的类型"><a href="#resolving-回调的类型" class="headerlink" title="resolving 回调的类型"></a>resolving 回调的类型</h2><p>resolving 不仅可以针对接口执行回调函数，还可以针对接口实现的类型进行回调函数。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testResolvingCallbacksAreCalledForType</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;resolving(<span class="string">'StdClass'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($object)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $object-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">          <span class="keyword">return</span> <span class="keyword">new</span> StdClass;</div><div class="line">    &#125;);</div><div class="line">    $instance = $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'taylor'</span>, $instance-&gt;name);</div><div class="line">&#125;</div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testResolvingCallbacksShouldBeFiredWhenCalledWithAliases</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;alias(<span class="string">'StdClass'</span>, <span class="string">'std'</span>);</div><div class="line">    $container-&gt;resolving(<span class="string">'std'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($object)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $object-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> StdClass;</div><div class="line">    &#125;);</div><div class="line">    $instance = $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'taylor'</span>, $instance-&gt;name);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="resolving-回调与-instance"><a href="#resolving-回调与-instance" class="headerlink" title="resolving 回调与 instance"></a>resolving 回调与 instance</h2><p>前面讲过，对于 singleton 绑定来说，resolving 回调函数仅仅运行一次，只在 singleton 第一次解析的时候才会调用。如果我们利用 instance 直接绑定类的对象，不需要解析，那么 resolving 回调函数将不会被调用：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testResolvingCallbacksAreCalledForSpecificAbstracts</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;resolving(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($object)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $object-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">    &#125;);</div><div class="line">    $obj = <span class="keyword">new</span> StdClass;</div><div class="line">    $container-&gt;instance(<span class="string">'foo'</span>, $obj);</div><div class="line">    $instance = $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(<span class="keyword">isset</span>($instance-&gt;name));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="extend-扩展特性"><a href="#extend-扩展特性" class="headerlink" title="extend 扩展特性"></a>extend 扩展特性</h1><p>extend 用于扩展绑定对象的功能，对于普通绑定来说，这个函数的位置很灵活：</p>
+<h2 id="在绑定前扩展"><a href="#在绑定前扩展" class="headerlink" title="在绑定前扩展"></a>在绑定前扩展</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendIsLazyInitialized</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    ContainerLazyExtendStub::$initialized = <span class="keyword">false</span>;</div><div class="line">    </div><div class="line">    $container = <span class="keyword">new</span> Container;      </div><div class="line">    $container-&gt;extend(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        $obj-&gt;init();</div><div class="line">        <span class="keyword">return</span> $obj;   </div><div class="line">    &#125;);    </div><div class="line">    $container-&gt;bind(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>); </div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(ContainerLazyExtendStub::$initialized);   </div><div class="line">    $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>);   </div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue(ContainerLazyExtendStub::$initialized);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="在绑定后解析前扩展"><a href="#在绑定后解析前扩展" class="headerlink" title="在绑定后解析前扩展"></a>在绑定后解析前扩展</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendIsLazyInitialized</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    ContainerLazyExtendStub::$initialized = <span class="keyword">false</span>;</div><div class="line">    </div><div class="line">    $container = <span class="keyword">new</span> Container;   </div><div class="line">    $container-&gt;bind(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>);    </div><div class="line">    $container-&gt;extend(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        $obj-&gt;init();</div><div class="line">        <span class="keyword">return</span> $obj;   </div><div class="line">    &#125;);    </div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(ContainerLazyExtendStub::$initialized);   </div><div class="line">    $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>);   </div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue(ContainerLazyExtendStub::$initialized);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="在解析后扩展"><a href="#在解析后扩展" class="headerlink" title="在解析后扩展"></a>在解析后扩展</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendIsLazyInitialized</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    ContainerLazyExtendStub::$initialized = <span class="keyword">false</span>;</div><div class="line">    </div><div class="line">    $container = <span class="keyword">new</span> Container;   </div><div class="line">    $container-&gt;bind(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>);         </div><div class="line">    </div><div class="line">    $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>); </div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(ContainerLazyExtendStub::$initialized);</div><div class="line">    </div><div class="line">    $container-&gt;extend(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        $obj-&gt;init();</div><div class="line">        <span class="keyword">return</span> $obj;   </div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertFalse(ContainerLazyExtendStub::$initialized);  </div><div class="line">      </div><div class="line">    $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerLazyExtendStub'</span>); </div><div class="line">    <span class="keyword">$this</span>-&gt;assertTrue(ContainerLazyExtendStub::$initialized);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可以看出，无论在哪个位置，extend 扩展都有 lazy 初始化的特点，也就是使用 extend 函数并不会立即起作用，而是要等到 make 解析才会激活。</p>
+<h2 id="extend-与-instance-绑定"><a href="#extend-与-instance-绑定" class="headerlink" title="extend 与 instance 绑定"></a>extend 与 instance 绑定</h2><p>对于 instance 绑定来说，暂时 extend 的位置需要位于 instance 之后才会起作用，并且会立即起作用，没有 lazy 的特点：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendInstancesArePreserved</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $obj = <span class="keyword">new</span> StdClass;</div><div class="line">    $obj-&gt;foo = <span class="string">'foo'</span>;</div><div class="line">    $container-&gt;instance(<span class="string">'foo'</span>, $obj);</div><div class="line">    $container-&gt;extend(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        $obj-&gt;bar = <span class="string">'baz'</span>;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $obj;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo'</span>, $container-&gt;make(<span class="string">'foo'</span>)-&gt;foo);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'baz'</span>, $container-&gt;make(<span class="string">'foo'</span>)-&gt;bar);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="extend-绑定与-rebind-回调"><a href="#extend-绑定与-rebind-回调" class="headerlink" title="extend 绑定与 rebind 回调"></a>extend 绑定与 rebind 回调</h2><p>无论扩展对象是 instance 绑定还是 bind 绑定，extend 都会启动 rebind 回调函数：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendReBindingInstance</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $_SERVER[<span class="string">'_test_rebind'</span>] = <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>,<span class="function"><span class="keyword">function</span> <span class="params">()</span></span>&#123;</div><div class="line">        $_SERVER[<span class="string">'_test_rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    $obj = <span class="keyword">new</span> StdClass;</div><div class="line">    $container-&gt;instance(<span class="string">'foo'</span>,$obj);</div><div class="line"></div><div class="line">    $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">    $container-&gt;extend(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $obj;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    this-&gt;assertTrue($_SERVER[<span class="string">'_test_rebind'</span>]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendReBinding</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $_SERVER[<span class="string">'_test_rebind'</span>] = <span class="keyword">false</span>;</div><div class="line"></div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>,<span class="function"><span class="keyword">function</span> <span class="params">()</span></span>&#123;</div><div class="line">        $_SERVER[<span class="string">'_test_rebind'</span>] = <span class="keyword">true</span>;</div><div class="line">    &#125;);</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>,<span class="function"><span class="keyword">function</span> <span class="params">()</span></span>&#123;</div><div class="line">        $obj = <span class="keyword">new</span> StdClass;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> $obj;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">    $container-&gt;extend(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($obj, $container)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $obj;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    this-&gt;assertFalse($_SERVER[<span class="string">'_test_rebind'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="contextual-绑定特性"><a href="#contextual-绑定特性" class="headerlink" title="contextual 绑定特性"></a>contextual 绑定特性</h1><h2 id="contextual-在绑定前"><a href="#contextual-在绑定前" class="headerlink" title="contextual 在绑定前"></a>contextual 在绑定前</h2><p>contextual 绑定不仅可以与 bind 绑定合作，相互不干扰，还可以与 instance 绑定相互合作。而且 instance 的位置也很灵活，可以在 contextual 绑定前，也可以在contextual 绑定后：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingWorksForExistingInstancedBindings</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;instance(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>, <span class="keyword">new</span> ContainerImplementationStub);</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;needs(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">             <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">             $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">     );</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="contextual-在绑定后"><a href="#contextual-在绑定后" class="headerlink" title="contextual 在绑定后"></a>contextual 在绑定后</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingWorksForNewlyInstancedBindings</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;needs(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    $container-&gt;instance(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>, <span class="keyword">new</span> ContainerImplementationStub);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">            <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">        $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="contextual-绑定与别名"><a href="#contextual-绑定与别名" class="headerlink" title="contextual 绑定与别名"></a>contextual 绑定与别名</h2><p>contextual 绑定也可以在别名上进行，无论赋予别名的位置是 contextual 的前面还是后面：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingDoesntOverrideNonContextualResolution</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;instance(<span class="string">'stub'</span>, <span class="keyword">new</span> ContainerImplementationStub);</div><div class="line">    $container-&gt;alias(<span class="string">'stub'</span>, <span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>);</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectTwo'</span>)-&gt;needs(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">            <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">            $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectTwo'</span>)-&gt;impl</div><div class="line">        );</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">            <span class="string">'Illuminate\Tests\Container\ContainerImplementationStub'</span>,</div><div class="line">            $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingWorksOnNewAliasedBindings</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;needs(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    $container-&gt;bind(<span class="string">'stub'</span>, ContainerImplementationStub::class);</div><div class="line">    $container-&gt;alias(<span class="string">'stub'</span>, <span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">          <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">          $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="争议"><a href="#争议" class="headerlink" title="争议"></a>争议</h2><p>目前比较有争议的是下面的情况：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingWorksOnExistingAliasedInstances</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;alias(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>, <span class="string">'stub'</span>);</div><div class="line">    $container-&gt;instance(<span class="string">'stub'</span>, <span class="keyword">new</span> ContainerImplementationStub);</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;needs(<span class="string">'stub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">        <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">        $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">    ); </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由于instance的特性，当别名被绑定到其他对象上时，别名 stub 已经失去了与 Illuminate\Tests\Container\IContainerContractStub 之间的关系，因此不能使用 stub 代替作上下文绑定。<br>但是另一方面：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testContextualBindingWorksOnBoundAlias</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line"></div><div class="line">    $container-&gt;alias(<span class="string">'Illuminate\Tests\Container\IContainerContractStub'</span>, <span class="string">'stub'</span>);</div><div class="line">    $container-&gt;bind(<span class="string">'stub'</span>, ContainerImplementationStub::class);</div><div class="line"></div><div class="line">    $container-&gt;when(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;needs(<span class="string">'stub'</span>)-&gt;give(<span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertInstanceOf(</div><div class="line">        <span class="string">'Illuminate\Tests\Container\ContainerImplementationStubTwo'</span>,</div><div class="line">        $container-&gt;make(<span class="string">'Illuminate\Tests\Container\ContainerTestContextInjectOne'</span>)-&gt;impl</div><div class="line">    ); </div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>代码只是从 instance 绑定改为 bind 绑定，由于 bind 绑定只切断了别名中的 alias 数组的联系，并没有断绝abstractAlias数组的联系，因此这段代码却可以通过，很让人难以理解。本人在给 Taylor Otwell 提出 PR 时，作者原话为“I’m not making any of these changes to the container on a patch release.”。也许，在以后(5.5或以后)版本作者会更新这里的逻辑，我们就可以看看服务容器对别名绑定的态度了，大家也最好不要这样用。</p>
+<h1 id="服务容器中的闭包函数参数"><a href="#服务容器中的闭包函数参数" class="headerlink" title="服务容器中的闭包函数参数"></a>服务容器中的闭包函数参数</h1><p>服务容器中很多函数都有闭包函数，这些闭包函数可以放入特定的参数，在绑定或者解析过程中，这些参数会被服务容器自动带入各种类对象或者服务容器实例。</p>
+<h2 id="bind-闭包参数"><a href="#bind-闭包参数" class="headerlink" title="bind 闭包参数"></a>bind 闭包参数</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testAliasesWithArrayOfParameters</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;    </div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app, $config)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $config;    </div><div class="line">    &#125;);    </div><div class="line"></div><div class="line">    $container-&gt;alias(<span class="string">'foo'</span>, <span class="string">'baz'</span>);    </div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], $container-&gt;makeWith(<span class="string">'baz'</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="extend-闭包参数"><a href="#extend-闭包参数" class="headerlink" title="extend 闭包参数"></a>extend 闭包参数</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testExtendedBindings</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;    </div><div class="line">    $container[<span class="string">'foo'</span>] = <span class="string">'foo’;    </span></div><div class="line"><span class="string">    $container-&gt;extend('</span>foo<span class="string">', function ($old, $container) &#123;</span></div><div class="line"><span class="string">        return $old.'</span>bar’;    </div><div class="line">    &#125;);</div><div class="line">   </div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foobar'</span>, $container-&gt;make(<span class="string">'foo'</span>));</div><div class="line">    </div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    </div><div class="line">    $container-&gt;singleton(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> (object) [<span class="string">'name'</span> =&gt; <span class="string">'taylor'</span>];    </div><div class="line">    &#125;);    </div><div class="line">    $container-&gt;extend(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($old, $container)</span> </span>&#123;</div><div class="line">        $old-&gt;age = <span class="number">26</span>;</div><div class="line">        <span class="keyword">return</span> $old;    </div><div class="line">    &#125;);</div><div class="line">    </div><div class="line">    $result = $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'taylor'</span>, $result-&gt;name);    </div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="number">26</span>, $result-&gt;age);   </div><div class="line">    <span class="keyword">$this</span>-&gt;assertSame($result, $container-&gt;make(<span class="string">'foo'</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="bindmethod-闭包参数"><a href="#bindmethod-闭包参数" class="headerlink" title="bindmethod 闭包参数"></a>bindmethod 闭包参数</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testCallWithBoundMethod</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;bindMethod(<span class="string">'Illuminate\Tests\Container\ContainerTestCallStub@unresolvable'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($stub,$container)</span> </span>&#123;</div><div class="line">        $container[<span class="string">'foo'</span>] = <span class="string">'foo'</span>;</div><div class="line">        <span class="keyword">return</span> $stub-&gt;unresolvable(<span class="string">'foo'</span>, <span class="string">'bar'</span>);</div><div class="line">    &#125;);</div><div class="line">    $result = $container-&gt;call(<span class="string">'Illuminate\Tests\Container\ContainerTestCallStub@unresolvable'</span>);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals([<span class="string">'foo'</span>, <span class="string">'bar'</span>], $result);</div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'foo'</span>,$container[<span class="string">'foo'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="resolve-闭包参数"><a href="#resolve-闭包参数" class="headerlink" title="resolve 闭包参数"></a>resolve 闭包参数</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testResolvingCallbacksAreCalledForSpecificAbstracts</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">     $container = <span class="keyword">new</span> Container;</div><div class="line">     $container-&gt;resolving(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($object，$container)</span> </span>&#123;</div><div class="line">         <span class="keyword">return</span> $object-&gt;name = <span class="string">'taylor'</span>;</div><div class="line">     &#125;);</div><div class="line"> </div><div class="line">     $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> StdClass;</div><div class="line">     &#125;);</div><div class="line">     $instance = $container-&gt;make(<span class="string">'foo'</span>);</div><div class="line"></div><div class="line">     <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'taylor'</span>, $instance-&gt;name);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="rebinding-闭包参数"><a href="#rebinding-闭包参数" class="headerlink" title="rebinding 闭包参数"></a>rebinding 闭包参数</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">testReboundListeners</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $container = <span class="keyword">new</span> Container;</div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="string">'foo'</span>;</div><div class="line">    &#125;);</div><div class="line">  </div><div class="line">    $container-&gt;rebinding(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($container,$object)</span> </span>&#123;</div><div class="line">         $container[<span class="string">'bar'</span>] = $object.<span class="string">'bar'</span>;</div><div class="line">    &#125;);</div><div class="line">  </div><div class="line">    $container-&gt;bind(<span class="string">'foo'</span>, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;assertEquals(<span class="string">'bar'</span>,$container[<span class="string">'foobar'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/php/" rel="tag"># php</a>
+          
+            <a href="/tags/laravel/" rel="tag"># laravel</a>
+          
+            <a href="/tags/Ioc/" rel="tag"># Ioc</a>
+          
+            <a href="/tags/container/" rel="tag"># container</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/07/Laravel Container——laravel-container-resolve/" rel="next" title="Laravel核心——Ioc服务容器源码解析（服务器解析）">
+                <i class="fa fa-chevron-left"></i> Laravel核心——Ioc服务容器源码解析（服务器解析）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/16/Laravel HTTP——路由/" rel="prev" title="Laravel HTTP——路由">
+                Laravel HTTP——路由 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2017/05/29/Laravel Container——container-detail-feature/"
+     data-title="Laravel核心——服务容器的细节特性"
+     data-content=""
+     data-url="https://leoyang90.github.io/2017/05/29/Laravel Container——container-detail-feature/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2017/05/29/Laravel Container——container-detail-feature/"
+           data-title="Laravel核心——服务容器的细节特性" data-url="https://leoyang90.github.io/2017/05/29/Laravel Container——container-detail-feature/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/master.jpg"
+               alt="Leo Yang" />
+          <p class="site-author-name" itemprop="name">Leo Yang</p>
+           
+              <p class="site-description motion-element" itemprop="description">Life and Learn!</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/LeoYang90" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/liang-de-tai-yang" target="_blank" title="知乎">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  知乎
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rebind绑定特性"><span class="nav-number">2.</span> <span class="nav-text">rebind绑定特性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rebind-在绑定之前"><span class="nav-number">2.1.</span> <span class="nav-text">rebind 在绑定之前</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rebind-在绑定之后"><span class="nav-number">2.2.</span> <span class="nav-text">rebind 在绑定之后</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#resolving-特性"><span class="nav-number">3.</span> <span class="nav-text">resolving 特性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#resolving-回调的类型"><span class="nav-number">3.1.</span> <span class="nav-text">resolving 回调的类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#resolving-回调与-instance"><span class="nav-number">3.2.</span> <span class="nav-text">resolving 回调与 instance</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#extend-扩展特性"><span class="nav-number">4.</span> <span class="nav-text">extend 扩展特性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#在绑定前扩展"><span class="nav-number">4.1.</span> <span class="nav-text">在绑定前扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在绑定后解析前扩展"><span class="nav-number">4.2.</span> <span class="nav-text">在绑定后解析前扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在解析后扩展"><span class="nav-number">4.3.</span> <span class="nav-text">在解析后扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#extend-与-instance-绑定"><span class="nav-number">4.4.</span> <span class="nav-text">extend 与 instance 绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#extend-绑定与-rebind-回调"><span class="nav-number">4.5.</span> <span class="nav-text">extend 绑定与 rebind 回调</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#contextual-绑定特性"><span class="nav-number">5.</span> <span class="nav-text">contextual 绑定特性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#contextual-在绑定前"><span class="nav-number">5.1.</span> <span class="nav-text">contextual 在绑定前</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#contextual-在绑定后"><span class="nav-number">5.2.</span> <span class="nav-text">contextual 在绑定后</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#contextual-绑定与别名"><span class="nav-number">5.3.</span> <span class="nav-text">contextual 绑定与别名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#争议"><span class="nav-number">5.4.</span> <span class="nav-text">争议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务容器中的闭包函数参数"><span class="nav-number">6.</span> <span class="nav-text">服务容器中的闭包函数参数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#bind-闭包参数"><span class="nav-number">6.1.</span> <span class="nav-text">bind 闭包参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#extend-闭包参数"><span class="nav-number">6.2.</span> <span class="nav-text">extend 闭包参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bindmethod-闭包参数"><span class="nav-number">6.3.</span> <span class="nav-text">bindmethod 闭包参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#resolve-闭包参数"><span class="nav-number">6.4.</span> <span class="nav-text">resolve 闭包参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rebinding-闭包参数"><span class="nav-number">6.5.</span> <span class="nav-text">rebinding 闭包参数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Leo Yang</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"leoyang90"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    
+    <script src="/lib/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("ftMscWAwCsyt12PCu9jVqOrL-gzGzoHsz", "39fy4YEUohtU0wVi4r4MuKEI");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

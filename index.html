@@ -337,7 +337,7 @@
               
                 
                 <a class="post-title-link" href="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" itemprop="url">
-                  未命名
+                  Laravel Database——Eloquent Model 源码分析（下）
                 </a>
               
             
@@ -353,7 +353,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T23:50:57+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T23:11:00+08:00">
                 2017-10-09
               </time>
             
@@ -363,6 +363,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/database/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -381,7 +425,7 @@
 
           
           
-             <span id="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" class="leancloud_visitors" data-flag-title="Laravel Database——Eloquent Model 源码分析（下）">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -412,7 +456,8 @@
       
         
           
-            <h1 id="Laravel-Database——Eloquent-Model-源码分析（下）"><a href="#Laravel-Database——Eloquent-Model-源码分析（下）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（下）"></a>Laravel Database——Eloquent Model 源码分析（下）</h1><h2 id="获取模型"><a href="#获取模型" class="headerlink" title="获取模型"></a>获取模型</h2><h3 id="get-函数"><a href="#get-函数" class="headerlink" title="get 函数"></a>get 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getModels</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;hydrate(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;get($columns)-&gt;all()</div><div class="line">    )-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+            <hr>
+<h2 id="获取模型"><a href="#获取模型" class="headerlink" title="获取模型"></a>获取模型</h2><h3 id="get-函数"><a href="#get-函数" class="headerlink" title="get 函数"></a>get 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getModels</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;hydrate(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;get($columns)-&gt;all()</div><div class="line">    )-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>get</code> 函数会将 <code>QueryBuilder</code> 所获取的数据进一步包装 <code>hydrate</code>。<code>hydrate</code> 函数会将数据库取回来的数据打包成数据库模型对象 <code>Eloquent Model</code>，如果可以获取到数据，还会利用函数 <code>eagerLoadRelations</code> 来预加载关系模型。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hydrate</span><span class="params">(array $items)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $instance = <span class="keyword">$this</span>-&gt;newModelInstance();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $instance-&gt;newCollection(array_map(<span class="function"><span class="keyword">function</span> <span class="params">($item)</span> <span class="title">use</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $instance-&gt;newFromBuilder($item);</div><div class="line">    &#125;, $items));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>newModelInstance</code> 函数创建了一个新的数据库模型对象，重要的是这个函数为新的数据库模型对象赋予了 <code>connection</code>：</p>
@@ -589,7 +634,7 @@
               
                 
                 <a class="post-title-link" href="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" itemprop="url">
-                  未命名
+                  Laravel Database——Eloquent Model 源码分析(上)
                 </a>
               
             
@@ -605,7 +650,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-05T23:25:13+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-05T23:25:00+08:00">
                 2017-10-05
               </time>
             
@@ -615,6 +660,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -633,7 +722,7 @@
 
           
           
-             <span id="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" class="leancloud_visitors" data-flag-title="Laravel Database——Eloquent Model 源码分析(上)">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -664,7 +753,8 @@
       
         
           
-            <h1 id="Laravel-Database——Eloquent-Model-源码分析（上）"><a href="#Laravel-Database——Eloquent-Model-源码分析（上）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（上）"></a>Laravel Database——Eloquent Model 源码分析（上）</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 <code>Eloquent Model</code> 服务的，我们对数据库操作更加方便的是使用 <code>Eloquent Model</code>。 本篇文章将会大家介绍 <code>Model</code> 的一些特性原理。</p>
+            <hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 <code>Eloquent Model</code> 服务的，我们对数据库操作更加方便的是使用 <code>Eloquent Model</code>。 本篇文章将会大家介绍 <code>Model</code> 的一些特性原理。</p>
 <h2 id="Eloquent-Model-修改器"><a href="#Eloquent-Model-修改器" class="headerlink" title="Eloquent Model 修改器"></a>Eloquent Model 修改器</h2><p>当我们在 <code>Eloquent</code> 模型实例中设置某些属性值的时候，修改器允许对 <code>Eloquent</code> 属性值进行格式化。如果对修改器不熟悉，请参考官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent-mutators" target="_blank" rel="external">Eloquent： 修改器</a></p>
 <p>下面先看看修改器的原理：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">offsetSet</span><span class="params">($offset, $value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;setAttribute($offset, $value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setAttribute</span><span class="params">($key, $value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasSetMutator($key)) &#123;</div><div class="line">        $method = <span class="string">'set'</span>.Str::studly($key).<span class="string">'Attribute'</span>;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;&#123;$method&#125;($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">elseif</span> ($value &amp;&amp; <span class="keyword">$this</span>-&gt;isDateAttribute($key)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;fromDateTime($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isJsonCastable($key) &amp;&amp; ! is_null($value)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;castAttributeAsJson($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (Str::contains($key, <span class="string">'-&gt;'</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fillJsonAttribute($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;attributes[$key] = $value;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -818,7 +908,7 @@
               
                 
                 <a class="post-title-link" href="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(下)/" itemprop="url">
-                  未命名
+                  Laravel Database——查询构造器与语法编译器源码分析(下)
                 </a>
               
             
@@ -834,7 +924,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-02T11:15:06+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-02T11:15:00+08:00">
                 2017-10-02
               </time>
             
@@ -844,6 +934,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -862,7 +996,7 @@
 
           
           
-             <span id="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(下)/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(下)/" class="leancloud_visitors" data-flag-title="Laravel Database——查询构造器与语法编译器源码分析(下)">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -893,7 +1027,8 @@
       
         
           
-            <h1 id="Laravel-Database——查询构造器与语法编译器源码分析-下"><a href="#Laravel-Database——查询构造器与语法编译器源码分析-下" class="headerlink" title="Laravel Database——查询构造器与语法编译器源码分析(下)"></a>Laravel Database——查询构造器与语法编译器源码分析(下)</h1><h2 id="insert-语句"><a href="#insert-语句" class="headerlink" title="insert 语句"></a>insert 语句</h2><p><code>insert</code> 语句也是我们经常使用的数据库操作，它的源码如下：</p>
+            <hr>
+<h2 id="insert-语句"><a href="#insert-语句" class="headerlink" title="insert 语句"></a>insert 语句</h2><p><code>insert</code> 语句也是我们经常使用的数据库操作，它的源码如下：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">insert</span><span class="params">(array $values)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>($values)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! is_array(reset($values))) &#123;</div><div class="line">        $values = [$values];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">foreach</span> ($values <span class="keyword">as</span> $key =&gt; $value) &#123;</div><div class="line">            ksort($value);</div><div class="line"></div><div class="line">            $values[$key] = $value;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;connection-&gt;insert(</div><div class="line">        <span class="keyword">$this</span>-&gt;grammar-&gt;compileInsert(<span class="keyword">$this</span>, $values),</div><div class="line">        <span class="keyword">$this</span>-&gt;cleanBindings(Arr::flatten($values, <span class="number">1</span>))</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>laravel</code> 的 <code>insert</code> 是允许批量插入的，方法如下：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;insert([[<span class="string">'email'</span> =&gt; <span class="string">'foo'</span>, <span class="string">'name'</span> =&gt; <span class="string">'taylor'</span>], [<span class="string">'email'</span> =&gt; <span class="string">'bar'</span>, <span class="string">'name'</span> =&gt; <span class="string">'dayle'</span>]]);</div></pre></td></tr></table></figure>
@@ -996,7 +1131,7 @@
               
                 
                 <a class="post-title-link" href="/2017/09/30/Laravel Database——分页原理与源码分析/" itemprop="url">
-                  未命名
+                  Laravel Database——分页原理与源码分析
                 </a>
               
             
@@ -1012,7 +1147,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-30T22:32:35+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-30T22:11:07+08:00">
                 2017-09-30
               </time>
             
@@ -1022,6 +1157,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1040,7 +1219,7 @@
 
           
           
-             <span id="/2017/09/30/Laravel Database——分页原理与源码分析/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/09/30/Laravel Database——分页原理与源码分析/" class="leancloud_visitors" data-flag-title="Laravel Database——分页原理与源码分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1071,7 +1250,8 @@
       
         
           
-            <h1 id="Laravel-Database——paginate-分页服务源码分析"><a href="#Laravel-Database——paginate-分页服务源码分析" class="headerlink" title="Laravel Database——paginate 分页服务源码分析"></a>Laravel Database——paginate 分页服务源码分析</h1><h2 id="paginate-分页"><a href="#paginate-分页" class="headerlink" title="paginate 分页"></a>paginate 分页</h2><p><code>laravel</code> 的分页用起来非常简单，只需要对 <code>query</code> 调用 <code>paginate</code> 函数，把返回的对象扔给前端 <code>blade</code> 文件，在 <code>blade</code> 文件调用函数 <code>render</code> 函数或者 <code>link</code> 函数，就可以得到 <code>上一页</code>、<code>下一页</code> 等等分页特效。</p>
+            <hr>
+<h2 id="paginate-分页"><a href="#paginate-分页" class="headerlink" title="paginate 分页"></a>paginate 分页</h2><p><code>laravel</code> 的分页用起来非常简单，只需要对 <code>query</code> 调用 <code>paginate</code> 函数，把返回的对象扔给前端 <code>blade</code> 文件，在 <code>blade</code> 文件调用函数 <code>render</code> 函数或者 <code>link</code> 函数，就可以得到 <code>上一页</code>、<code>下一页</code> 等等分页特效。</p>
 <p>实际上，我们可以简单地把分页服务看作一个前端资源，<code>render</code> 函数或者 <code>link</code> 函数的结果就是分页前端代码。</p>
 <p>如果你还对 <code>laravel</code> 的分页不是很熟悉，请先阅读官方文档 ： <a href="https://d.laravel-china.org/docs/5.5/pagination" target="_blank" rel="external">分页</a>。</p>
 <h2 id="分页服务的启动"><a href="#分页服务的启动" class="headerlink" title="分页服务的启动"></a>分页服务的启动</h2><p>分页功能也是由一个服务提供者所启动的，<code>PaginationServiceProvider</code> 就是负责注册和启动分页服务的服务提供者：</p>
@@ -1232,7 +1412,7 @@
               
                 
                 <a class="post-title-link" href="/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/" itemprop="url">
-                  未命名
+                  Laravel Database——查询构造器与语法编译器源码分析(中)
                 </a>
               
             
@@ -1248,7 +1428,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-26T00:33:15+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-26T12:33:48+08:00">
                 2017-09-26
               </time>
             
@@ -1258,6 +1438,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1276,7 +1500,7 @@
 
           
           
-             <span id="/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/09/26/Laravel Database——查询构造器与语法编译器源码分析(中)/" class="leancloud_visitors" data-flag-title="Laravel Database——查询构造器与语法编译器源码分析(中)">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1307,7 +1531,8 @@
       
         
           
-            <h1 id="Laravel-Database——查询构造器与语法编译器源码分析-中"><a href="#Laravel-Database——查询构造器与语法编译器源码分析-中" class="headerlink" title="Laravel Database——查询构造器与语法编译器源码分析(中)"></a>Laravel Database——查询构造器与语法编译器源码分析(中)</h1><h2 id="join-语句"><a href="#join-语句" class="headerlink" title="join 语句"></a>join 语句</h2><p><code>join</code> 语句对数据库进行连接操作，<code>join</code> 函数的连接条件可以非常简单：</p>
+            <hr>
+<h2 id="join-语句"><a href="#join-语句" class="headerlink" title="join 语句"></a>join 语句</h2><p><code>join</code> 语句对数据库进行连接操作，<code>join</code> 函数的连接条件可以非常简单：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'services'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;join(<span class="string">'translations AS t'</span>, <span class="string">'t.item_id'</span>, <span class="string">'='</span>, <span class="string">'services.id'</span>);</div></pre></td></tr></table></figure>
 <p>也可以比较复杂：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;join(<span class="string">'contacts'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;on(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'contacts.id'</span>)-&gt;orOn(<span class="string">'users.name'</span>, <span class="string">'='</span>, <span class="string">'contacts.name'</span>);</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" inner join "contacts" on "users"."id" = "contacts"."id" or "users"."name" = "contacts"."name"</span></div><div class="line"></div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;getBuilder();</div><div class="line">    DB::table(<span class="string">'users'</span>)-&gt;select(<span class="string">'*'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;joinWhere(<span class="string">'contacts'</span>, <span class="string">'col1'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($j)</span> </span>&#123;</div><div class="line">        $j-&gt;select(<span class="string">'users.col2'</span>)-&gt;from(<span class="string">'users'</span>)-&gt;where(<span class="string">'users.id'</span>, <span class="string">'='</span>, <span class="string">'foo'</span>)</div><div class="line">    &#125;);</div><div class="line">    <span class="comment">//select * from "users" inner join "contacts" on "col1" = (select "users"."col2" from "users" where "users"."id" = foo)</span></div></pre></td></tr></table></figure>
@@ -1450,7 +1675,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/09/19/Laravel Database——查询构造器与语法编译器源码分析(上)/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Leo Yang">
@@ -1475,8 +1700,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/" itemprop="url">
-                  未命名
+                <a class="post-title-link" href="/2017/09/19/Laravel Database——查询构造器与语法编译器源码分析(上)/" itemprop="url">
+                  Laravel Database——查询构造器与语法编译器源码分析(上)
                 </a>
               
             
@@ -1492,7 +1717,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-19T23:46:28+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-19T23:46:36+08:00">
                 2017-09-19
               </time>
             
@@ -1503,6 +1728,50 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -1511,8 +1780,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/" itemprop="commentCount"></span>
+                <a href="/2017/09/19/Laravel Database——查询构造器与语法编译器源码分析(上)/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/09/19/Laravel Database——查询构造器与语法编译器源码分析(上)/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1520,7 +1789,7 @@
 
           
           
-             <span id="/2017/09/19/Laravel Datebase——查询构造器与语法编译器源码分析(上)/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/09/19/Laravel Database——查询构造器与语法编译器源码分析(上)/" class="leancloud_visitors" data-flag-title="Laravel Database——查询构造器与语法编译器源码分析(上)">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1551,7 +1820,8 @@
       
         
           
-            <h1 id="Laravel-Datebase——查询构造器与语法编译器源码分析-上"><a href="#Laravel-Datebase——查询构造器与语法编译器源码分析-上" class="headerlink" title="Laravel Datebase——查询构造器与语法编译器源码分析(上)"></a>Laravel Datebase——查询构造器与语法编译器源码分析(上)</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前两个文章中，我们分析了数据库的连接启动与数据库底层 <code>CRUD</code> 的原理，底层数据库服务支持原生 <code>sql</code> 的运行。本文以 <code>mysql</code> 为例，向大家讲述支持 <code>Fluent</code> 的查询构造器 <code>query</code> 与语法编译器 <code>grammer</code> 的原理。</p>
+            <hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前两个文章中，我们分析了数据库的连接启动与数据库底层 <code>CRUD</code> 的原理，底层数据库服务支持原生 <code>sql</code> 的运行。本文以 <code>mysql</code> 为例，向大家讲述支持 <code>Fluent</code> 的查询构造器 <code>query</code> 与语法编译器 <code>grammer</code> 的原理。</p>
 <h2 id="DB-table-与-查询构造器"><a href="#DB-table-与-查询构造器" class="headerlink" title="DB::table 与 查询构造器"></a>DB::table 与 查询构造器</h2><p>若是不想使用原生的 <code>sql</code> 语句，我们可以使用 <code>DB::table</code> 语句，该语句会返回一个 <code>query</code> 对象：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">table</span><span class="params">($table)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;query()-&gt;from($table);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">query</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> QueryBuilder(</div><div class="line">        <span class="keyword">$this</span>, <span class="keyword">$this</span>-&gt;getQueryGrammar(), <span class="keyword">$this</span>-&gt;getPostProcessor()</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>我们可以看到，<code>query</code> 会有两个成员，<code>queryGrammar</code> 与 <code>postProcessor</code>。<code>queryGrammar</code> 负责对 <code>QueryBuilcder</code> 的结果进行 <code>sql</code> 语言的转化，<code>postProcessor</code> 负责查询结果的后处理。</p>
@@ -1790,7 +2060,7 @@
               
                 
                 <a class="post-title-link" href="/2017/09/16/Laravel Database——数据库的 CRUD 操作/" itemprop="url">
-                  未命名
+                  Laravel Database——数据库的 CRUD 操作
                 </a>
               
             
@@ -1806,7 +2076,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-16T17:17:56+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-16T17:09:38+08:00">
                 2017-09-16
               </time>
             
@@ -1816,6 +2086,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1834,7 +2148,7 @@
 
           
           
-             <span id="/2017/09/16/Laravel Database——数据库的 CRUD 操作/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/09/16/Laravel Database——数据库的 CRUD 操作/" class="leancloud_visitors" data-flag-title="Laravel Database——数据库的 CRUD 操作">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1865,7 +2179,8 @@
       
         
           
-            <h1 id="Laravel-Database——数据库的-CRUD-操作"><a href="#Laravel-Database——数据库的-CRUD-操作" class="headerlink" title="Laravel Database——数据库的 CRUD 操作"></a>Laravel Database——数据库的 CRUD 操作</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>当 <code>connection</code> 对象构建初始化完成后，我们就可以利用 <code>DB</code> 来进行数据库的 <code>CRUD</code> ( <code>Create</code>、<code>Retrieve</code>、<code>Update</code>、<code>Delete</code>)操作。本篇文章，我们将会讲述 <code>laravel</code> 如何与 <code>pdo</code> 交互，实现基本数据库服务的原理。</p>
+            <hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>当 <code>connection</code> 对象构建初始化完成后，我们就可以利用 <code>DB</code> 来进行数据库的 <code>CRUD</code> ( <code>Create</code>、<code>Retrieve</code>、<code>Update</code>、<code>Delete</code>)操作。本篇文章，我们将会讲述 <code>laravel</code> 如何与 <code>pdo</code> 交互，实现基本数据库服务的原理。</p>
 <h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><p><code>laravel</code> 中任何数据库的操作都要经过 <code>run</code> 这个函数，这个函数作用在于重新连接数据库、记录数据库日志、数据库异常处理：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">run</span><span class="params">($query, $bindings, Closure $callback)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;reconnectIfMissingConnection();</div><div class="line"></div><div class="line">    $start = microtime(<span class="keyword">true</span>);</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        $result = <span class="keyword">$this</span>-&gt;runQueryCallback($query, $bindings, $callback);</div><div class="line">    &#125; <span class="keyword">catch</span> (QueryException $e) &#123;</div><div class="line">        $result = <span class="keyword">$this</span>-&gt;handleQueryException(</div><div class="line">            $e, $query, $bindings, $callback</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;logQuery(</div><div class="line">        $query, $bindings, <span class="keyword">$this</span>-&gt;getElapsedTime($start)</div><div class="line">    );</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <h3 id="重新连接数据库-reconnect"><a href="#重新连接数据库-reconnect" class="headerlink" title="重新连接数据库 reconnect"></a>重新连接数据库 reconnect</h3><p>如果当期的 <code>pdo</code> 是空，那么就会调用 <code>reconnector</code> 重新与数据库进行连接：</p>
@@ -2028,7 +2343,7 @@
               
                 
                 <a class="post-title-link" href="/2017/09/13/Laravel Database——数据库服务的启动与连接/" itemprop="url">
-                  未命名
+                  Laravel Database——数据库服务的启动与连接
                 </a>
               
             
@@ -2044,7 +2359,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-13T00:50:28+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-13T12:50:02+08:00">
                 2017-09-13
               </time>
             
@@ -2054,6 +2369,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -2072,7 +2431,7 @@
 
           
           
-             <span id="/2017/09/13/Laravel Database——数据库服务的启动与连接/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/09/13/Laravel Database——数据库服务的启动与连接/" class="leancloud_visitors" data-flag-title="Laravel Database——数据库服务的启动与连接">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -2103,38 +2462,39 @@
       
         
           
-            <h1 id="Laravel-Database——数据库服务的启动与连接"><a href="#Laravel-Database——数据库服务的启动与连接" class="headerlink" title="Laravel Database——数据库服务的启动与连接"></a>Laravel Database——数据库服务的启动与连接</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>数据库是 <code>laravel</code> 及其重要的组成部分，大致的讲，<code>laravel</code> 的数据库功能可以分为两部分：数据库 <code>DB</code>、数据库 <code>Eloquent Model</code>。数据库的 <code>Eloquent</code> 是功能十分丰富的 <code>ORM</code>，让我们可以避免写繁杂的 <code>sql</code> 语句。数据库 <code>DB</code> 是比较底层的与 <code>pdo</code> 交互的功能，<code>Eloquent</code> 的底层依赖于 <code>DB</code>。本文将会介绍数据库 <code>DB</code> 中关于数据库服务的启动与连接部分。</p>
+            <hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a><strong>前言</strong></h2><p>数据库是 <code>laravel</code> 及其重要的组成部分，大致的讲，<code>laravel</code> 的数据库功能可以分为两部分：数据库 <code>DB</code>、数据库 <code>Eloquent Model</code>。数据库的 <code>Eloquent</code> 是功能十分丰富的 <code>ORM</code>，让我们可以避免写繁杂的 <code>sql</code> 语句。数据库 <code>DB</code> 是比较底层的与 <code>pdo</code> 交互的功能，<code>Eloquent</code> 的底层依赖于 <code>DB</code>。本文将会介绍数据库 <code>DB</code> 中关于数据库服务的启动与连接部分。</p>
 <p>在详细讲解数据库各个功能之前，我们先看看支撑着整个 <code>laravel</code> 数据库功能的框架：</p>
-<p><img src="http://i4.bvimg.com/593560/51a4d30b1f7231d3.png" alt="Markdown"></p>
+<p><img src="http://owql68l6p.bkt.clouddn.com/17-9-23/18341131.jpg" alt="Markdown"></p>
 <ul>
 <li><code>DB</code> 也就是 <code>DatabaseManager</code>，承担着数据库接口的工作，一切数据库相关的操作，例如查询、更新、插入、删除都可以通过 <code>DB</code> 这个接口来完成。但是，具体的调用 <code>pdo</code> API 的工作却不是由该类完成的，它仅仅是一个对外的接口而已。</li>
 <li><code>ConnectionFactory</code> 顾名思义专门为 <code>DB</code> 构造初始化 <code>connector</code>、<code>connection</code> 对象， </li>
 <li><code>connector</code> 负责数据库的连接功能，为保障程序的高效，<code>laravel</code> 将其包装成为闭包函数，并将闭包函数作为 <code>connection</code> 的一个成员对象，实现懒加载。</li>
 <li><code>connection</code> 负责数据库的具体功能，负责底层与 <code>pdo</code> API 的交互。</li>
 </ul>
-<h2 id="数据库服务的注册与启动"><a href="#数据库服务的注册与启动" class="headerlink" title="数据库服务的注册与启动"></a>数据库服务的注册与启动</h2><p>数据库服务也是一种服务提供者：<code>Illuminate\Database\DatabaseServiceProvider</code></p>
+<h2 id="数据库服务的注册与启动"><a href="#数据库服务的注册与启动" class="headerlink" title="数据库服务的注册与启动"></a><strong>数据库服务的注册与启动</strong></h2><p>数据库服务也是一种服务提供者：<code>Illuminate\Database\DatabaseServiceProvider</code></p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">register</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Model::clearBootedModels();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;registerConnectionServices();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;registerEloquentFactory();</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;registerQueueableEntityResolver();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>我们先来看这个注册函数的第一句: <code>Model::clearBootedModels()</code>。这一句其实是为了 <code>Eloquent</code> 服务的启动做准备。数据库的 <code>Eloquent Model</code> 有一个静态的成员变量数组 <code>$booted</code>，这个静态数组存储了所有已经被初始化的数据库 <code>model</code> ，以便加载数据库模型时更加迅速。因此，在 <code>Eloquent</code> 服务启动之前需要初始化静态成员变量 <code>$booted</code>：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">clearBootedModels</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">static</span>::$booted = [];</div><div class="line"></div><div class="line">    <span class="keyword">static</span>::$globalScopes = [];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>接下来我们就开始看数据库服务的注册最重要的两部分：<code>ConnectionServices</code> 与 <code>Eloquent</code>.</p>
-<h3 id="ConnectionServices-注册"><a href="#ConnectionServices-注册" class="headerlink" title="ConnectionServices 注册"></a>ConnectionServices 注册</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerConnectionServices</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'db.factory'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ConnectionFactory($app);</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">   <span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'db'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DatabaseManager($app, $app[<span class="string">'db.factory'</span>]);</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;bind(<span class="string">'db.connection'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $app[<span class="string">'db'</span>]-&gt;connection();</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="ConnectionServices-注册"><a href="#ConnectionServices-注册" class="headerlink" title="ConnectionServices 注册"></a><strong>ConnectionServices 注册</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerConnectionServices</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'db.factory'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ConnectionFactory($app);</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">   <span class="keyword">$this</span>-&gt;app-&gt;singleton(<span class="string">'db'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DatabaseManager($app, $app[<span class="string">'db.factory'</span>]);</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;bind(<span class="string">'db.connection'</span>, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $app[<span class="string">'db'</span>]-&gt;connection();</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>可以看出，数据库服务向 <code>IOC</code> 容器注册了 <code>db</code>、<code>db.factory</code> 与 <code>db.connection</code>。</p>
 <ul>
 <li>最重要的莫过于 <code>db</code> 对象，它有一个 <code>Facade</code> 是 <code>DB</code>， 我们可以利用 <code>DB::connection()</code> 来连接任意数据库，可以利用 <code>DB::select()</code> 来进行数据库的查询，可以说 <code>DB</code> 就是我们操作数据库的接口。</li>
 <li><code>db.factory</code> 负责为 <code>DB</code> 创建 <code>connector</code> 提供数据库的底层连接服务，负责为 <code>DB</code> 创建 <code>connection</code> 对象来进行数据库的查询等操作。</li>
 <li><code>db.cønnection</code> 是 <code>laravel</code> 用于与数据库 <code>pdo</code> 接口进行交互的底层类，可用于数据库的查询、更新、创建等操作。</li>
 </ul>
-<h3 id="Eloquent-注册"><a href="#Eloquent-注册" class="headerlink" title="Eloquent 注册"></a>Eloquent 注册</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerEloquentFactory</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(FakerGenerator::class, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> FakerFactory::create();</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(EloquentFactory::class, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> EloquentFactory::construct(</div><div class="line">            $app-&gt;make(FakerGenerator::class), database_path(<span class="string">'factories'</span>)</div><div class="line">        );</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="Eloquent-注册"><a href="#Eloquent-注册" class="headerlink" title="Eloquent 注册"></a><strong>Eloquent 注册</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">registerEloquentFactory</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(FakerGenerator::class, <span class="function"><span class="keyword">function</span> <span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> FakerFactory::create();</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;app-&gt;singleton(EloquentFactory::class, <span class="function"><span class="keyword">function</span> <span class="params">($app)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> EloquentFactory::construct(</div><div class="line">            $app-&gt;make(FakerGenerator::class), database_path(<span class="string">'factories'</span>)</div><div class="line">        );</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>EloquentFactory</code> 用于创建 <code>Eloquent Model</code>，用于全局函数 <code>factory()</code> 来创建数据库模型。</p>
-<h3 id="数据库服务的启动"><a href="#数据库服务的启动" class="headerlink" title="数据库服务的启动"></a>数据库服务的启动</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Model::setConnectionResolver(<span class="keyword">$this</span>-&gt;app[<span class="string">'db'</span>]);</div><div class="line"></div><div class="line">    Model::setEventDispatcher(<span class="keyword">$this</span>-&gt;app[<span class="string">'events'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="数据库服务的启动"><a href="#数据库服务的启动" class="headerlink" title="数据库服务的启动"></a><strong>数据库服务的启动</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">boot</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    Model::setConnectionResolver(<span class="keyword">$this</span>-&gt;app[<span class="string">'db'</span>]);</div><div class="line"></div><div class="line">    Model::setEventDispatcher(<span class="keyword">$this</span>-&gt;app[<span class="string">'events'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>数据库服务的启动主要设置 <code>Eloquent Model</code> 的 <code>connection resolver</code>，用于数据库模型 <code>model</code> 利用 <code>db</code> 来来连接数据库。<br>还有设置数据库事件的分发器 <code>dispatcher</code>，用于监听数据库的事件。</p>
-<h2 id="DatabaseManager——数据库的接口"><a href="#DatabaseManager——数据库的接口" class="headerlink" title="DatabaseManager——数据库的接口"></a>DatabaseManager——数据库的接口</h2><p>如果我们想要使用任何数据库服务，首先要做的事情当然是利用用户名与密码来连接数据库。在 <code>laravel</code> 中，数据库的用户名与密码一般放在 <code>.env</code> 文件中或者放入 <code>nginx</code> 配置中，并且利用数据库的接口 <code>DB</code> 来与 <code>pdo</code> 进行交互，利用 <code>pdo</code> 来连接数据库。</p>
+<h2 id="DatabaseManager——数据库的接口"><a href="#DatabaseManager——数据库的接口" class="headerlink" title="DatabaseManager——数据库的接口"></a><strong>DatabaseManager——数据库的接口</strong></h2><p>如果我们想要使用任何数据库服务，首先要做的事情当然是利用用户名与密码来连接数据库。在 <code>laravel</code> 中，数据库的用户名与密码一般放在 <code>.env</code> 文件中或者放入 <code>nginx</code> 配置中，并且利用数据库的接口 <code>DB</code> 来与 <code>pdo</code> 进行交互，利用 <code>pdo</code> 来连接数据库。</p>
 <p><code>DB</code> 即是类 <code>Illuminate\Database\DatabaseManager</code>，首先我们来看看其构造函数：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">($app, ConnectionFactory $factory)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;app = $app;</div><div class="line">    <span class="keyword">$this</span>-&gt;factory = $factory;</div><div class="line">&#125;</div><div class="line">``` </div><div class="line">我们称 `DB` 为一个接口，或者是一个门面模式，是因为数据库操作，例如数据库的连接或者查询、更新等操作均不是 `DB` 的功能，数据库的连接使用类 `Illuminate\Database\Connectors\Connector` 完成，数据库的查询等操作由类 `Illuminate\Database\Connection` 完成，</div><div class="line"></div><div class="line">因此，我们不必直接操作 `connector` 或者 `connection`，仅仅会操作 `DB` 即可。</div><div class="line"></div><div class="line">那么 `DB` 是如何实现 `connector` 或者 `connection` 的功能的呢？关键还是这个 `ConnectionFactory` 类，这个工厂类专门为 `DB` 来生成 `connection` 对象，并将其放入 `DB` 的成员变量数组 `$connections` 中去。`connection` 中会包含 `connector` 对象来实现数据库的连接工作。</div><div class="line"></div><div class="line">```php</div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">DatabaseManager</span> <span class="keyword">implements</span> <span class="title">ConnectionResolverInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">protected</span> $app;</div><div class="line">	<span class="keyword">protected</span> $factory;</div><div class="line">	<span class="keyword">protected</span> $connections = [];</div><div class="line">	</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span><span class="params">($method, $parameters)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;connection()-&gt;$method(...$parameters);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>魔术函数实现了 <code>DB</code> 与 <code>connection</code> 的无缝连接，任何对数据库的操作，例如 <code>DB::select()</code>、<code>DB::table(&#39;user&#39;)-&gt;save()</code>，都会被转移至 <code>connection</code> 中去。</p>
-<h3 id="connection-函数——获取数据库连接对象"><a href="#connection-函数——获取数据库连接对象" class="headerlink" title="connection 函数——获取数据库连接对象"></a>connection 函数——获取数据库连接对象</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">connection</span><span class="params">($name = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">list</span>($database, $type) = <span class="keyword">$this</span>-&gt;parseConnectionName($name);</div><div class="line"></div><div class="line">    $name = $name ?: $database;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;connections[$name])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;connections[$name] = <span class="keyword">$this</span>-&gt;configure(</div><div class="line">                $connection = <span class="keyword">$this</span>-&gt;makeConnection($database), $type</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;connections[$name];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="connection-函数——获取数据库连接对象"><a href="#connection-函数——获取数据库连接对象" class="headerlink" title="connection 函数——获取数据库连接对象"></a><strong>connection 函数——获取数据库连接对象</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">connection</span><span class="params">($name = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">list</span>($database, $type) = <span class="keyword">$this</span>-&gt;parseConnectionName($name);</div><div class="line"></div><div class="line">    $name = $name ?: $database;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;connections[$name])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;connections[$name] = <span class="keyword">$this</span>-&gt;configure(</div><div class="line">                $connection = <span class="keyword">$this</span>-&gt;makeConnection($database), $type</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;connections[$name];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>具体流程如下：</p>
-<p><img src="http://i4.bvimg.com/593560/8b709ecb8a9c6cf5.png" alt="Markdown"></p>
+<p><img src="http://owql68l6p.bkt.clouddn.com/17-9-23/11296035.jpg" alt="Markdown"></p>
 <p><code>DB</code> 的 <code>connection</code> 函数可以传入数据库的名字，也可以不传任何参数，此时会连接默认数据库，默认数据库的设置在 <code>config/database</code> 文件中。</p>
 <p><code>connection</code> 函数流程：</p>
 <ul>
@@ -2144,7 +2504,7 @@
 </ul>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">parseConnectionName</span><span class="params">($name)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $name = $name ?: <span class="keyword">$this</span>-&gt;getDefaultConnection();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> Str::endsWith($name, [<span class="string">'::read'</span>, <span class="string">'::write'</span>])</div><div class="line">                        ? explode(<span class="string">'::'</span>, $name, <span class="number">2</span>) : [$name, <span class="keyword">null</span>];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getDefaultConnection</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;app[<span class="string">'config'</span>][<span class="string">'database.default'</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>可以看出，若没有特别指定连接的数据库名称，那么就会利用文件 <code>config/database</code> 文件中设置的 <code>default</code> 数据库名称作为默认连接数据库名称。若数据库支持读写分离，那么还可以指定数据库的读写属性，例如 <code>mysql::read</code>。</p>
-<h3 id="makeConnection-函数——创建新的数据库连接对象"><a href="#makeConnection-函数——创建新的数据库连接对象" class="headerlink" title="makeConnection 函数——创建新的数据库连接对象"></a>makeConnection 函数——创建新的数据库连接对象</h3><p>当框架从未连接过当前数据库的时候，就要对数据库进行连接操作，首先程序会调用 <code>makeConnection</code> 函数：</p>
+<h3 id="makeConnection-函数——创建新的数据库连接对象"><a href="#makeConnection-函数——创建新的数据库连接对象" class="headerlink" title="makeConnection 函数——创建新的数据库连接对象"></a><strong>makeConnection 函数——创建新的数据库连接对象</strong></h3><p>当框架从未连接过当前数据库的时候，就要对数据库进行连接操作，首先程序会调用 <code>makeConnection</code> 函数：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">makeConnection</span><span class="params">($name)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $config = <span class="keyword">$this</span>-&gt;configuration($name);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;extensions[$name])) &#123;</div><div class="line">        <span class="keyword">return</span> call_user_func(<span class="keyword">$this</span>-&gt;extensions[$name], $config, $name);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;extensions[$driver = $config[<span class="string">'driver'</span>]])) &#123;</div><div class="line">        <span class="keyword">return</span> call_user_func(<span class="keyword">$this</span>-&gt;extensions[$driver], $config, $name);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;factory-&gt;make($config, $name);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>可以看出，连接数据库仅仅需要两个步骤：获取数据库配置、利用 <code>connection factory</code> 获取 <code>connection</code> 对象。</p>
 <p>获取数据库配置：</p>
@@ -2152,20 +2512,20 @@
 <p>也是非常简单，直接从配置文件中获取当前数据库的配置：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="string">'connections'</span> =&gt; [</div><div class="line">    <span class="string">'mysql'</span> =&gt; [</div><div class="line">        <span class="string">'driver'</span> =&gt; <span class="string">'mysql'</span>,</div><div class="line">        <span class="string">'host'</span> =&gt; env(<span class="string">'DB_HOST'</span>, <span class="string">'127.0.0.1'</span>),</div><div class="line">        <span class="string">'port'</span> =&gt; env(<span class="string">'DB_PORT'</span>, <span class="string">'3306'</span>),</div><div class="line">        <span class="string">'database'</span> =&gt; env(<span class="string">'DB_DATABASE'</span>, <span class="string">'forge'</span>),</div><div class="line">        <span class="string">'username'</span> =&gt; env(<span class="string">'DB_USERNAME'</span>, <span class="string">'forge'</span>),</div><div class="line">        <span class="string">'password'</span> =&gt; env(<span class="string">'DB_PASSWORD'</span>, <span class="string">''</span>),</div><div class="line">        <span class="string">'charset'</span> =&gt; <span class="string">'utf8mb4'</span>,</div><div class="line">        <span class="string">'collation'</span> =&gt; <span class="string">'utf8mb4_unicode_ci'</span>,</div><div class="line">        <span class="string">'prefix'</span> =&gt; <span class="string">''</span>,</div><div class="line">        <span class="string">'strict'</span> =&gt; <span class="keyword">true</span>,</div><div class="line">        <span class="string">'engine'</span> =&gt; <span class="keyword">null</span>,</div><div class="line">        <span class="string">'read'</span> =&gt; [</div><div class="line">            <span class="string">'database'</span>  =&gt; env(<span class="string">'DB_DATABASE'</span>, <span class="string">'forge'</span>),</div><div class="line">        ],</div><div class="line">        <span class="string">'write'</span> =&gt; [</div><div class="line">            <span class="string">'database'</span>  =&gt; env(<span class="string">'DB_DATABASE'</span>, <span class="string">'forge'</span>),</div><div class="line">        ],</div><div class="line">    ],</div><div class="line">],</div></pre></td></tr></table></figure>
 <p><code>$this-&gt;factory-&gt;make($config, $name)</code> 函数向我们提供了数据库连接对象。</p>
-<h3 id="configure——连接对象读写配置"><a href="#configure——连接对象读写配置" class="headerlink" title="configure——连接对象读写配置"></a>configure——连接对象读写配置</h3><p>当我们从 <code>connection factory</code> 中获取到连接对象 <code>connection</code> 之后，我们就要根据传入的参数进行读写配置：</p>
+<h3 id="configure——连接对象读写配置"><a href="#configure——连接对象读写配置" class="headerlink" title="configure——连接对象读写配置"></a><strong>configure——连接对象读写配置</strong></h3><p>当我们从 <code>connection factory</code> 中获取到连接对象 <code>connection</code> 之后，我们就要根据传入的参数进行读写配置：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">configure</span><span class="params">(Connection $connection, $type)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $connection = <span class="keyword">$this</span>-&gt;setPdoForType($connection, $type);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;app-&gt;bound(<span class="string">'events'</span>)) &#123;</div><div class="line">        $connection-&gt;setEventDispatcher(<span class="keyword">$this</span>-&gt;app[<span class="string">'events'</span>]);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $connection-&gt;setReconnector(<span class="function"><span class="keyword">function</span> <span class="params">($connection)</span> </span>&#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;reconnect($connection-&gt;getName());</div><div class="line">    &#125;);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $connection;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>setPdoForType</code> 函数就是根据 <code>type</code> 来设置读写：</p>
 <p>当我们需要 <code>read</code> 数据库连接时，我们将 <code>read-pdo</code> 设置为主 <code>pdo</code>。当我们需要 <code>write</code> 数据库连接时，我们将读写 <code>pdo</code> 都设置为 <code>write-pdo</code>：  </p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setPdoForType</span><span class="params">(Connection $connection, $type = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($type == <span class="string">'read'</span>) &#123;</div><div class="line">        $connection-&gt;setPdo($connection-&gt;getReadPdo());</div><div class="line">    &#125; <span class="keyword">elseif</span> ($type == <span class="string">'write'</span>) &#123;</div><div class="line">        $connection-&gt;setReadPdo($connection-&gt;getPdo());</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $connection;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="ConnectionFactory——数据库连接对象工厂"><a href="#ConnectionFactory——数据库连接对象工厂" class="headerlink" title="ConnectionFactory——数据库连接对象工厂"></a>ConnectionFactory——数据库连接对象工厂</h2><p><img src="http://i4.bvimg.com/593560/bc5fdc170a074e1c.png" alt="Markdown"></p>
-<h3 id="make-函数——工厂接口"><a href="#make-函数——工厂接口" class="headerlink" title="make 函数——工厂接口"></a>make 函数——工厂接口</h3><p>获取到了数据库的配置参数之后，就要利用 <code>ConnectionFactory</code> 来获取 <code>connection</code> 对象了：</p>
+<h2 id="ConnectionFactory——数据库连接对象工厂"><a href="#ConnectionFactory——数据库连接对象工厂" class="headerlink" title="ConnectionFactory——数据库连接对象工厂"></a><strong>ConnectionFactory——数据库连接对象工厂</strong></h2><p><img src="http://owql68l6p.bkt.clouddn.com/17-9-23/26227209.jpg" alt="Markdown"></p>
+<h3 id="make-函数——工厂接口"><a href="#make-函数——工厂接口" class="headerlink" title="make 函数——工厂接口"></a><strong>make 函数——工厂接口</strong></h3><p>获取到了数据库的配置参数之后，就要利用 <code>ConnectionFactory</code> 来获取 <code>connection</code> 对象了：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">make</span><span class="params">(array $config, $name = null)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $config = <span class="keyword">$this</span>-&gt;parseConfig($config, $name);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($config[<span class="string">'read'</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createReadWriteConnection($config);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createSingleConnection($config);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">parseConfig</span><span class="params">(array $config, $name)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> Arr::add(Arr::add($config, <span class="string">'prefix'</span>, <span class="string">''</span>), <span class="string">'name'</span>, $name);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>在建立连接之前，要先向配置参数中添加默认的 <code>prefix</code> 属性与 <code>name</code> 属性。</p>
 <p>接着，就要判断我们在配置文件中是否设置了读写分离。如果设置了读写分离，那么就会调用 <code>createReadWriteConnection</code> 函数，生成具有读、写两个功能的 <code>connection</code>；否则的话，就会调用 <code>createSingleConnection</code> 函数，生成普通的连接对象。</p>
-<h3 id="createSingleConnection-函数——制造数据库连接对象"><a href="#createSingleConnection-函数——制造数据库连接对象" class="headerlink" title="createSingleConnection 函数——制造数据库连接对象"></a>createSingleConnection 函数——制造数据库连接对象</h3><p><code>createSingleConnection</code> 函数是类 <code>ConnectionFactory</code> 的核心，用于生成新的数据库连接对象。</p>
+<h3 id="createSingleConnection-函数——制造数据库连接对象"><a href="#createSingleConnection-函数——制造数据库连接对象" class="headerlink" title="createSingleConnection 函数——制造数据库连接对象"></a><strong>createSingleConnection 函数——制造数据库连接对象</strong></h3><p><code>createSingleConnection</code> 函数是类 <code>ConnectionFactory</code> 的核心，用于生成新的数据库连接对象。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createSingleConnection</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $pdo = <span class="keyword">$this</span>-&gt;createPdoResolver($config);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createConnection(</div><div class="line">        $config[<span class="string">'driver'</span>], $pdo, $config[<span class="string">'database'</span>], $config[<span class="string">'prefix'</span>], $config</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>ConnectionFactory</code> 也很简单，只做了两件事情：制造 <code>pdo</code> 连接的闭包函数、构造一个新的 <code>connection</code> 对象。</p>
-<h3 id="createPdoResolver——数据库连接器闭包函数"><a href="#createPdoResolver——数据库连接器闭包函数" class="headerlink" title="createPdoResolver——数据库连接器闭包函数"></a>createPdoResolver——数据库连接器闭包函数</h3><p>根据配置参数中是否含有 <code>host</code>，创建不同的闭包函数：</p>
+<h3 id="createPdoResolver——数据库连接器闭包函数"><a href="#createPdoResolver——数据库连接器闭包函数" class="headerlink" title="createPdoResolver——数据库连接器闭包函数"></a><strong>createPdoResolver——数据库连接器闭包函数</strong></h3><p>根据配置参数中是否含有 <code>host</code>，创建不同的闭包函数：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createPdoResolver</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> array_key_exists(<span class="string">'host'</span>, $config)</div><div class="line">                        ? <span class="keyword">$this</span>-&gt;createPdoResolverWithHosts($config)</div><div class="line">                        : <span class="keyword">$this</span>-&gt;createPdoResolverWithoutHosts($config);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>不带有 <code>host</code> 的 <code>pdo</code> 闭包函数：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createPdoResolverWithoutHosts</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($config)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createConnector($config)-&gt;connect($config);</div><div class="line">    &#125;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -2173,21 +2533,21 @@
 <p>带有 <code>host</code> 的 <code>pdo</code> 闭包函数：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createPdoResolverWithHosts</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="params">()</span> <span class="title">use</span> <span class="params">($config)</span> </span>&#123;</div><div class="line">        <span class="keyword">foreach</span> (Arr::shuffle($hosts = <span class="keyword">$this</span>-&gt;parseHosts($config)) <span class="keyword">as</span> $key =&gt; $host) &#123;</div><div class="line">            $config[<span class="string">'host'</span>] = $host;</div><div class="line"></div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">                <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createConnector($config)-&gt;connect($config);</div><div class="line">            &#125; <span class="keyword">catch</span> (PDOException $e) &#123;</div><div class="line">                <span class="keyword">if</span> (count($hosts) - <span class="number">1</span> === $key &amp;&amp; <span class="keyword">$this</span>-&gt;container-&gt;bound(ExceptionHandler::class)) &#123;</div><div class="line">                    <span class="keyword">$this</span>-&gt;container-&gt;make(ExceptionHandler::class)-&gt;report($e);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">throw</span> $e;</div><div class="line">    &#125;;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">parseHosts</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $hosts = array_wrap($config[<span class="string">'host'</span>]);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>($hosts)) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">'Database hosts array is empty.'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $hosts;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>带有 <code>host</code> 的闭包函数相对比较复杂，首先程序会随机选择不同的数据库依次来建立数据库连接，若均失败，就会报告异常。</p>
-<h3 id="createConnector——创建连接器"><a href="#createConnector——创建连接器" class="headerlink" title="createConnector——创建连接器"></a>createConnector——创建连接器</h3><p>程序会根据配置参数中 <code>driver</code> 的不同来创建不同的连接器，每个连接器都继承自 <code>connector</code> 类，用于连接数据库。 </p>
+<h3 id="createConnector——创建连接器"><a href="#createConnector——创建连接器" class="headerlink" title="createConnector——创建连接器"></a><strong>createConnector——创建连接器</strong></h3><p>程序会根据配置参数中 <code>driver</code> 的不同来创建不同的连接器，每个连接器都继承自 <code>connector</code> 类，用于连接数据库。 </p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">createConnector</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>($config[<span class="string">'driver'</span>])) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">'A driver must be specified.'</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;container-&gt;bound($key = <span class="string">"db.connector.&#123;$config['driver']&#125;"</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;container-&gt;make($key);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">switch</span> ($config[<span class="string">'driver'</span>]) &#123;</div><div class="line">        <span class="keyword">case</span> <span class="string">'mysql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> MySqlConnector;</div><div class="line">        <span class="keyword">case</span> <span class="string">'pgsql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> PostgresConnector;</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlite'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SQLiteConnector;</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlsrv'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SqlServerConnector;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">"Unsupported driver [&#123;$config['driver']&#125;]"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="createConnection——创建连接对象"><a href="#createConnection——创建连接对象" class="headerlink" title="createConnection——创建连接对象"></a>createConnection——创建连接对象</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createConnection</span><span class="params">($driver, $connection, $database, $prefix = <span class="string">''</span>, array $config = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($resolver = Connection::getResolver($driver)) &#123;</div><div class="line">        <span class="keyword">return</span> $resolver($connection, $database, $prefix, $config);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">switch</span> ($driver) &#123;</div><div class="line">        <span class="keyword">case</span> <span class="string">'mysql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> MySqlConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'pgsql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> PostgresConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlite'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SQLiteConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlsrv'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SqlServerConnection($connection, $database, $prefix, $config);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">"Unsupported driver [$driver]"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="createConnection——创建连接对象"><a href="#createConnection——创建连接对象" class="headerlink" title="createConnection——创建连接对象"></a><strong>createConnection——创建连接对象</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createConnection</span><span class="params">($driver, $connection, $database, $prefix = <span class="string">''</span>, array $config = [])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> ($resolver = Connection::getResolver($driver)) &#123;</div><div class="line">        <span class="keyword">return</span> $resolver($connection, $database, $prefix, $config);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">switch</span> ($driver) &#123;</div><div class="line">        <span class="keyword">case</span> <span class="string">'mysql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> MySqlConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'pgsql'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> PostgresConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlite'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SQLiteConnection($connection, $database, $prefix, $config);</div><div class="line">        <span class="keyword">case</span> <span class="string">'sqlsrv'</span>:</div><div class="line">            <span class="keyword">return</span> <span class="keyword">new</span> SqlServerConnection($connection, $database, $prefix, $config);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> InvalidArgumentException(<span class="string">"Unsupported driver [$driver]"</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>创建 <code>pdo</code> 闭包函数之后，会将该闭包函数放入 <code>connection</code> 对象当中去。以后我们利用 <code>connection</code> 对象进行查询或者更新数据库时，程序便会运行该闭包函数，与数据库进行连接。</p>
-<h3 id="createReadWriteConnection——创建读写连接对象"><a href="#createReadWriteConnection——创建读写连接对象" class="headerlink" title="createReadWriteConnection——创建读写连接对象"></a>createReadWriteConnection——创建读写连接对象</h3><p>当配置文件中有 <code>read</code>、<code>write</code> 等配置项时，说明用户希望创建一个可以读写分离的数据库连接，此时：</p>
+<h3 id="createReadWriteConnection——创建读写连接对象"><a href="#createReadWriteConnection——创建读写连接对象" class="headerlink" title="createReadWriteConnection——创建读写连接对象"></a><strong>createReadWriteConnection——创建读写连接对象</strong></h3><p>当配置文件中有 <code>read</code>、<code>write</code> 等配置项时，说明用户希望创建一个可以读写分离的数据库连接，此时：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createReadWriteConnection</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $connection = <span class="keyword">$this</span>-&gt;createSingleConnection(<span class="keyword">$this</span>-&gt;getWriteConfig($config));</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $connection-&gt;setReadPdo(<span class="keyword">$this</span>-&gt;createReadPdo($config));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getWriteConfig</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;mergeReadWriteConfig(</div><div class="line">        $config, <span class="keyword">$this</span>-&gt;getReadWriteConfig($config, <span class="string">'write'</span>)</div><div class="line">    );</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getReadWriteConfig</span><span class="params">(array $config, $type)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($config[$type][<span class="number">0</span>])</div><div class="line">                    ? $config[$type][array_rand($config[$type])]</div><div class="line">                    : $config[$type];</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">mergeReadWriteConfig</span><span class="params">(array $config, array $merge)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> Arr::except(array_merge($config, $merge), [<span class="string">'read'</span>, <span class="string">'write'</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>可以看出，程序先读出关于 <code>write</code> 数据库的配置，之后将其合并到总配置当中，删除关于 <code>read</code> 数据库的配置，然后进行 <code>createSingleConnection</code> 建立新的连接对象。</p>
 <p>建立连接对象之后，再根据 <code>read</code> 数据库的配置，生成 <code>read</code> 数据库的 <code>pdo</code> 闭包函数，并调用 <code>setReadPdo</code> 将其设置为读库 <code>pdo</code>。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createReadPdo</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createPdoResolver(<span class="keyword">$this</span>-&gt;getReadConfig($config));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getReadConfig</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;mergeReadWriteConfig(</div><div class="line">        $config, <span class="keyword">$this</span>-&gt;getReadWriteConfig($config, <span class="string">'read'</span>)</div><div class="line">    );</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h2 id="connector-连接"><a href="#connector-连接" class="headerlink" title="connector 连接"></a>connector 连接</h2><p>我们以 <code>mysql</code> 为例：</p>
+<h2 id="connector-连接"><a href="#connector-连接" class="headerlink" title="connector 连接"></a><strong>connector 连接</strong></h2><p>我们以 <code>mysql</code> 为例：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySqlConnector</span> <span class="keyword">extends</span> <span class="title">Connector</span> <span class="keyword">implements</span> <span class="title">ConnectorInterface</span> </span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">connect</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function">	</span>&#123;</div><div class="line">    	$dsn = <span class="keyword">$this</span>-&gt;getDsn($config);</div><div class="line"></div><div class="line">    	$options = <span class="keyword">$this</span>-&gt;getOptions($config);</div><div class="line"></div><div class="line">    	$connection = <span class="keyword">$this</span>-&gt;createConnection($dsn, $config, $options);</div><div class="line"></div><div class="line">   		<span class="keyword">if</span> (! <span class="keyword">empty</span>($config[<span class="string">'database'</span>])) &#123;</div><div class="line">       	 $connection-&gt;exec(<span class="string">"use `&#123;$config['database']&#125;`;"</span>);</div><div class="line">    	&#125;</div><div class="line"></div><div class="line">    	<span class="keyword">$this</span>-&gt;configureEncoding($connection, $config);</div><div class="line"></div><div class="line">    	<span class="keyword">$this</span>-&gt;configureTimezone($connection, $config);</div><div class="line"></div><div class="line">   		<span class="keyword">$this</span>-&gt;setModes($connection, $config);</div><div class="line"></div><div class="line">      <span class="keyword">return</span> $connection;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="getDsn——获取数据库连接DSN参数"><a href="#getDsn——获取数据库连接DSN参数" class="headerlink" title="getDsn——获取数据库连接DSN参数"></a>getDsn——获取数据库连接DSN参数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;hasSocket($config)</div><div class="line">                        ? <span class="keyword">$this</span>-&gt;getSocketDsn($config)</div><div class="line">                        : <span class="keyword">$this</span>-&gt;getHostDsn($config);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">hasSocket</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($config[<span class="string">'unix_socket'</span>]) &amp;&amp; ! <span class="keyword">empty</span>($config[<span class="string">'unix_socket'</span>]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getSocketDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"mysql:unix_socket=&#123;$config['unix_socket']&#125;;dbname=&#123;$config['database']&#125;"</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getHostDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    extract($config, EXTR_SKIP);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($port)</div><div class="line">                ? <span class="string">"mysql:host=&#123;$host&#125;;port=&#123;$port&#125;;dbname=&#123;$database&#125;"</span></div><div class="line">                : <span class="string">"mysql:host=&#123;$host&#125;;dbname=&#123;$database&#125;"</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="getDsn——获取数据库连接DSN参数"><a href="#getDsn——获取数据库连接DSN参数" class="headerlink" title="getDsn——获取数据库连接DSN参数"></a><strong>getDsn——获取数据库连接DSN参数</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;hasSocket($config)</div><div class="line">                        ? <span class="keyword">$this</span>-&gt;getSocketDsn($config)</div><div class="line">                        : <span class="keyword">$this</span>-&gt;getHostDsn($config);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">hasSocket</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($config[<span class="string">'unix_socket'</span>]) &amp;&amp; ! <span class="keyword">empty</span>($config[<span class="string">'unix_socket'</span>]);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getSocketDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"mysql:unix_socket=&#123;$config['unix_socket']&#125;;dbname=&#123;$config['database']&#125;"</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getHostDsn</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    extract($config, EXTR_SKIP);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">isset</span>($port)</div><div class="line">                ? <span class="string">"mysql:host=&#123;$host&#125;;port=&#123;$port&#125;;dbname=&#123;$database&#125;"</span></div><div class="line">                : <span class="string">"mysql:host=&#123;$host&#125;;dbname=&#123;$database&#125;"</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>mysql</code> 数据库的连接有两种：tcp连接与socket连接。</p>
 <p><code>socket</code> 连接更快，但是它要求应用程序与数据库在同一台机器，更普通的是使用 <code>tcp</code> 的方式连接数据库。框架根据配置参数来选择是采用 <code>socket</code> 还是 <code>tcp</code> 的方式连接数据库。</p>
-<h3 id="getOptions——pdo-属性设置"><a href="#getOptions——pdo-属性设置" class="headerlink" title="getOptions——pdo 属性设置"></a>getOptions——pdo 属性设置</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $options = [</div><div class="line">    PDO::ATTR_CASE =&gt; PDO::CASE_NATURAL,</div><div class="line">    PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,</div><div class="line">    PDO::ATTR_ORACLE_NULLS =&gt; PDO::NULL_NATURAL,</div><div class="line">    PDO::ATTR_STRINGIFY_FETCHES =&gt; <span class="keyword">false</span>,</div><div class="line">    PDO::ATTR_EMULATE_PREPARES =&gt; <span class="keyword">false</span>,</div><div class="line">];</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getOptions</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $options = Arr::get($config, <span class="string">'options'</span>, []);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> array_diff_key(<span class="keyword">$this</span>-&gt;options, $options) + $options;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="getOptions——pdo-属性设置"><a href="#getOptions——pdo-属性设置" class="headerlink" title="getOptions——pdo 属性设置"></a><strong>getOptions——pdo 属性设置</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> $options = [</div><div class="line">    PDO::ATTR_CASE =&gt; PDO::CASE_NATURAL,</div><div class="line">    PDO::ATTR_ERRMODE =&gt; PDO::ERRMODE_EXCEPTION,</div><div class="line">    PDO::ATTR_ORACLE_NULLS =&gt; PDO::NULL_NATURAL,</div><div class="line">    PDO::ATTR_STRINGIFY_FETCHES =&gt; <span class="keyword">false</span>,</div><div class="line">    PDO::ATTR_EMULATE_PREPARES =&gt; <span class="keyword">false</span>,</div><div class="line">];</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getOptions</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $options = Arr::get($config, <span class="string">'options'</span>, []);</div><div class="line"></div><div class="line">    <span class="keyword">return</span> array_diff_key(<span class="keyword">$this</span>-&gt;options, $options) + $options;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>pdo</code> 的属性主要有以下几种：</p>
 <ul>
 <li><code>PDO::ATTR_CASE</code> 强制列名为指定的大小写。他的$value可为：<ul>
@@ -2213,16 +2573,16 @@
 <li><code>PDO::ATTR_AUTOCOMMIT</code>：设置当前连接 <code>Mysql</code> 服务器的客户端的SQL语句是否自动执行，默认是自动提交.</li>
 <li><code>PDO::ATTR_PERSISTENT</code>：当前对Mysql服务器的连接是否是长连接.</li>
 </ul>
-<h3 id="createConnection——创建数据库连接"><a href="#createConnection——创建数据库连接" class="headerlink" title="createConnection——创建数据库连接"></a>createConnection——创建数据库连接</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">createConnection</span><span class="params">($dsn, array $config, array $options)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">list</span>($username, $password) = [</div><div class="line">        Arr::get($config, <span class="string">'username'</span>), Arr::get($config, <span class="string">'password'</span>),</div><div class="line">    ];</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createPdoConnection(</div><div class="line">            $dsn, $username, $password, $options</div><div class="line">        );</div><div class="line">    &#125; <span class="keyword">catch</span> (<span class="keyword">Exception</span> $e) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;tryAgainIfCausedByLostConnection(</div><div class="line">            $e, $dsn, $username, $password, $options</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createPdoConnection</span><span class="params">($dsn, $username, $password, $options)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (class_exists(PDOConnection::class) &amp;&amp; ! <span class="keyword">$this</span>-&gt;isPersistentConnection($options)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PDOConnection($dsn, $username, $password, $options);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> PDO($dsn, $username, $password, $options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="createConnection——创建数据库连接"><a href="#createConnection——创建数据库连接" class="headerlink" title="createConnection——创建数据库连接"></a><strong>createConnection——创建数据库连接</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">createConnection</span><span class="params">($dsn, array $config, array $options)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">list</span>($username, $password) = [</div><div class="line">        Arr::get($config, <span class="string">'username'</span>), Arr::get($config, <span class="string">'password'</span>),</div><div class="line">    ];</div><div class="line"></div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createPdoConnection(</div><div class="line">            $dsn, $username, $password, $options</div><div class="line">        );</div><div class="line">    &#125; <span class="keyword">catch</span> (<span class="keyword">Exception</span> $e) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;tryAgainIfCausedByLostConnection(</div><div class="line">            $e, $dsn, $username, $password, $options</div><div class="line">        );</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">createPdoConnection</span><span class="params">($dsn, $username, $password, $options)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (class_exists(PDOConnection::class) &amp;&amp; ! <span class="keyword">$this</span>-&gt;isPersistentConnection($options)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PDOConnection($dsn, $username, $password, $options);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> PDO($dsn, $username, $password, $options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>当 <code>pdo</code> 对象成功的建立起来后，说明我们已经与数据库成功地建立起来了一个连接，接下来我们就可以利用这个 <code>pdo</code> 对象进行查询或者更新等操作。</p>
 <p>当创建 <code>pdo</code> 的时候抛出异常时：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">tryAgainIfCausedByLostConnection</span><span class="params">(Exception $e, $dsn, $username, $password, $options)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;causedByLostConnection($e)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;createPdoConnection($dsn, $username, $password, $options);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">throw</span> $e;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">causedByLostConnection</span><span class="params">(Exception $e)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $message = $e-&gt;getMessage();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> Str::contains($message, [</div><div class="line">        <span class="string">'server has gone away'</span>,</div><div class="line">        <span class="string">'no connection to the server'</span>,</div><div class="line">        <span class="string">'Lost connection'</span>,</div><div class="line">        <span class="string">'is dead or not enabled'</span>,</div><div class="line">        <span class="string">'Error while sending'</span>,</div><div class="line">        <span class="string">'decryption failed or bad record mac'</span>,</div><div class="line">        <span class="string">'server closed the connection unexpectedly'</span>,</div><div class="line">        <span class="string">'SSL connection has been closed unexpectedly'</span>,</div><div class="line">        <span class="string">'Error writing data to the connection'</span>,</div><div class="line">        <span class="string">'Resource deadlock avoided'</span>,</div><div class="line">    ]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>当判断出的异常是上面几种情况时，框架会再次尝试连接数据库。</p>
-<h3 id="configureEncoding——设置字符集与校对集"><a href="#configureEncoding——设置字符集与校对集" class="headerlink" title="configureEncoding——设置字符集与校对集"></a>configureEncoding——设置字符集与校对集</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">configureEncoding</span><span class="params">($connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>($config[<span class="string">'charset'</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> $connection;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $connection-&gt;prepare(</div><div class="line">        <span class="string">"set names '&#123;$config['charset']&#125;'"</span>.<span class="keyword">$this</span>-&gt;getCollation($config)</div><div class="line">    )-&gt;execute();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getCollation</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> ! is_null($config[<span class="string">'collation'</span>]) ? <span class="string">" collate '&#123;$config['collation']&#125;'"</span> : <span class="string">''</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="configureEncoding——设置字符集与校对集"><a href="#configureEncoding——设置字符集与校对集" class="headerlink" title="configureEncoding——设置字符集与校对集"></a><strong>configureEncoding——设置字符集与校对集</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">configureEncoding</span><span class="params">($connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (! <span class="keyword">isset</span>($config[<span class="string">'charset'</span>])) &#123;</div><div class="line">        <span class="keyword">return</span> $connection;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    $connection-&gt;prepare(</div><div class="line">        <span class="string">"set names '&#123;$config['charset']&#125;'"</span>.<span class="keyword">$this</span>-&gt;getCollation($config)</div><div class="line">    )-&gt;execute();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">getCollation</span><span class="params">(array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> ! is_null($config[<span class="string">'collation'</span>]) ? <span class="string">" collate '&#123;$config['collation']&#125;'"</span> : <span class="string">''</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>如果配置参数中设置了字符集与校对集，程序会利用配置的参数对数据库进行相关设置。</p>
 <p>所谓的字符集与校对集设置，可以参考<a href="http://www.360doc.com/content/11/0303/01/2588264_97631236.shtml" target="_blank" rel="external">mysql 中 character set 与 collation 的点滴理解</a></p>
-<h3 id="configureTimezone——设置时间区"><a href="#configureTimezone——设置时间区" class="headerlink" title="configureTimezone——设置时间区"></a>configureTimezone——设置时间区</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">configureTimezone</span><span class="params">($connection, array $config)</span>~</span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($config[<span class="string">'timezone'</span>])) &#123;</div><div class="line">        $connection-&gt;prepare(<span class="string">'set time_zone="'</span>.$config[<span class="string">'timezone'</span>].<span class="string">'"'</span>)-&gt;execute();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="setModes——设置-SQL-MODE-模式"><a href="#setModes——设置-SQL-MODE-模式" class="headerlink" title="setModes——设置 SQL_MODE 模式"></a>setModes——设置 SQL_MODE 模式</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setModes</span><span class="params">(PDO $connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($config[<span class="string">'modes'</span>])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setCustomModes($connection, $config);</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">isset</span>($config[<span class="string">'strict'</span>])) &#123;</div><div class="line">        <span class="keyword">if</span> ($config[<span class="string">'strict'</span>]) &#123;</div><div class="line">            $connection-&gt;prepare(<span class="keyword">$this</span>-&gt;strictMode())-&gt;execute();</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            $connection-&gt;prepare(<span class="string">"set session sql_mode='NO_ENGINE_SUBSTITUTION'"</span>)-&gt;execute();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setCustomModes</span><span class="params">(PDO $connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $modes = implode(<span class="string">','</span>, $config[<span class="string">'modes'</span>]);</div><div class="line"></div><div class="line">    $connection-&gt;prepare(<span class="string">"set session sql_mode='&#123;$modes&#125;'"</span>)-&gt;execute();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">strictMode</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="configureTimezone——设置时间区"><a href="#configureTimezone——设置时间区" class="headerlink" title="configureTimezone——设置时间区"></a><strong>configureTimezone——设置时间区</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">configureTimezone</span><span class="params">($connection, array $config)</span>~</span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($config[<span class="string">'timezone'</span>])) &#123;</div><div class="line">        $connection-&gt;prepare(<span class="string">'set time_zone="'</span>.$config[<span class="string">'timezone'</span>].<span class="string">'"'</span>)-&gt;execute();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="setModes——设置-SQL-MODE-模式"><a href="#setModes——设置-SQL-MODE-模式" class="headerlink" title="setModes——设置 SQL_MODE 模式"></a><strong>setModes——设置 SQL_MODE 模式</strong></h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setModes</span><span class="params">(PDO $connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($config[<span class="string">'modes'</span>])) &#123;</div><div class="line">        <span class="keyword">$this</span>-&gt;setCustomModes($connection, $config);</div><div class="line">    &#125; <span class="keyword">elseif</span> (<span class="keyword">isset</span>($config[<span class="string">'strict'</span>])) &#123;</div><div class="line">        <span class="keyword">if</span> ($config[<span class="string">'strict'</span>]) &#123;</div><div class="line">            $connection-&gt;prepare(<span class="keyword">$this</span>-&gt;strictMode())-&gt;execute();</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            $connection-&gt;prepare(<span class="string">"set session sql_mode='NO_ENGINE_SUBSTITUTION'"</span>)-&gt;execute();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">setCustomModes</span><span class="params">(PDO $connection, array $config)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $modes = implode(<span class="string">','</span>, $config[<span class="string">'modes'</span>]);</div><div class="line"></div><div class="line">    $connection-&gt;prepare(<span class="string">"set session sql_mode='&#123;$modes&#125;'"</span>)-&gt;execute();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">function</span> <span class="title">strictMode</span><span class="params">()</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"set session sql_mode='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>以下内容参考：<a href="http://www.xlaoyu.info/mysql/2016/06/07/mysql-sql_mode-setting.html" target="_blank" rel="external">mysql的sql_mode设置简介</a>:</p>
 <p><code>SQL_MODE</code> 直接理解就是：sql的运作模式。官方的说法是：sql_mode可以影响sql支持的语法以及数据的校验执行，这使得MySQL可以运行在不同的环境中以及和其他数据库一起运作。 </p>
 <p>想设置sql_mode有三种方式：</p>
@@ -2295,7 +2655,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/14/Laravel Providers/">
+  <link itemprop="mainEntityOfPage" href="https://leoyang90.github.io/2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/">
 
   <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <meta itemprop="name" content="Leo Yang">
@@ -2320,8 +2680,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/08/14/Laravel Providers/" itemprop="url">
-                  未命名
+                <a class="post-title-link" href="/2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/" itemprop="url">
+                  Laravel Providers——服务提供者的注册与启动源码解析
                 </a>
               
             
@@ -2337,7 +2697,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-14T19:19:02+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-14T19:19:14+08:00">
                 2017-08-14
               </time>
             
@@ -2356,8 +2716,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/08/14/Laravel Providers/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/14/Laravel Providers/" itemprop="commentCount"></span>
+                <a href="/2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -2365,7 +2725,7 @@
 
           
           
-             <span id="/2017/08/14/Laravel Providers/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/08/14/Laravel Providers——服务提供者的注册与启动源码解析/" class="leancloud_visitors" data-flag-title="Laravel Providers——服务提供者的注册与启动源码解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -2396,7 +2756,8 @@
       
         
           
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>服务提供者是 <code>laravel</code> 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 <code>Laravel</code> 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：<a href="http://laravelacademy.org/post/6703.html" target="_blank" rel="external">服务提供者</a>。</p>
+            <hr>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>服务提供者是 <code>laravel</code> 框架的重要组成部分，承载着各种服务，自定义的应用以及所有 <code>Laravel</code> 的核心服务都是通过服务提供者启动。本文将会介绍服务提供者的源码分析，关于服务提供者的使用，请参考官方文档 ：<a href="http://laravelacademy.org/post/6703.html" target="_blank" rel="external">服务提供者</a>。</p>
 <h1 id="服务提供者的注册"><a href="#服务提供者的注册" class="headerlink" title="服务提供者的注册"></a>服务提供者的注册</h1><p>服务提供者的启动由类 <code>\Illuminate\Foundation\Bootstrap\RegisterProviders::class</code> 负责，该类用于加载所有服务提供者的 <code>register</code> 函数，并保存延迟加载的服务的信息，以便实现延迟加载。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">RegisterProviders</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">bootstrap</span><span class="params">(Application $app)</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        $app-&gt;registerConfiguredProviders();</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword">extends</span> <span class="title">Container</span> <span class="keyword">implements</span> <span class="title">ApplicationContract</span>, <span class="title">HttpKernelInterface</span></span></div><div class="line"><span class="class"></span>&#123;</div><div class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">registerConfiguredProviders</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        (<span class="keyword">new</span> ProviderRepository(<span class="keyword">$this</span>, <span class="keyword">new</span> Filesystem, <span class="keyword">$this</span>-&gt;getCachedServicesPath()))</div><div class="line">                    -&gt;load(<span class="keyword">$this</span>-&gt;config[<span class="string">'app.providers'</span>]);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getCachedServicesPath</span><span class="params">()</span></span></div><div class="line"><span class="function">    </span>&#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;bootstrapPath().<span class="string">'/cache/services.php'</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>以上可以看出，所有服务提供者都在配置文件 <code>app.php</code> 文件的 <code>providers</code> 数组中。类 <code>ProviderRepository</code> 负责所有的服务加载功能：</p>
@@ -2513,7 +2874,7 @@
               
                 
                 <a class="post-title-link" href="/2017/08/13/Laravel Exceptions——异常与错误处理/" itemprop="url">
-                  未命名
+                  Laravel Exceptions——异常与错误处理
                 </a>
               
             
@@ -2529,7 +2890,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T23:45:01+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-13T23:45:19+08:00">
                 2017-08-13
               </time>
             
@@ -2557,7 +2918,7 @@
 
           
           
-             <span id="/2017/08/13/Laravel Exceptions——异常与错误处理/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/08/13/Laravel Exceptions——异常与错误处理/" class="leancloud_visitors" data-flag-title="Laravel Exceptions——异常与错误处理">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -2588,7 +2949,8 @@
       
         
           
-            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 <code>laravel</code> 异常处理的源码。</p>
+            <hr>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>对于一个优秀的框架来说，正确的异常处理可以防止暴露自身接口给用户，可以提供快速追溯问题的提示给开发人员。本文会详细的介绍 <code>laravel</code> 异常处理的源码。</p>
 <h1 id="PHP-异常处理"><a href="#PHP-异常处理" class="headerlink" title="PHP 异常处理"></a>PHP 异常处理</h1><p>本章节参考 <a href="http://blog.csdn.net/hguisu/article/details/7464977" target="_blank" rel="external">PHP错误异常处理详解</a>。</p>
 <p>异常处理（又称为错误处理）功能提供了处理程序运行时出现的错误或异常情况的方法。<br>　　<br>异常处理通常是防止未知错误产生所采取的处理措施。异常处理的好处是你不用再绞尽脑汁去考虑各种错误，这为处理某一类错误提供了一个很有效的方法，使编程效率大大提高。当异常被触发时，通常会发生：</p>
 <ul>
@@ -2832,7 +3194,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">23</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2841,7 +3203,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

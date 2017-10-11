@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="php,laravel,database,eloquent," />
 
 
 
@@ -87,17 +87,18 @@
 
 
 
-<meta name="description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+<meta name="description" content="获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getModels($columns)) &amp;gt; 0) &amp;#123;        $m">
+<meta name="keywords" content="php,laravel,database,eloquent">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:title" content="Laravel Database——Eloquent Model 源码分析（下）">
 <meta property="og:url" content="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/index.html">
 <meta property="og:site_name" content="LEOYANG&#39;S BLOG">
-<meta property="og:description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+<meta property="og:description" content="获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getModels($columns)) &amp;gt; 0) &amp;#123;        $m">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-10-10T14:57:19.000Z">
+<meta property="og:updated_time" content="2017-10-11T09:47:45.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
-<meta name="twitter:description" content="Laravel Database——Eloquent Model 源码分析（下）获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getMod">
+<meta name="twitter:title" content="Laravel Database——Eloquent Model 源码分析（下）">
+<meta name="twitter:description" content="获取模型get 函数1234567891011121314151617public function get($columns = [&apos;*&apos;])&amp;#123;    $builder = $this-&amp;gt;applyScopes();    if (count($models = $builder-&amp;gt;getModels($columns)) &amp;gt; 0) &amp;#123;        $m">
 
 
 
@@ -131,7 +132,7 @@
 
 
 
-  <title>  | LEOYANG'S BLOG </title>
+  <title> Laravel Database——Eloquent Model 源码分析（下） | LEOYANG'S BLOG </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -334,7 +335,7 @@
             
             
               
-                
+                Laravel Database——Eloquent Model 源码分析（下）
               
             
           </h1>
@@ -349,7 +350,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T23:50:57+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-09T23:11:00+08:00">
                 2017-10-09
               </time>
             
@@ -359,6 +360,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/laravel/database/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -377,7 +422,7 @@
 
           
           
-             <span id="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" class="leancloud_visitors" data-flag-title="Laravel Database——Eloquent Model 源码分析（下）">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -406,7 +451,8 @@
       
 
       
-        <h1 id="Laravel-Database——Eloquent-Model-源码分析（下）"><a href="#Laravel-Database——Eloquent-Model-源码分析（下）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（下）"></a>Laravel Database——Eloquent Model 源码分析（下）</h1><h2 id="获取模型"><a href="#获取模型" class="headerlink" title="获取模型"></a>获取模型</h2><h3 id="get-函数"><a href="#get-函数" class="headerlink" title="get 函数"></a>get 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getModels</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;hydrate(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;get($columns)-&gt;all()</div><div class="line">    )-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+        <hr>
+<h2 id="获取模型"><a href="#获取模型" class="headerlink" title="获取模型"></a>获取模型</h2><h3 id="get-函数"><a href="#get-函数" class="headerlink" title="get 函数"></a>get 函数</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">get</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $builder = <span class="keyword">$this</span>-&gt;applyScopes();</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (count($models = $builder-&gt;getModels($columns)) &gt; <span class="number">0</span>) &#123;</div><div class="line">        $models = $builder-&gt;eagerLoadRelations($models);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $builder-&gt;getModel()-&gt;newCollection($models);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getModels</span><span class="params">($columns = [<span class="string">'*'</span>])</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;model-&gt;hydrate(</div><div class="line">        <span class="keyword">$this</span>-&gt;query-&gt;get($columns)-&gt;all()</div><div class="line">    )-&gt;all();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>get</code> 函数会将 <code>QueryBuilder</code> 所获取的数据进一步包装 <code>hydrate</code>。<code>hydrate</code> 函数会将数据库取回来的数据打包成数据库模型对象 <code>Eloquent Model</code>，如果可以获取到数据，还会利用函数 <code>eagerLoadRelations</code> 来预加载关系模型。</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">hydrate</span><span class="params">(array $items)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    $instance = <span class="keyword">$this</span>-&gt;newModelInstance();</div><div class="line"></div><div class="line">    <span class="keyword">return</span> $instance-&gt;newCollection(array_map(<span class="function"><span class="keyword">function</span> <span class="params">($item)</span> <span class="title">use</span> <span class="params">($instance)</span> </span>&#123;</div><div class="line">        <span class="keyword">return</span> $instance-&gt;newFromBuilder($item);</div><div class="line">    &#125;, $items));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p><code>newModelInstance</code> 函数创建了一个新的数据库模型对象，重要的是这个函数为新的数据库模型对象赋予了 <code>connection</code>：</p>
@@ -538,6 +584,18 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/php/" rel="tag"># php</a>
+          
+            <a href="/tags/laravel/" rel="tag"># laravel</a>
+          
+            <a href="/tags/database/" rel="tag"># database</a>
+          
+            <a href="/tags/eloquent/" rel="tag"># eloquent</a>
+          
+        </div>
+      
 
       
         
@@ -547,8 +605,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" rel="next" title="">
-                <i class="fa fa-chevron-left"></i> 
+              <a href="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" rel="next" title="Laravel Database——Eloquent Model 源码分析(上)">
+                <i class="fa fa-chevron-left"></i> Laravel Database——Eloquent Model 源码分析(上)
               </a>
             
           </div>
@@ -571,7 +629,7 @@
     <div class="post-spread">
       
         <div class="ds-share flat" data-thread-key="2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/"
-     data-title=""
+     data-title="Laravel Database——Eloquent Model 源码分析（下）"
      data-content=""
      data-url="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
   <div class="ds-share-inline">
@@ -601,7 +659,7 @@
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/"
-           data-title="" data-url="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
+           data-title="Laravel Database——Eloquent Model 源码分析（下）" data-url="https://leoyang90.github.io/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/">
       </div>
     
   </div>
@@ -659,7 +717,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">23</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -668,7 +726,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -723,7 +781,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——Eloquent-Model-源码分析（下）"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——Eloquent Model 源码分析（下）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取模型"><span class="nav-number">1.1.</span> <span class="nav-text">获取模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-函数"><span class="nav-number">1.1.1.</span> <span class="nav-text">get 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-函数"><span class="nav-number">1.1.2.</span> <span class="nav-text">find 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrFail"><span class="nav-number">1.1.3.</span> <span class="nav-text">findOrFail</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他查询与数据获取方法"><span class="nav-number">1.1.4.</span> <span class="nav-text">其他查询与数据获取方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加和更新模型"><span class="nav-number">1.2.</span> <span class="nav-text">添加和更新模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#save-函数"><span class="nav-number">1.2.1.</span> <span class="nav-text">save 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performUpdate-函数"><span class="nav-number">1.2.2.</span> <span class="nav-text">performUpdate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performInsert"><span class="nav-number">1.2.3.</span> <span class="nav-text">performInsert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#update-函数"><span class="nav-number">1.2.4.</span> <span class="nav-text">update 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#make-函数"><span class="nav-number">1.2.5.</span> <span class="nav-text">make 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#create-函数"><span class="nav-number">1.2.6.</span> <span class="nav-text">create 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrNew-函数"><span class="nav-number">1.2.7.</span> <span class="nav-text">findOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrNew-函数"><span class="nav-number">1.2.8.</span> <span class="nav-text">firstOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrCreate-函数"><span class="nav-number">1.2.9.</span> <span class="nav-text">firstOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#updateOrCreate-函数"><span class="nav-number">1.2.10.</span> <span class="nav-text">updateOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOr-函数"><span class="nav-number">1.2.11.</span> <span class="nav-text">firstOr 函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除模型"><span class="nav-number">1.3.</span> <span class="nav-text">删除模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#软删除"><span class="nav-number">1.3.1.</span> <span class="nav-text">软删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performDeleteOnModel"><span class="nav-number">1.3.2.</span> <span class="nav-text">performDeleteOnModel</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取模型"><span class="nav-number">1.</span> <span class="nav-text">获取模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#get-函数"><span class="nav-number">1.1.</span> <span class="nav-text">get 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#find-函数"><span class="nav-number">1.2.</span> <span class="nav-text">find 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrFail"><span class="nav-number">1.3.</span> <span class="nav-text">findOrFail</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他查询与数据获取方法"><span class="nav-number">1.4.</span> <span class="nav-text">其他查询与数据获取方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加和更新模型"><span class="nav-number">2.</span> <span class="nav-text">添加和更新模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#save-函数"><span class="nav-number">2.1.</span> <span class="nav-text">save 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performUpdate-函数"><span class="nav-number">2.2.</span> <span class="nav-text">performUpdate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performInsert"><span class="nav-number">2.3.</span> <span class="nav-text">performInsert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#update-函数"><span class="nav-number">2.4.</span> <span class="nav-text">update 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#make-函数"><span class="nav-number">2.5.</span> <span class="nav-text">make 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#create-函数"><span class="nav-number">2.6.</span> <span class="nav-text">create 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findOrNew-函数"><span class="nav-number">2.7.</span> <span class="nav-text">findOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrNew-函数"><span class="nav-number">2.8.</span> <span class="nav-text">firstOrNew 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOrCreate-函数"><span class="nav-number">2.9.</span> <span class="nav-text">firstOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#updateOrCreate-函数"><span class="nav-number">2.10.</span> <span class="nav-text">updateOrCreate 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#firstOr-函数"><span class="nav-number">2.11.</span> <span class="nav-text">firstOr 函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#删除模型"><span class="nav-number">3.</span> <span class="nav-text">删除模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#软删除"><span class="nav-number">3.1.</span> <span class="nav-text">软删除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#performDeleteOnModel"><span class="nav-number">3.2.</span> <span class="nav-text">performDeleteOnModel</span></a></li></ol></li></ol></div>
             
 
           </div>

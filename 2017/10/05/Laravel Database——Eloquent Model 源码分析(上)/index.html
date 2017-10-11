@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="php,源码,laravel,database,eloquent," />
 
 
 
@@ -87,17 +87,18 @@
 
 
 
-<meta name="description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+<meta name="description" content="前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值的时候，修改器允许对 Eloquent 属性值进行格式化。如果对修改器不熟悉，">
+<meta name="keywords" content="php,源码,laravel,database,eloquent">
 <meta property="og:type" content="article">
-<meta property="og:title" content="LEOYANG&#39;S BLOG">
+<meta property="og:title" content="Laravel Database——Eloquent Model 源码分析(上)">
 <meta property="og:url" content="https://leoyang90.github.io/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/index.html">
 <meta property="og:site_name" content="LEOYANG&#39;S BLOG">
-<meta property="og:description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+<meta property="og:description" content="前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值的时候，修改器允许对 Eloquent 属性值进行格式化。如果对修改器不熟悉，">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2017-10-08T16:09:11.000Z">
+<meta property="og:updated_time" content="2017-10-11T09:47:24.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="LEOYANG&#39;S BLOG">
-<meta name="twitter:description" content="Laravel Database——Eloquent Model 源码分析（上）前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值">
+<meta name="twitter:title" content="Laravel Database——Eloquent Model 源码分析(上)">
+<meta name="twitter:description" content="前言前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 Eloquent Model 服务的，我们对数据库操作更加方便的是使用 Eloquent Model。 本篇文章将会大家介绍 Model 的一些特性原理。 Eloquent Model 修改器当我们在 Eloquent 模型实例中设置某些属性值的时候，修改器允许对 Eloquent 属性值进行格式化。如果对修改器不熟悉，">
 
 
 
@@ -131,7 +132,7 @@
 
 
 
-  <title>  | LEOYANG'S BLOG </title>
+  <title> Laravel Database——Eloquent Model 源码分析(上) | LEOYANG'S BLOG </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -334,7 +335,7 @@
             
             
               
-                
+                Laravel Database——Eloquent Model 源码分析(上)
               
             
           </h1>
@@ -349,7 +350,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-05T23:25:13+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-05T23:25:00+08:00">
                 2017-10-05
               </time>
             
@@ -359,6 +360,50 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/" itemprop="url" rel="index">
+                    <span itemprop="name">php</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/" itemprop="url" rel="index">
+                    <span itemprop="name">database</span>
+                  </a>
+                </span>
+
+                
+                
+                  ， 
+                
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/php/database/laravel/" itemprop="url" rel="index">
+                    <span itemprop="name">laravel</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -377,7 +422,7 @@
 
           
           
-             <span id="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/" class="leancloud_visitors" data-flag-title="Laravel Database——Eloquent Model 源码分析(上)">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -406,7 +451,8 @@
       
 
       
-        <h1 id="Laravel-Database——Eloquent-Model-源码分析（上）"><a href="#Laravel-Database——Eloquent-Model-源码分析（上）" class="headerlink" title="Laravel Database——Eloquent Model 源码分析（上）"></a>Laravel Database——Eloquent Model 源码分析（上）</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 <code>Eloquent Model</code> 服务的，我们对数据库操作更加方便的是使用 <code>Eloquent Model</code>。 本篇文章将会大家介绍 <code>Model</code> 的一些特性原理。</p>
+        <hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前面几个博客向大家介绍了查询构造器的原理与源码，然而查询构造器更多是为 <code>Eloquent Model</code> 服务的，我们对数据库操作更加方便的是使用 <code>Eloquent Model</code>。 本篇文章将会大家介绍 <code>Model</code> 的一些特性原理。</p>
 <h2 id="Eloquent-Model-修改器"><a href="#Eloquent-Model-修改器" class="headerlink" title="Eloquent Model 修改器"></a>Eloquent Model 修改器</h2><p>当我们在 <code>Eloquent</code> 模型实例中设置某些属性值的时候，修改器允许对 <code>Eloquent</code> 属性值进行格式化。如果对修改器不熟悉，请参考官方文档：<a href="https://d.laravel-china.org/docs/5.5/eloquent-mutators" target="_blank" rel="external">Eloquent： 修改器</a></p>
 <p>下面先看看修改器的原理：</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">offsetSet</span><span class="params">($offset, $value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">$this</span>-&gt;setAttribute($offset, $value);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">setAttribute</span><span class="params">($key, $value)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;hasSetMutator($key)) &#123;</div><div class="line">        $method = <span class="string">'set'</span>.Str::studly($key).<span class="string">'Attribute'</span>;</div><div class="line"></div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;&#123;$method&#125;($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">elseif</span> ($value &amp;&amp; <span class="keyword">$this</span>-&gt;isDateAttribute($key)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;fromDateTime($value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;isJsonCastable($key) &amp;&amp; ! is_null($value)) &#123;</div><div class="line">        $value = <span class="keyword">$this</span>-&gt;castAttributeAsJson($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (Str::contains($key, <span class="string">'-&gt;'</span>)) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">$this</span>-&gt;fillJsonAttribute($key, $value);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">$this</span>-&gt;attributes[$key] = $value;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="keyword">$this</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
@@ -515,6 +561,20 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/php/" rel="tag"># php</a>
+          
+            <a href="/tags/源码/" rel="tag"># 源码</a>
+          
+            <a href="/tags/laravel/" rel="tag"># laravel</a>
+          
+            <a href="/tags/database/" rel="tag"># database</a>
+          
+            <a href="/tags/eloquent/" rel="tag"># eloquent</a>
+          
+        </div>
+      
 
       
         
@@ -524,8 +584,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(下)/" rel="next" title="">
-                <i class="fa fa-chevron-left"></i> 
+              <a href="/2017/10/02/Laravel Database——查询构造器与语法编译器源码分析(下)/" rel="next" title="Laravel Database——查询构造器与语法编译器源码分析(下)">
+                <i class="fa fa-chevron-left"></i> Laravel Database——查询构造器与语法编译器源码分析(下)
               </a>
             
           </div>
@@ -534,8 +594,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/2017/10/09/Laravel Database——Eloquent Model 源码分析（下）/" rel="prev" title="Laravel Database——Eloquent Model 源码分析（下）">
+                Laravel Database——Eloquent Model 源码分析（下） <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -552,7 +612,7 @@
     <div class="post-spread">
       
         <div class="ds-share flat" data-thread-key="2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/"
-     data-title=""
+     data-title="Laravel Database——Eloquent Model 源码分析(上)"
      data-content=""
      data-url="https://leoyang90.github.io/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/">
   <div class="ds-share-inline">
@@ -582,7 +642,7 @@
   <div class="comments" id="comments">
     
       <div class="ds-thread" data-thread-key="2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/"
-           data-title="" data-url="https://leoyang90.github.io/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/">
+           data-title="Laravel Database——Eloquent Model 源码分析(上)" data-url="https://leoyang90.github.io/2017/10/05/Laravel Database——Eloquent Model 源码分析(上)/">
       </div>
     
   </div>
@@ -640,7 +700,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">23</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -649,7 +709,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -704,7 +764,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Laravel-Database——Eloquent-Model-源码分析（上）"><span class="nav-number">1.</span> <span class="nav-text">Laravel Database——Eloquent Model 源码分析（上）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-修改器"><span class="nav-number">1.2.</span> <span class="nav-text">Eloquent Model 修改器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义修改器"><span class="nav-number">1.2.1.</span> <span class="nav-text">自定义修改器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换器"><span class="nav-number">1.2.2.</span> <span class="nav-text">日期转换器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#json-转换器"><span class="nav-number">1.2.3.</span> <span class="nav-text">json 转换器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-访问器"><span class="nav-number">1.3.</span> <span class="nav-text">Eloquent Model 访问器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取原始值"><span class="nav-number">1.3.1.</span> <span class="nav-text">获取原始值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器"><span class="nav-number">1.3.2.</span> <span class="nav-text">自定义访问器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型转换"><span class="nav-number">1.3.3.</span> <span class="nav-text">类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换"><span class="nav-number">1.3.4.</span> <span class="nav-text">日期转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-数组转化"><span class="nav-number">1.4.</span> <span class="nav-text">Eloquent Model 数组转化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#getArrayableAttributes-原始值获取"><span class="nav-number">1.4.1.</span> <span class="nav-text">getArrayableAttributes 原始值获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换-1"><span class="nav-number">1.4.2.</span> <span class="nav-text">日期转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器转换"><span class="nav-number">1.4.3.</span> <span class="nav-text">自定义访问器转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cast-类型转换"><span class="nav-number">1.4.4.</span> <span class="nav-text">cast 类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appends-额外属性添加"><span class="nav-number">1.4.5.</span> <span class="nav-text">appends 额外属性添加</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询作用域"><span class="nav-number">1.5.</span> <span class="nav-text">查询作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#全局作用域"><span class="nav-number">1.5.1.</span> <span class="nav-text">全局作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地作用域"><span class="nav-number">1.5.2.</span> <span class="nav-text">本地作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#批量调用本地作用域"><span class="nav-number">1.5.3.</span> <span class="nav-text">批量调用本地作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fill-批量赋值"><span class="nav-number">1.6.</span> <span class="nav-text">fill 批量赋值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fill-函数"><span class="nav-number">1.6.1.</span> <span class="nav-text">fill 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#forceFill"><span class="nav-number">1.6.2.</span> <span class="nav-text">forceFill</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-修改器"><span class="nav-number">2.</span> <span class="nav-text">Eloquent Model 修改器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义修改器"><span class="nav-number">2.1.</span> <span class="nav-text">自定义修改器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换器"><span class="nav-number">2.2.</span> <span class="nav-text">日期转换器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#json-转换器"><span class="nav-number">2.3.</span> <span class="nav-text">json 转换器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-访问器"><span class="nav-number">3.</span> <span class="nav-text">Eloquent Model 访问器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取原始值"><span class="nav-number">3.1.</span> <span class="nav-text">获取原始值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器"><span class="nav-number">3.2.</span> <span class="nav-text">自定义访问器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型转换"><span class="nav-number">3.3.</span> <span class="nav-text">类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换"><span class="nav-number">3.4.</span> <span class="nav-text">日期转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Eloquent-Model-数组转化"><span class="nav-number">4.</span> <span class="nav-text">Eloquent Model 数组转化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#getArrayableAttributes-原始值获取"><span class="nav-number">4.1.</span> <span class="nav-text">getArrayableAttributes 原始值获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日期转换-1"><span class="nav-number">4.2.</span> <span class="nav-text">日期转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义访问器转换"><span class="nav-number">4.3.</span> <span class="nav-text">自定义访问器转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cast-类型转换"><span class="nav-number">4.4.</span> <span class="nav-text">cast 类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appends-额外属性添加"><span class="nav-number">4.5.</span> <span class="nav-text">appends 额外属性添加</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询作用域"><span class="nav-number">5.</span> <span class="nav-text">查询作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#全局作用域"><span class="nav-number">5.1.</span> <span class="nav-text">全局作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本地作用域"><span class="nav-number">5.2.</span> <span class="nav-text">本地作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#批量调用本地作用域"><span class="nav-number">5.3.</span> <span class="nav-text">批量调用本地作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fill-批量赋值"><span class="nav-number">6.</span> <span class="nav-text">fill 批量赋值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fill-函数"><span class="nav-number">6.1.</span> <span class="nav-text">fill 函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#forceFill"><span class="nav-number">6.2.</span> <span class="nav-text">forceFill</span></a></li></ol></li></ol></div>
             
 
           </div>
